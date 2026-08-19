@@ -43,7 +43,7 @@ A 10 milliárd Yang főnyereményt nem automatikusan írjuk jóvá. Ha megnyerte
   </div>
 </div>
 <button class="btn primary" id="daily" style="width:100%;margin-top:14px">🎁 Napi <span id="dailyAmount">5 000</span> Coin · csak 1×/nap</button><button class="btn" id="dailySoul" style="width:100%;margin-top:8px">👻 Napi <span id="dailySoulAmount">5 000</span> Lélek Pont · csak 1×/nap</button></aside></section>
-</div><section id="slotMode" style="display:none"><div class="layout"><div class="card case"><div class="casehead"><div><h2>🎰 OMI Gamba SLOT</h2><div class="small"><span id="slotSkullChance">40</span>% ☠️ Koponya · <span id="slotWinChance">60</span>% ✅ NYERTES</div></div></div><div class="slot-machine"><div class="slot-window"><div class="slot-symbol" id="slotSymbol">🎰</div><div class="slot-word" id="slotWord">VÁLASSZ TÉTET</div></div></div><div class="slot-bets" id="slotBets"></div><button class="open" id="slotSpin">🎰 PÖRGETÉS</button><div class="slot-result" id="slotResult"><div class="small">A pörgetés eredménye itt jelenik meg.</div></div></div><aside class="card side"><h2>📊 Slot statisztikád</h2><div class="stat"><span>Elpörgetett Coin</span><strong id="slotSpent">0</strong></div><div class="stat"><span>Összes pörgetés</span><strong id="slotSpins">0</strong></div><div class="stat"><span>Slotból nyert Coin</span><strong id="slotWon">0</strong></div><div class="stat"><span>Aktuális egyenleg</span><strong id="slotBalance">0</strong></div></aside></div></section>
+</div><section id="slotMode" style="display:none"><div class="layout"><div class="card case"><div class="casehead"><div><h2>🎰 OMI Gamba SLOT</h2><div class="small">Válassz tétet és pörgess!</div></div></div><div class="slot-machine"><div class="slot-window"><div class="slot-symbol" id="slotSymbol">🎰</div><div class="slot-word" id="slotWord">VÁLASSZ TÉTET</div></div></div><div class="slot-bets" id="slotBets"></div><button class="open" id="slotSpin">🎰 PÖRGETÉS</button><div class="slot-result" id="slotResult"><div class="small">A pörgetés eredménye itt jelenik meg.</div></div></div><aside class="card side"><h2>📊 Slot statisztikád</h2><div class="stat"><span>Elpörgetett Coin</span><strong id="slotSpent">0</strong></div><div class="stat"><span>Összes pörgetés</span><strong id="slotSpins">0</strong></div><div class="stat"><span>Slotból nyert Coin</span><strong id="slotWon">0</strong></div><div class="stat"><span>Aktuális egyenleg</span><strong id="slotBalance">0</strong></div></aside></div></section>
 <section id="redeemMode" style="display:none">
 <div class="exchange-panel card">
   <div class="exchange-head">
@@ -557,7 +557,7 @@ document.addEventListener("input",(e)=>{
 });
 
 let slotConfig=null,selectedSlotBet=null,slotBusy=false;
-async function loadSlotConfig(){try{slotConfig=await api("/api/slot-config");if($("#slotWinChance"))$("#slotWinChance").textContent=slotConfig.winChance;if($("#slotSkullChance"))$("#slotSkullChance").textContent=slotConfig.skullChance;const bets=slotConfig.bets||[];$("#slotBets").innerHTML=bets.map((x,i)=>`<button class="slot-bet ${i===0?"active":""}" data-bet="${x.bet}"><b>${fmt(x.bet)} Coin</b><small>NYERTES: ${fmt(x.payout)} Coin</small></button>`).join("");selectedSlotBet=bets[0]?.bet||null}catch(e){}}
+async function loadSlotConfig(){try{slotConfig=await api("/api/slot-config");const bets=slotConfig.bets||[];$("#slotBets").innerHTML=bets.map((x,i)=>`<button class="slot-bet ${i===0?"active":""}" data-bet="${x.bet}"><b>${fmt(x.bet)} Coin</b><small>NYERTES: ${fmt(x.payout)} Coin</small></button>`).join("");selectedSlotBet=bets[0]?.bet||null}catch(e){}}
 $("#modeChest").onclick=()=>{$("#inventoryMode").style.display="none";$("#modeInventory")?.classList.remove("active");$("#shopMode").style.display="none";$("#modeShop")?.classList.remove("active");$("#chestMode").style.display="block";$("#slotMode").style.display="none";$("#redeemMode").style.display="none";$("#statsMode").style.display="none";$("#modeChest").classList.add("active");$("#modeSlot").classList.remove("active");$("#modeStats").classList.remove("active");$("#modeRedeem").classList.remove("active");$("#modeStats").classList.remove("active")};
 $("#modeSlot").onclick=()=>{$("#inventoryMode").style.display="none";$("#modeInventory")?.classList.remove("active");$("#shopMode").style.display="none";$("#modeShop")?.classList.remove("active");$("#chestMode").style.display="none";$("#slotMode").style.display="block";$("#redeemMode").style.display="none";$("#statsMode").style.display="none";$("#modeSlot").classList.add("active");$("#modeChest").classList.remove("active");$("#modeStats").classList.remove("active");$("#modeRedeem").classList.remove("active");$("#modeStats").classList.remove("active")};
 $("#modeRedeem").onclick=()=>{$("#inventoryMode").style.display="none";$("#modeInventory")?.classList.remove("active");$("#shopMode").style.display="none";$("#modeShop")?.classList.remove("active");
@@ -744,57 +744,6 @@ function playPurchasedChime(name){
  }catch{}
 }
 
-
-function playShopChimePreview(name){
- try{
-   const AudioCtx=window.AudioContext||window.webkitAudioContext;
-   if(!AudioCtx){toast("A böngésző nem támogatja a hangelőnézetet.");return}
-   const ctx=new AudioCtx();
-   if(ctx.state==="suspended")ctx.resume();
-   const now=ctx.currentTime;
-   const presets={
-     classic:{notes:[880,1174],type:"sine",gap:.11},
-     crystal:{notes:[1046,1318,1568,2093],type:"sine",gap:.09},
-     royal:{notes:[523,659,784,1046],type:"triangle",gap:.12},
-     arcane:{notes:[392,523,659,988],type:"sine",gap:.14},
-     heaven:{notes:[659,988,1318,1760],type:"sine",gap:.16},
-     dark:{notes:[220,196,164,130],type:"triangle",gap:.15},
-     pixel:{notes:[784,1046,1318,1046,1568],type:"square",gap:.08}
-   };
-   const p=presets[name]||presets.classic;
-   p.notes.forEach((freq,i)=>{
-     const t=now+i*p.gap;
-     const o=ctx.createOscillator(),g=ctx.createGain();
-     o.type=p.type;o.frequency.setValueAtTime(freq,t);
-     g.gain.setValueAtTime(.0001,t);
-     g.gain.exponentialRampToValueAtTime(.16,t+.02);
-     g.gain.exponentialRampToValueAtTime(.0001,t+.20);
-     o.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+.22);
-   });
-   setTimeout(()=>ctx.close().catch(()=>{}),2000);
- }catch(e){toast("Hangelőnézet hiba: "+e.message)}
-}
-function previewShopBackground(name){
- const previous=document.body.dataset.shopBg||user?.selected_background||"black_gold";
- document.body.dataset.shopBg=name||"black_gold";
- clearTimeout(window.__shopBgPreviewTimer);
- window.__shopBgPreviewTimer=setTimeout(()=>{
-   document.body.dataset.shopBg=user?.selected_background||previous;
- },7000);
- toast("🎨 Háttér előnézet aktív 7 másodpercig.");
-}
-function previewShopCursor(name){
- const previous=document.body.dataset.shopCursor||user?.selected_cursor||"gold_small";
- document.body.dataset.shopCursor=name||"gold_small";
- window.activeShopCursor=name||"gold_small";
- clearTimeout(window.__shopCursorPreviewTimer);
- window.__shopCursorPreviewTimer=setTimeout(()=>{
-   const back=user?.selected_cursor||previous;
-   document.body.dataset.shopCursor=back;window.activeShopCursor=back;
- },7000);
- toast("🖱️ Kurzor előnézet aktív 7 másodpercig.");
-}
-
 async function loadShop(){
  if(!user)return;
  try{
@@ -831,13 +780,27 @@ async function loadShop(){
 }
 
 
-document.addEventListener("click",e=>{
- const ch=e.target.closest("[data-preview-chime]");
- if(ch){e.preventDefault();playShopChimePreview(ch.dataset.previewChime);return}
- const bg=e.target.closest("[data-preview-bg]");
- if(bg){e.preventDefault();previewShopBackground(bg.dataset.previewBg);return}
- const cu=e.target.closest("[data-preview-cursor]");
- if(cu){e.preventDefault();previewShopCursor(cu.dataset.previewCursor);return}
+document.addEventListener("click",(e)=>{
+  const ch=e.target.closest("[data-preview-chime]");
+  if(ch){
+    e.preventDefault();
+    playPurchasedChime(ch.dataset.previewChime);
+    return;
+  }
+
+  const bg=e.target.closest("[data-preview-bg]");
+  if(bg){
+    e.preventDefault();
+    previewBackground(bg.dataset.previewBg);
+    return;
+  }
+
+  const cur=e.target.closest("[data-preview-cursor]");
+  if(cur){
+    e.preventDefault();
+    previewCursor(cur.dataset.previewCursor);
+    return;
+  }
 });
 
 document.addEventListener("click",async e=>{

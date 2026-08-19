@@ -1105,22 +1105,46 @@ app.post("/api/admin/redemption-config",auth,admin,async(req,res)=>{
 app.post("/api/admin/player-balance-reset/:id",auth,admin,async(req,res)=>{
  try{
    const id=Number(req.params.id);
-   if(!Number.isInteger(id))return res.status(400).json({error:"Hibás játékos ID."});
    const type=String(req.body.type||"");
-   const allowed=["coins","soul_points","yang_balance"];
-   if(!allowed.includes(type))return res.status(400).json({error:"Ismeretlen egyenlegtípus."});
 
-   const player=(await q("SELECT id,username,role FROM users WHERE id=$1",[id])).rows[0];
-   if(!player)return res.status(404).json({error:"Játékos nem található."});
-   if(player.role==="admin")return res.status(403).json({error:"Admin egyenlegét innen nem lehet resetelni."});
+   if(!Number.isInteger(id)){
+     return res.status(400).json({error:"Hibás játékos ID."});
+   }
 
-   await q(`UPDATE users SET ${type}=0 WHERE id=$1`,[id]);
+   const columns={
+     coins:"coins",
+     soul:"soul_points",
+     yang:"yang_balance"
+   };
+   const column=columns[type];
+   if(!column){
+     return res.status(400).json({error:"Ismeretlen egyenleg."});
+   }
 
-   const label=type==="coins"?"Coin":type==="soul_points"?"Lélek Pont":"Yang";
-   res.json({ok:true,message:`${player.username} ${label} egyenlege 0-ra állítva.`,user:await userView(id)});
+   const player=(await q(
+     "SELECT id,username,role FROM users WHERE id=$1",
+     [id]
+   )).rows[0];
+
+   if(!player){
+     return res.status(404).json({error:"Játékos nem található."});
+   }
+
+   if(player.role==="admin"){
+     return res.status(403).json({error:"Admin fiók egyenlege innen nem nullázható."});
+   }
+
+   await q(`UPDATE users SET ${column}=0 WHERE id=$1`,[id]);
+
+   const labels={coins:"Coin",soul:"Lélek Pont",yang:"Yang"};
+   res.json({
+     ok:true,
+     message:`${player.username}: ${labels[type]} egyenleg lenullázva.`,
+     user:await userView(id)
+   });
  }catch(e){
-   console.error("ADMIN PLAYER BALANCE RESET ERROR:",e);
-   res.status(500).json({error:"Az egyenleg reset nem sikerült."});
+   console.error("ADMIN BALANCE RESET ERROR:",e);
+   res.status(500).json({error:"Az egyenleg nullázása nem sikerült."});
  }
 });
 
