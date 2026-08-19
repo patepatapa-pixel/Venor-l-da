@@ -94,3 +94,12 @@ V14 RENDER JAVÍTOTT:
 - 500K Yang és 1M Yang továbbra sincs a ládában.
 - A meglévő itemes drop-admin rendszer megmaradt.
 - Node.js szintaktikai ellenőrzés: OK.
+
+V15 FINOMHANGOLÁS:
+- 5M Yang kikerült.
+- Helyette 50M Yang került be.
+- 500 Coin továbbra is jóváíródik, de a játékosnak nem jelenik meg külön dropként.
+- A jobb oldali "Legutóbbi nyerések" blokk kikerült.
+- A nyitási eredmény kizárólag a nyitás gomb alatt jelenik meg.
+- A nyeremények egymás alatt, rendezett sorokban jelennek meg.
+- A láda teljes tartalma nézetben a 500 Coin nincs kijelezve.

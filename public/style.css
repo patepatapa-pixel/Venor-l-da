@@ -8,3 +8,12 @@ body::before { pointer-events: none !important; z-index: 0; }
 .modal[style*="display: flex"], .modal[style*="display:flex"] { pointer-events: auto; }
 #jackpotOverlay { pointer-events: none; }
 #jackpotOverlay[style*="display: flex"], #jackpotOverlay[style*="display:flex"] { pointer-events: auto; }
+
+/* V15 finomhangolás */
+#openResults { min-height: 120px; }
+#resultRows .list-item, #resultRows > div {
+  width: 100%;
+}
+#resultRows b:last-child {
+  font-variant-numeric: tabular-nums;
+}

@@ -5,12 +5,12 @@
 <section class="layout"><div class="card case"><div class="casehead"><h2>🧪 Venori Láda</h2><span class="small">Ár: <b id="price">100</b> Coin</span></div><div class="reward-grid" id="nyeremenyek">
 
 
-<div class="reward"><div class="icon">👑</div><div class="rarity">Epic</div><b>5M Yang</b><small>Alap drop</small></div>
+<div class="reward"><div class="icon">👑</div><div class="rarity">Epic</div><b>50M Yang</b><small>Alap drop</small></div>
 <div class="reward"><div class="icon">🏆</div><div class="rarity">Jackpot</div><b>10B Yang</b><small>Max. főnyeremény</small></div>
 <div class="reward"><div class="icon">🐾</div><div class="rarity">Legendás</div><b>Ritka PET</b><small>Csengő + tűzijáték</small></div>
 <div class="reward"><div class="icon">🪙</div><div class="rarity">Coin</div><b>500 Coin</b><small>Azonnal hozzáadódik</small></div>
 </div><div class="openbox"><div class="openrow"><span>Nyitási mennyiség</span><b id="qty">1×</b></div><button class="open" id="open">✦ 1× LÁDA NYITÁSA</button></div>
-<div id="openResults" style="margin-top:16px;padding:14px;border:1px solid #30283c;border-radius:14px;background:rgba(255,255,255,.018)">
+<div id="openResults" style="margin-top:16px;padding:16px;border:1px solid #3a2d4d;border-radius:14px;background:linear-gradient(180deg,rgba(18,12,26,.98),rgba(10,7,14,.98));box-shadow:inset 0 1px 0 rgba(255,255,255,.025)">
   <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px">
     <b>🎁 Legutóbbi nyitás eredménye</b><span class="small" id="resultCount">Még nincs nyitás</span>
   </div>
@@ -26,10 +26,10 @@
 Ha megnyered a 10 milliárd Yang főnyereményt, a nyereményt játékban kapod meg.
 Az átvételhez írj a <b style="color:#fff">Hox</b> nevű játékosnak.
 </p>
-</div><div class="stat"><span>5M Yang</span><strong>5 000 000</strong></div><div class="stat"><span>MAX Jackpot</span><strong class="gold">10 000 000 000</strong></div><div style="margin-top:14px;padding:14px;border:1px solid rgba(255,215,0,.35);border-radius:12px;background:rgba(255,215,0,.06);line-height:1.55">
+</div><div class="stat"><span>50M Yang</span><strong>50 000 000</strong></div><div class="stat"><span>MAX Jackpot</span><strong class="gold">10 000 000 000</strong></div><div style="margin-top:14px;padding:14px;border:1px solid rgba(255,215,0,.35);border-radius:12px;background:rgba(255,215,0,.06);line-height:1.55">
 <b>🎮 Főnyeremény átvétele</b><br>
 A 10 milliárd Yang főnyereményt nem automatikusan írjuk jóvá. Ha megnyerted, keress meg játékban és írj a <b>Hox</b> nevű játékosnak, aki átadja neked a nyereményt.
-</div><h3 style="margin:18px 0 8px">⚡ Legutóbbi nyerések</h3><div class="list" id="activity"></div><button class="btn primary" id="daily" style="width:100%;margin-top:14px">🎁 Napi <span id="dailyAmount">5 000</span> Coin · csak 1×/nap</button></aside></section>
+</div><button class="btn primary" id="daily" style="width:100%;margin-top:14px">🎁 Napi <span id="dailyAmount">5 000</span> Coin · csak 1×/nap</button></aside></section>
 <section class="card section" id="teljesDropLista">
 <h3>🎁 A láda teljes tartalma</h3>
 <p class="small">Az admin által jelenleg engedélyezett nyeremények. A lista automatikusan frissül.</p>
@@ -54,16 +54,15 @@ function renderOpenResults(d){
    grouped[r.name].count+=(r.qty||1);
  });
  $("#resultCount").textContent=`${d.results.length}× láda`;
- $("#resultRows").innerHTML=Object.values(grouped).map(r=>`
- <div style="display:grid;grid-template-columns:44px 1fr auto;align-items:center;gap:10px;padding:12px;border:1px solid #30283c;border-radius:12px;background:rgba(255,255,255,.025)">
+ $("#resultRows").innerHTML=Object.values(grouped).filter(r=>r.name!=="500 Coin").map(r=>`
+ <div style="display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;gap:12px;padding:13px 14px;border:1px solid #332941;border-radius:12px;background:#0b0911">
    <div style="font-size:26px;text-align:center">${r.icon}</div>
    <div><b>${r.name}</b><div class="small">${r.type==="yang"?"Yang nyeremény":r.type==="coin"?"Coin nyeremény":"Tárgy / PET"}</div></div>
    <b>${r.count}×</b>
  </div>`).join("");
  $("#resultTotals").style.display="block";
  $("#resultTotals").innerHTML=`
- <div class="stat"><span>💰 Összes nyert Yang</span><b>${fmt(d.won?.yang||0)}</b></div>
- <div class="stat"><span>🪙 Összes nyert Coin</span><b>${fmt(d.won?.coin||0)}</b></div>`;
+ <div class="stat"><span>💰 Összes nyert Yang</span><b>${fmt(d.won?.yang||0)}</b></div>`;
 }
 function render(){const ok=!!user;$("#coins").textContent=ok?fmt(user.coins):"—";$("#coins2").textContent=ok?fmt(user.coins):"—";$("#played").textContent=ok?fmt(user.played_coins):"—";$("#opened").textContent=ok?fmt(user.total_opened):"—";$("#yangWon").textContent=ok?fmt(user.total_yang_won):"—";$("#coinWon").textContent=ok?fmt(user.total_coin_won):"—";$("#name").textContent=ok?user.username:"Vendég";$("#authBtn").style.display=ok?"none":"inline-block";$("#registerBtn").style.display=ok?"none":"inline-block";$("#logout").style.display=ok?"inline-block":"none";$("#adminLink").style.display=ok&&user.role==="admin"?"inline":"none"}
 async function loadPublic(){cfg=await api("/api/public");$("#announcement").textContent=cfg.announcement;$("#dailyAmount").textContent=fmt(cfg.dailyBonus);document.querySelectorAll(".tab:not([disabled])").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));b.classList.add("active");q=+b.dataset.q;$("#qty").textContent=q+"×";$("#price").textContent=fmt(cfg.chestPrice*q);$("#open").textContent="✦ "+q+"× LÁDA NYITÁSA"})}
@@ -73,18 +72,16 @@ async function inv(){if(!user)return;const d=await api("/api/inventory");$("#inv
 async function loadDropsPublic(){
  try{
    const d=await api("/api/drops");
-   $("#allDrops").innerHTML=(d.drops||[]).map(r=>`
+   $("#allDrops").innerHTML=(d.drops||[]).filter(r=>r.name!=="500 Coin").map(r=>`
      <div class="list-item" style="display:flex;gap:9px;align-items:center">
        <span style="font-size:22px">${r.icon||"🎁"}</span>
        <div><b>${r.name}</b><div class="small">${r.type==="item"?`${r.min_qty||1}-${r.max_qty||1} db`:r.type==="yang"?`${fmt(r.amount)} Yang`:`${fmt(r.amount)} Coin`}</div></div>
      </div>`).join("");
  }catch{}
 }
-async function lists(){const [l,a]=await Promise.all([api("/api/leaderboard"),api("/api/activity")]);$("#leader").innerHTML=l.rows.map((x,i)=>`<div class="list-item leader"><span class="rank">#${i+1}</span><b>${x.username}</b><span>💰 ${fmt(x.total_yang_won)} Yang · 🪙 ${fmt(x.total_coin_won)} Coin</span></div>`).join("")||"<div class='small'>Nincs ranglista.</div>";$("#activity").innerHTML=a.rows.map(x=>`<div class="stat"><span>${x.username}</span><strong class="green">${x.reward_text.split(",")[0]}</strong></div>`).join("")||"<div class='small'>Még nincs nyerés.</div>"}
-function loadRememberedLogin(){
- const remembered=localStorage.getItem("venori_remembered_username")||"";
- if(remembered) $("#username").value=remembered;
- $("#rememberMe").checked=localStorage.getItem("venori_remember_login")!=="0";
+async function lists(){
+ const l=await api("/api/leaderboard");
+ $("#leader").innerHTML=l.rows.map((x,i)=>`<div class="list-item leader"><span class="rank">#${i+1}</span><b>${x.username}</b><span>💰 ${fmt(x.total_yang_won)} Yang · 🪙 ${fmt(x.total_coin_won)} Coin</span></div>`).join("")||"<div class='small'>Nincs ranglista.</div>";
 }
 function saveRememberedLogin(){
  const remember=$("#rememberMe").checked;
@@ -119,7 +116,7 @@ $("#open").onclick=async()=>{if(!user){openModal("login");return}try{
  const d=await api("/api/open",{method:"POST",body:JSON.stringify({quantity:q})});
  user=d.user;render();renderOpenResults(d);
  const grouped={};d.results.forEach(r=>grouped[r.name]=(grouped[r.name]||0)+(r.qty||1));
- const all=Object.entries(grouped).map(([n,c])=>`${c}× ${n}`).join(" · ");
+ const all=Object.entries(grouped).filter(([n])=>n!=="500 Coin").map(([n,c])=>`${c}× ${n}`).join(" · ");
  toast(`🎉 ${all} | +${fmt(d.won?.yang||0)} Yang | +${fmt(d.won?.coin||0)} Coin`);
  if(d.jackpot?.won){
    $("#jackpotOverlay").style.display="flex";$("#jackpotOverlay").style.pointerEvents="auto";
