@@ -297,3 +297,13 @@ V42:
 - Minden shop tétel Yang ára és értéke adminpanelből állítható.
 - Csengőhang és háttér megvásárlás után kiválasztható.
 - Yang -> Lélekpont átváltás most az elkölthető Yang egyenleget használja.
+
+V43:
+- Sok új háttér téma került a Yang Shopba.
+- Háttér témák vásárlás előtt 5 másodperces előnézettel kipróbálhatók.
+- Több új csengőhang került be, mindegyik vásárlás előtt lejátszható.
+- Kurzorok kerültek a Yang Shopba több méretben és stílusban.
+- Csillámos, nagy csillámos, láng és szivárvány mozgási effektek.
+- Kurzorok vásárlás előtt 5 másodpercig kipróbálhatók.
+- Minden kozmetikai tétel Yang ára adminból állítható.
+- Coin tranzakciók az adminpanelen teljesen külön 'Coin tranzakciók' fülre kerültek.

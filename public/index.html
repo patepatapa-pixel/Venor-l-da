@@ -618,24 +618,47 @@ document.addEventListener("click",async e=>{
 function applyPurchasedBackground(name){
  document.body.dataset.shopBg=name||"black_gold";
 }
+function applyPurchasedCursor(name){
+ document.body.dataset.shopCursor=name||"gold_small";
+ window.activeShopCursor=name||"gold_small";
+}
+function previewBackground(name){
+ const old=document.body.dataset.shopBg||"black_gold";
+ applyPurchasedBackground(name);
+ clearTimeout(window._bgPreviewTimer);
+ window._bgPreviewTimer=setTimeout(()=>applyPurchasedBackground(user?.selected_background||old),5000);
+ toast("🎨 Háttér előnézet – 5 másodperc");
+}
+function previewCursor(name){
+ const old=document.body.dataset.shopCursor||"gold_small";
+ applyPurchasedCursor(name);
+ clearTimeout(window._cursorPreviewTimer);
+ window._cursorPreviewTimer=setTimeout(()=>applyPurchasedCursor(user?.selected_cursor||old),5000);
+ toast("🖱️ Kurzor előnézet – mozgasd az egeret!");
+}
 function playPurchasedChime(name){
  try{
    const ctx=new (window.AudioContext||window.webkitAudioContext)();
    const now=ctx.currentTime;
    const presets={
-     classic:[880,1174],
-     crystal:[1046,1318,1568],
-     royal:[523,659,784,1046]
+     classic:{notes:[880,1174],type:"sine",gap:.11},
+     crystal:{notes:[1046,1318,1568,2093],type:"sine",gap:.09},
+     royal:{notes:[523,659,784,1046],type:"triangle",gap:.12},
+     arcane:{notes:[392,523,659,988],type:"sine",gap:.14},
+     heaven:{notes:[659,988,1318,1760],type:"sine",gap:.16},
+     dark:{notes:[220,196,164,130],type:"triangle",gap:.15},
+     pixel:{notes:[784,1046,1318,1046,1568],type:"square",gap:.08}
    };
-   const seq=presets[name]||presets.classic;
-   seq.forEach((freq,i)=>{
-     const o=ctx.createOscillator(),g=ctx.createGain();
-     o.frequency.value=freq;o.type="sine";
-     g.gain.setValueAtTime(.0001,now+i*.11);
-     g.gain.exponentialRampToValueAtTime(.16,now+i*.11+.02);
-     g.gain.exponentialRampToValueAtTime(.0001,now+i*.11+.18);
-     o.connect(g);g.connect(ctx.destination);o.start(now+i*.11);o.stop(now+i*.11+.2);
+   const p=presets[name]||presets.classic;
+   p.notes.forEach((freq,i)=>{
+     const o=ctx.createOscillator(),g=ctx.createGain(),t=now+i*p.gap;
+     o.frequency.value=freq;o.type=p.type;
+     g.gain.setValueAtTime(.0001,t);
+     g.gain.exponentialRampToValueAtTime(.11,t+.015);
+     g.gain.exponentialRampToValueAtTime(.0001,t+.18);
+     o.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+.2);
    });
+   setTimeout(()=>ctx.close().catch(()=>{}),1800);
  }catch{}
 }
 
@@ -647,18 +670,29 @@ async function loadShop(){
    $("#shopYangBalance").textContent=fmt(user.yang_balance||0);
    const owned=new Set(d.owned||[]);
    $("#shopItems").innerHTML=(d.items||[]).map(x=>{
-     const cosmetic=["chime","background"].includes(x.type);
+     const cosmetic=["chime","background","cursor"].includes(x.type);
      const has=owned.has(x.id)||Number(x.price||0)===0;
-     const icon=x.type==="chime"?"🔔":x.type==="background"?"🎨":x.type==="coin"?"🪙":"👻";
+     const icon=x.type==="chime"?"🔔":x.type==="background"?"🎨":x.type==="cursor"?"🖱️":x.type==="coin"?"🪙":"👻";
+     const desc=x.type==="soul"?fmt(x.value)+" Lélek Pont":
+                x.type==="coin"?fmt(x.value)+" Coin":
+                x.type==="chime"?"Nyereményhang":
+                x.type==="background"?"Háttér téma":"Kurzor / egéreffekt";
+     const preview=x.type==="chime"?`<button class="btn" data-preview-chime="${x.value}">▶ Meghallgatás</button>`:
+                   x.type==="background"?`<button class="btn" data-preview-bg="${x.value}">👁 Előnézet</button>`:
+                   x.type==="cursor"?`<button class="btn" data-preview-cursor="${x.value}">👁 Kipróbálás</button>`:"";
+     const action=cosmetic&&has
+       ? `<button class="btn primary" data-shop-select="${x.id}">✓ Kiválasztás</button>`
+       : `<button class="btn primary" data-shop-buy="${x.id}">${x.price==0?"Feloldás":"Vásárlás"}</button>`;
      return `<div class="shop-card">
        <div class="shop-icon">${icon}</div>
        <div class="shop-name">${x.name}</div>
-       <div class="small">${x.type==="soul"?fmt(x.value)+" Lélek Pont":x.type==="coin"?fmt(x.value)+" Coin":x.type==="chime"?"Nyereményhang":"Háttér téma"}</div>
+       <div class="small">${desc}</div>
        <div class="shop-price">💰 ${fmt(x.price)} Yang</div>
-       ${cosmetic&&has?`<button class="btn" data-shop-select="${x.id}">Kiválasztás</button>`:`<button class="btn primary" data-shop-buy="${x.id}">${x.price==0?"Feloldva":"Vásárlás"}</button>`}
+       <div class="shop-actions">${preview}${action}</div>
      </div>`;
    }).join("")||"<div class='small'>Nincs aktív shop tétel.</div>";
    applyPurchasedBackground(user.selected_background);
+   applyPurchasedCursor(user.selected_cursor);
  }catch(e){$("#shopMsg").textContent="❌ "+e.message}
 }
 
@@ -675,7 +709,7 @@ document.addEventListener("click",async e=>{
  if(sel){
    try{
      const d=await api("/api/shop/select",{method:"POST",body:JSON.stringify({itemId:sel.dataset.shopSelect})});
-     user=d.user;render();applyPurchasedBackground(user.selected_background);$("#shopMsg").textContent="✅ Kiválasztva.";await loadShop();
+     user=d.user;render();applyPurchasedBackground(user.selected_background);applyPurchasedCursor(user.selected_cursor);$("#shopMsg").textContent="✅ Kiválasztva.";await loadShop();
    }catch(err){$("#shopMsg").textContent="❌ "+err.message}
  }
 });
@@ -685,6 +719,22 @@ $("#modeShop").onclick=()=>{
  ["modeChest","modeSlot","modeRedeem","modeStats","modeShop"].forEach(id=>$("#"+id)?.classList.remove("active"));
  $("#shopMode").style.display="block";$("#modeShop").classList.add("active");loadShop();
 };
+
+
+let lastTrailAt=0;
+document.addEventListener("mousemove",e=>{
+ const mode=window.activeShopCursor||document.body.dataset.shopCursor||"gold_small";
+ const now=performance.now();
+ if(!["sparkle","sparkle_large","rainbow","flame"].includes(mode) || now-lastTrailAt<35)return;
+ lastTrailAt=now;
+ const dot=document.createElement("div");
+ dot.className="cursor-trail "+mode;
+ dot.style.left=e.clientX+"px";
+ dot.style.top=e.clientY+"px";
+ dot.textContent=mode==="flame"?"✦":mode==="rainbow"?"✧":"✦";
+ document.body.appendChild(dot);
+ setTimeout(()=>dot.remove(),650);
+});
 
 </script>
 

@@ -587,3 +587,41 @@ body[data-shop-bg="emerald"]{background:radial-gradient(circle at 50% 0,#0c3324,
 body[data-shop-bg="black_gold"]{background:radial-gradient(circle at 50% -10%,rgba(242,193,78,.08),transparent 36%),linear-gradient(180deg,#050505,#030303)!important}
 @media(max-width:900px){.shop-grid{grid-template-columns:1fr 1fr}.shop-admin-row{grid-template-columns:1fr 1fr}}
 @media(max-width:560px){.shop-grid,.shop-admin-row{grid-template-columns:1fr}}
+
+/* V43 backgrounds */
+body[data-shop-bg="obsidian"]{background:radial-gradient(circle at 20% 0,rgba(255,190,65,.12),transparent 35%),radial-gradient(circle at 90% 20%,rgba(255,220,120,.06),transparent 30%),linear-gradient(180deg,#050505,#0c0a06 60%,#020202)!important}
+body[data-shop-bg="royal"]{background:radial-gradient(circle at 25% 0,rgba(92,44,160,.30),transparent 38%),radial-gradient(circle at 80% 15%,rgba(222,170,50,.14),transparent 34%),linear-gradient(180deg,#090510,#100818 58%,#030204)!important}
+body[data-shop-bg="ice"]{background:radial-gradient(circle at 40% 0,rgba(130,210,255,.25),transparent 40%),linear-gradient(180deg,#061017,#07131c 55%,#020609)!important}
+body[data-shop-bg="sunset"]{background:radial-gradient(circle at 20% 0,rgba(255,145,50,.24),transparent 34%),radial-gradient(circle at 80% 10%,rgba(200,45,100,.23),transparent 34%),linear-gradient(180deg,#17090c,#0d0709 58%,#030303)!important}
+body[data-shop-bg="neon"]{background:radial-gradient(circle at 20% 0,rgba(0,160,255,.25),transparent 34%),radial-gradient(circle at 85% 10%,rgba(180,45,255,.24),transparent 34%),linear-gradient(180deg,#050714,#070713 58%,#020207)!important}
+body[data-shop-bg="bloodmoon"]{background:radial-gradient(circle at 50% -5%,rgba(190,0,28,.30),transparent 32%),linear-gradient(180deg,#110305,#080304 55%,#020202)!important}
+body[data-shop-bg="aqua"]{background:radial-gradient(circle at 25% 0,rgba(0,235,210,.22),transparent 36%),radial-gradient(circle at 85% 15%,rgba(0,120,255,.16),transparent 34%),linear-gradient(180deg,#031010,#041516 58%,#020505)!important}
+body[data-shop-bg="starlight"]{background:radial-gradient(circle at 12% 8%,rgba(255,220,120,.13),transparent 18%),radial-gradient(circle at 70% 2%,rgba(255,255,255,.08),transparent 15%),radial-gradient(circle at 90% 25%,rgba(255,190,65,.09),transparent 13%),linear-gradient(180deg,#050506,#080706 55%,#020202)!important}
+
+/* V43 custom cursors */
+body[data-shop-cursor="gold_small"],body[data-shop-cursor="gold_small"] *{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath d='M3 2 L20 13 L13 15 L17 24 L13 26 L9 17 L4 22 Z' fill='%23f2c14e' stroke='%23000' stroke-width='1.6'/%3E%3C/svg%3E") 3 2,auto!important}
+body[data-shop-cursor="gold_large"],body[data-shop-cursor="gold_large"] *{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cpath d='M4 3 L31 20 L20 23 L26 36 L19 38 L13 25 L6 33 Z' fill='%23ffd45d' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E") 4 3,auto!important}
+body[data-shop-cursor="crystal"],body[data-shop-cursor="crystal"] *{cursor:crosshair!important}
+body[data-shop-cursor="royal"],body[data-shop-cursor="royal"] *{cursor:cell!important}
+body[data-shop-cursor="neon"],body[data-shop-cursor="neon"] *{cursor:alias!important}
+body[data-shop-cursor="flame"],body[data-shop-cursor="flame"] *{cursor:pointer!important}
+body[data-shop-cursor="sparkle"],body[data-shop-cursor="sparkle"] *{cursor:default!important}
+body[data-shop-cursor="sparkle_large"],body[data-shop-cursor="sparkle_large"] *{cursor:default!important}
+body[data-shop-cursor="rainbow"],body[data-shop-cursor="rainbow"] *{cursor:grab!important}
+
+/* Cursor trail */
+.cursor-trail{position:fixed;z-index:999999;pointer-events:none;transform:translate(-50%,-50%);animation:cursorTrailFade .65s ease-out forwards;font-size:13px;color:#ffd45d;text-shadow:0 0 8px currentColor}
+.cursor-trail.sparkle_large{font-size:22px}
+.cursor-trail.flame{color:#ff8a32}
+.cursor-trail.rainbow{animation:cursorTrailFade .65s ease-out forwards,cursorRainbow .35s linear infinite}
+@keyframes cursorTrailFade{0%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-80%) scale(.2)}}
+@keyframes cursorRainbow{0%{color:#ff4b4b}25%{color:#ffd84b}50%{color:#4bff96}75%{color:#62a8ff}100%{color:#da62ff}}
+
+/* Shop preview/actions */
+.shop-actions{display:flex;gap:7px;flex-wrap:wrap}.shop-actions .btn{flex:1;min-width:110px}
+
+/* Admin transaction tabs */
+.admin-tabbar{display:flex;gap:8px;position:sticky;top:0;z-index:100;padding:12px;background:rgba(5,5,5,.96);border-bottom:1px solid #3b2d10}
+.admin-tab{border:1px solid #3b2d10;background:#0b0a07;color:#d7ccb2;border-radius:10px;padding:10px 14px;font-weight:900;cursor:pointer}
+.admin-tab.active{background:linear-gradient(135deg,#d4a62a,#f2c14e);color:#090909;border-color:#f6d675}
+.admin-transactions-view{max-width:1150px;margin:18px auto}

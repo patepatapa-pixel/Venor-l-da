@@ -117,6 +117,7 @@ async function init(){
  await q("ALTER TABLE users ADD COLUMN IF NOT EXISTS yang_balance BIGINT NOT NULL DEFAULT 0");
  await q("ALTER TABLE users ADD COLUMN IF NOT EXISTS selected_chime TEXT NOT NULL DEFAULT 'classic'");
  await q("ALTER TABLE users ADD COLUMN IF NOT EXISTS selected_background TEXT NOT NULL DEFAULT 'black_gold'");
+ await q("ALTER TABLE users ADD COLUMN IF NOT EXISTS selected_cursor TEXT NOT NULL DEFAULT 'gold_small'");
  await q(`
    CREATE TABLE IF NOT EXISTS user_shop_unlocks(
      user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -172,9 +173,14 @@ async function init(){
  coin_soul_coin:"1000",
  coin_soul_soul:"500",
  shop_enabled:"true",
- shop_config:"[{\"id\":\"chime_classic\",\"name\":\"Klasszikus csilingelés\",\"type\":\"chime\",\"value\":\"classic\",\"price\":0,\"active\":true},{\"id\":\"chime_crystal\",\"name\":\"Kristály csilingelés\",\"type\":\"chime\",\"value\":\"crystal\",\"price\":5000000,\"active\":true},{\"id\":\"chime_royal\",\"name\":\"Királyi fanfár\",\"type\":\"chime\",\"value\":\"royal\",\"price\":25000000,\"active\":true},{\"id\":\"soul_1000\",\"name\":\"1 000 Lélek Pont\",\"type\":\"soul\",\"value\":1000,\"price\":10000000,\"active\":true},{\"id\":\"coin_1000\",\"name\":\"1 000 Coin\",\"type\":\"coin\",\"value\":1000,\"price\":15000000,\"active\":true},{\"id\":\"bg_midnight\",\"name\":\"Éjfekete háttér\",\"type\":\"background\",\"value\":\"midnight\",\"price\":5000000,\"active\":true},{\"id\":\"bg_crimson\",\"name\":\"Bíbor háttér\",\"type\":\"background\",\"value\":\"crimson\",\"price\":12000000,\"active\":true},{\"id\":\"bg_emerald\",\"name\":\"Smaragd háttér\",\"type\":\"background\",\"value\":\"emerald\",\"price\":12000000,\"active\":true}]",
- yang_balance_backfill_version:"0"};
+ shop_config:"[{\"id\":\"chime_classic\",\"name\":\"Klasszikus csilingelés\",\"type\":\"chime\",\"value\":\"classic\",\"price\":0,\"active\":true},{\"id\":\"chime_crystal\",\"name\":\"Kristály csilingelés\",\"type\":\"chime\",\"value\":\"crystal\",\"price\":5000000,\"active\":true},{\"id\":\"chime_royal\",\"name\":\"Királyi fanfár\",\"type\":\"chime\",\"value\":\"royal\",\"price\":25000000,\"active\":true},{\"id\":\"chime_arcane\",\"name\":\"Misztikus harang\",\"type\":\"chime\",\"value\":\"arcane\",\"price\":15000000,\"active\":true},{\"id\":\"chime_heaven\",\"name\":\"Égi csengés\",\"type\":\"chime\",\"value\":\"heaven\",\"price\":30000000,\"active\":true},{\"id\":\"chime_dark\",\"name\":\"Sötét gong\",\"type\":\"chime\",\"value\":\"dark\",\"price\":18000000,\"active\":true},{\"id\":\"chime_pixel\",\"name\":\"Retro 8-bit\",\"type\":\"chime\",\"value\":\"pixel\",\"price\":8000000,\"active\":true},{\"id\":\"soul_1000\",\"name\":\"1 000 Lélek Pont\",\"type\":\"soul\",\"value\":1000,\"price\":10000000,\"active\":true},{\"id\":\"coin_1000\",\"name\":\"1 000 Coin\",\"type\":\"coin\",\"value\":1000,\"price\":15000000,\"active\":true},{\"id\":\"bg_black_gold\",\"name\":\"Fekete-Arany\",\"type\":\"background\",\"value\":\"black_gold\",\"price\":0,\"active\":true},{\"id\":\"bg_midnight\",\"name\":\"Éjfekete-Kék\",\"type\":\"background\",\"value\":\"midnight\",\"price\":5000000,\"active\":true},{\"id\":\"bg_crimson\",\"name\":\"Fekete-Bíbor\",\"type\":\"background\",\"value\":\"crimson\",\"price\":12000000,\"active\":true},{\"id\":\"bg_emerald\",\"name\":\"Fekete-Smaragd\",\"type\":\"background\",\"value\":\"emerald\",\"price\":12000000,\"active\":true},{\"id\":\"bg_obsidian\",\"name\":\"Obszidián-Arany\",\"type\":\"background\",\"value\":\"obsidian\",\"price\":18000000,\"active\":true},{\"id\":\"bg_royal\",\"name\":\"Királyi Lila-Arany\",\"type\":\"background\",\"value\":\"royal\",\"price\":20000000,\"active\":true},{\"id\":\"bg_ice\",\"name\":\"Jégkék-Ezüst\",\"type\":\"background\",\"value\":\"ice\",\"price\":14000000,\"active\":true},{\"id\":\"bg_sunset\",\"name\":\"Naplemente Arany-Bíbor\",\"type\":\"background\",\"value\":\"sunset\",\"price\":22000000,\"active\":true},{\"id\":\"bg_neon\",\"name\":\"Neon Kék-Lila\",\"type\":\"background\",\"value\":\"neon\",\"price\":24000000,\"active\":true},{\"id\":\"bg_bloodmoon\",\"name\":\"Vérhold Fekete-Piros\",\"type\":\"background\",\"value\":\"bloodmoon\",\"price\":28000000,\"active\":true},{\"id\":\"bg_aqua\",\"name\":\"Aqua Türkiz-Kék\",\"type\":\"background\",\"value\":\"aqua\",\"price\":16000000,\"active\":true},{\"id\":\"bg_starlight\",\"name\":\"Csillagfény Fekete-Arany\",\"type\":\"background\",\"value\":\"starlight\",\"price\":32000000,\"active\":true},{\"id\":\"cursor_gold_small\",\"name\":\"Arany kurzor S\",\"type\":\"cursor\",\"value\":\"gold_small\",\"price\":0,\"active\":true},{\"id\":\"cursor_gold_large\",\"name\":\"Arany kurzor L\",\"type\":\"cursor\",\"value\":\"gold_large\",\"price\":6000000,\"active\":true},{\"id\":\"cursor_crystal\",\"name\":\"Kristály kurzor\",\"type\":\"cursor\",\"value\":\"crystal\",\"price\":10000000,\"active\":true},{\"id\":\"cursor_royal\",\"name\":\"Királyi kurzor\",\"type\":\"cursor\",\"value\":\"royal\",\"price\":15000000,\"active\":true},{\"id\":\"cursor_neon\",\"name\":\"Neon kurzor\",\"type\":\"cursor\",\"value\":\"neon\",\"price\":12000000,\"active\":true},{\"id\":\"cursor_flame\",\"name\":\"Láng kurzor\",\"type\":\"cursor\",\"value\":\"flame\",\"price\":18000000,\"active\":true},{\"id\":\"cursor_sparkle\",\"name\":\"Csillámos kurzor\",\"type\":\"cursor\",\"value\":\"sparkle\",\"price\":20000000,\"active\":true},{\"id\":\"cursor_sparkle_large\",\"name\":\"Nagy csillámos kurzor\",\"type\":\"cursor\",\"value\":\"sparkle_large\",\"price\":28000000,\"active\":true},{\"id\":\"cursor_rainbow\",\"name\":\"Szivárvány effekt kurzor\",\"type\":\"cursor\",\"value\":\"rainbow\",\"price\":30000000,\"active\":true}]",
+ yang_balance_backfill_version:"0",
+ shop_schema_version:"v43"};
  for(const [k,v] of Object.entries(defaults)) await q("INSERT INTO settings(key,value) VALUES($1,$2) ON CONFLICT(key) DO NOTHING",[k,v]);
+ if((await setting("shop_schema_version"))!=="v43"){
+   await q("UPDATE settings SET value=$1 WHERE key='shop_config'",[defaults.shop_config]);
+   await q("UPDATE settings SET value='v43' WHERE key='shop_schema_version'");
+ }
  if((await setting("yang_balance_backfill_version"))!=="v42"){
    await q("UPDATE users SET yang_balance=COALESCE(total_yang_won,0) WHERE COALESCE(yang_balance,0)=0 AND COALESCE(total_yang_won,0)>0");
    await q("UPDATE settings SET value='v42' WHERE key='yang_balance_backfill_version'");
@@ -210,7 +216,7 @@ function clientIp(req){
  const raw=String(req.headers["cf-connecting-ip"]||req.headers["x-forwarded-for"]||req.ip||req.socket?.remoteAddress||"");
  return raw.split(",")[0].trim().replace(/^::ffff:/,"").slice(0,100);
 }
-async function userView(id){return (await q("SELECT id,username,role,coins,played_coins,total_opened,total_yang_won,total_coin_won,banned,last_daily_at,created_at,slot_spent,slot_spins,slot_coin_won,soul_points,last_daily_soul_at,slot_lost_coins,chest_soul_spent,yang_balance,selected_chime,selected_background FROM users WHERE id=$1",[id])).rows[0]}
+async function userView(id){return (await q("SELECT id,username,role,coins,played_coins,total_opened,total_yang_won,total_coin_won,banned,last_daily_at,created_at,slot_spent,slot_spins,slot_coin_won,soul_points,last_daily_soul_at,slot_lost_coins,chest_soul_spent,yang_balance,selected_chime,selected_background,selected_cursor FROM users WHERE id=$1",[id])).rows[0]}
 function setAuth(res,u,remember=false){
  const expiresIn=remember?"30d":"12h";
  const token=jwt.sign({id:u.id,role:u.role},JWT_SECRET,{expiresIn});
@@ -555,7 +561,7 @@ app.post("/api/shop/buy",auth,async(req,res)=>{
    if(Number(u.yang_balance||0)<price)throw new Error("Nincs elég összegyűjtött Yangod.");
 
    const type=String(item.type||"");
-   const oneTime=["chime","background"].includes(type);
+   const oneTime=["chime","background","cursor"].includes(type);
    if(oneTime){
      const owned=(await client.query("SELECT 1 FROM user_shop_unlocks WHERE user_id=$1 AND item_id=$2",[req.user.id,itemId])).rows[0];
      if(owned)throw new Error("Ezt a kozmetikai elemet már megvetted.");
@@ -567,7 +573,7 @@ app.post("/api/shop/buy",auth,async(req,res)=>{
      await client.query("UPDATE users SET soul_points=soul_points+$1 WHERE id=$2",[Math.max(1,Math.floor(Number(item.value||1))),req.user.id]);
    }else if(type==="coin"){
      await client.query("UPDATE users SET coins=coins+$1 WHERE id=$2",[Math.max(1,Math.floor(Number(item.value||1))),req.user.id]);
-   }else if(type==="chime" || type==="background"){
+   }else if(type==="chime" || type==="background" || type==="cursor"){
      await client.query("INSERT INTO user_shop_unlocks(user_id,item_id) VALUES($1,$2) ON CONFLICT DO NOTHING",[req.user.id,itemId]);
    }else{
      throw new Error("Ismeretlen shop típus.");
@@ -585,7 +591,7 @@ app.post("/api/shop/select",auth,async(req,res)=>{
  const itemId=String(req.body.itemId||"");
  const items=await getShopConfig();
  const item=items.find(x=>String(x.id)===itemId && x.active!==false);
- if(!item || !["chime","background"].includes(item.type))return res.status(400).json({error:"Nem választható elem."});
+ if(!item || !["chime","background","cursor"].includes(item.type))return res.status(400).json({error:"Nem választható elem."});
 
  if(Number(item.price||0)>0){
    const owned=(await q("SELECT 1 FROM user_shop_unlocks WHERE user_id=$1 AND item_id=$2",[req.user.id,itemId])).rows[0];
@@ -594,8 +600,10 @@ app.post("/api/shop/select",auth,async(req,res)=>{
 
  if(item.type==="chime"){
    await q("UPDATE users SET selected_chime=$1 WHERE id=$2",[String(item.value||"classic"),req.user.id]);
- }else{
+ }else if(item.type==="background"){
    await q("UPDATE users SET selected_background=$1 WHERE id=$2",[String(item.value||"black_gold"),req.user.id]);
+ }else{
+   await q("UPDATE users SET selected_cursor=$1 WHERE id=$2",[String(item.value||"gold_small"),req.user.id]);
  }
  res.json({ok:true,user:await userView(req.user.id)});
 });
@@ -727,8 +735,8 @@ app.post("/api/admin/shop-config",auth,admin,async(req,res)=>{
  const cleaned=items.map((x,i)=>({
    id:String(x.id||`shop_${i+1}`).replace(/[^a-zA-Z0-9_-]/g,"_").slice(0,60),
    name:String(x.name||"Shop tétel").slice(0,100),
-   type:["chime","soul","coin","background"].includes(x.type)?x.type:"soul",
-   value:["chime","background"].includes(x.type)?String(x.value||""):Math.max(1,Math.floor(Number(x.value||1))),
+   type:["chime","soul","coin","background","cursor"].includes(x.type)?x.type:"soul",
+   value:["chime","background","cursor"].includes(x.type)?String(x.value||""):Math.max(1,Math.floor(Number(x.value||1))),
    price:Math.max(0,Math.floor(Number(x.price||0))),
    active:x.active!==false
  }));
