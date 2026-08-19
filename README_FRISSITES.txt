@@ -194,3 +194,11 @@ V28 BELÉPÉS + ADATBÁZIS JAVÍTÁS:
 - Emiatt az adatbázis inicializálás leállt, az új users oszlopok nem jöttek létre, és a login 500-as hibára futott.
 - Login részletesebb hibakezelést kapott.
 - /api/auth-health diagnosztikai végpont hozzáadva.
+
+V29: Tartós, összeadódó statisztika. Slot pörgetés/tét/nyerés/bukás/profit/veszteség/nettó/ROI és ládanyitás/Lélek Pont/Yang tartósan adatbázisban. A korábbi számlálók egyszer automatikusan átkerülnek.
+
+V30 STATISZTIKA + JACKPOT SZABÁLY:
+- Külön Statisztika fülön látszik Slotnál: pörgetések, megforgatott Coin, nyert Coin, elbukott Coin, profit, veszteség, nettó, ROI.
+- Ládánál: nyitások, elköltött Lélek Pont, összes nyert Yang, 10B jackpotok száma.
+- Feltűnő figyelmeztetés: CSAK A JACKPOT FIZET JÁTÉKON BELÜL.
+- A normál Yang dropok statisztikai eredmények, tényleges játékbeli kifizetés csak 10B JACKPOT esetén, Hox játékosnál.

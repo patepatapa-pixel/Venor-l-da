@@ -17,7 +17,7 @@
   </div>
   <div id="resultTotals" style="display:none;margin-top:12px;padding-top:10px;border-top:1px solid #30283c"></div>
 </div></div>
-<aside class="card side" id="jackpot"><h2>🏆 Jackpotok</h2><div class="jack">
+<aside class="card side" id="jackpot"><h2>🏆 Jackpotok</h2><div class="jackpot-pay-note">⚠️ <b>CSAK A JACKPOT FIZET JÁTÉKON BELÜL</b><br><span>A normál Yang dropok statisztikai nyeremények. Játékbeli kifizetés csak a 10B JACKPOT után jár.</span></div><div class="jack">
 <div class="label">🏆 FŐNYEREMÉNY</div>
 <strong>10 000 000 000</strong><small>Yang</small>
 <p style="margin:14px 0 0;line-height:1.55;color:#ddd">
@@ -65,38 +65,41 @@ A 10 milliárd Yang főnyereményt nem automatikusan írjuk jóvá. Ha megnyerte
     <div class="card section">
       <div class="stats-title-row">
         <div>
-          <h2 style="margin:0">📊 Saját statisztikám</h2>
-          <div class="small">A teljes játékod összesítve. Az adatok folyamatosan mentődnek.</div>
+          <h2 style="margin:0">📊 Játékos statisztika</h2>
+          <div class="small">Minden adat folyamatosan összeadódik és megmarad.</div>
         </div>
         <button class="btn" id="refreshMyStats" type="button">↻ Frissítés</button>
       </div>
 
-      <div class="stats-section-title">🎰 Slot</div>
+      <div class="stats-section-title">🎰 Slot eredmények</div>
       <div class="stats-grid">
         <div class="stat-card"><span>Összes pörgetés</span><b id="stSlotSpins">0</b></div>
         <div class="stat-card"><span>Összes megforgatott Coin</span><b id="stSlotWagered">0</b></div>
         <div class="stat-card"><span>Összes nyert Coin</span><b id="stSlotWon">0</b></div>
-        <div class="stat-card"><span>Összes elbukott Coin</span><b id="stSlotLost">0</b></div>
-        <div class="stat-card stat-profit"><span>Profit / eredmény</span><b id="stSlotProfit">0</b></div>
+        <div class="stat-card"><span>Elbukott Coin</span><b id="stSlotLost">0</b></div>
+        <div class="stat-card"><span>Profit</span><b id="stSlotProfit">0</b></div>
+        <div class="stat-card"><span>Veszteség</span><b id="stSlotLoss">0</b></div>
+        <div class="stat-card"><span>Nettó eredmény</span><b id="stSlotNet">0</b></div>
         <div class="stat-card"><span>ROI</span><b id="stSlotRoi">0%</b></div>
       </div>
 
-      <div class="stats-section-title">🎁 Ládázás</div>
+      <div class="stats-section-title">🎁 Ládanyitás eredmények</div>
       <div class="stats-grid">
-        <div class="stat-card"><span>Összes ládanyitás</span><b id="stChestOpened">0</b></div>
+        <div class="stat-card"><span>Összes kinyitott láda</span><b id="stChestOpened">0</b></div>
         <div class="stat-card"><span>Elköltött Lélek Pont</span><b id="stSoulSpent">0</b></div>
         <div class="stat-card"><span>Összes nyert Yang</span><b id="stYangWon">0</b></div>
+        <div class="stat-card jackpot-stat"><span>10B JACKPOT nyerések</span><b id="stJackpotCount">0</b></div>
+      </div>
+
+      <div class="jackpot-only-warning">
+        <b>⚠️ CSAK A JACKPOT FIZET JÁTÉKON BELÜL</b>
+        <p>A ládából megjelenő normál Yang nyeremények statisztikai eredmények. Játékon belüli tényleges kifizetés kizárólag a <strong>10 milliárd Yang JACKPOT</strong> után jár. Jackpot esetén keresd játékban a <strong>Hox</strong> nevű játékost.</p>
       </div>
 
       <div class="stats-section-title">💼 Jelenlegi egyenleg</div>
       <div class="stats-grid">
         <div class="stat-card"><span>Coin</span><b id="stCoins">0</b></div>
         <div class="stat-card"><span>Lélek Pont</span><b id="stSoul">0</b></div>
-      </div>
-
-      <div class="stats-note">
-        <b>ℹ️ Profit értelmezése</b>
-        <p>A profit a Slotnál: összes nyert Coin mínusz összes megforgatott Coin. A láda Lélek Pontot használ, ezért azt külön mutatjuk, nem keverjük össze a Coin profittal.</p>
       </div>
     </div>
   </div>
@@ -251,16 +254,19 @@ async function loadMyStats(){
    $("#stSlotWagered").textContent=fmt(d.slot.wagered);
    $("#stSlotWon").textContent=fmt(d.slot.won);
    $("#stSlotLost").textContent=fmt(d.slot.lost);
-   $("#stSlotProfit").textContent=(d.slot.profit>=0?"+":"")+fmt(d.slot.profit);
-   $("#stSlotProfit").className=d.slot.profit>=0?"positive":"negative";
+   $("#stSlotProfit").textContent=fmt(d.slot.profit);
+   $("#stSlotLoss").textContent=fmt(d.slot.loss);
+   $("#stSlotNet").textContent=(d.slot.net>=0?"+":"")+fmt(d.slot.net);
+   $("#stSlotNet").className=d.slot.net>=0?"positive":"negative";
    $("#stSlotRoi").textContent=(d.slot.roi>=0?"+":"")+d.slot.roi+"%";
    $("#stChestOpened").textContent=fmt(d.chest.opened);
    $("#stSoulSpent").textContent=fmt(d.chest.soulSpent);
    $("#stYangWon").textContent=fmt(d.chest.yangWon);
+   $("#stJackpotCount").textContent=fmt(d.chest.jackpotCount||0);
    $("#stCoins").textContent=fmt(d.balances.coins);
    $("#stSoul").textContent=fmt(d.balances.soulPoints);
  }catch(e){
-   toast("Statisztika betöltési hiba: "+e.message);
+   toast("Statisztika hiba: "+e.message);
  }
 }
 
