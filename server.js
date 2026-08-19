@@ -265,6 +265,22 @@ app.post("/api/admin/jackpots/claim",auth,admin,async(req,res)=>{
  res.json({ok:true});
 });
 
+app.post("/api/admin/leaderboard-reset",auth,admin,async(req,res)=>{
+ const confirmation=String(req.body.confirmation||"");
+ if(confirmation!=="RESET"){
+   return res.status(400).json({error:"A ranglista nullázásához a megerősítés értéke RESET legyen."});
+ }
+
+ await q(`
+   UPDATE users
+   SET total_yang_won=0,
+       total_coin_won=0
+   WHERE role='user'
+ `);
+
+ res.json({ok:true,message:"A ranglista sikeresen nullázva. A játékosfiókok és Coin egyenlegek megmaradtak."});
+});
+
 app.get("/api/admin/transactions",auth,admin,async(req,res)=>res.json({rows:(await q("SELECT t.created_at,u.username,t.amount,t.reason FROM transactions t JOIN users u ON u.id=t.user_id ORDER BY t.id DESC LIMIT 100")).rows}));
 
 app.get("/admin",(req,res)=>res.sendFile(path.join(__dirname,"public","admin.html")));

@@ -25,3 +25,21 @@ Módosítások:
 - napi 5000 Coin adatbázis-szinten atomikusan csak napi 1 alkalommal vehető fel
 
 V4: A ládanyitó gomb alatt oszloposan megjelenik a legutóbbi nyitás összes nyereménye, összevont darabszámmal, valamint az összes nyert Yang és Coin.
+
+V5:
+- Adminpanelen új 🔄 RANGLISTA RESET gomb
+- Kétlépcsős megerősítés: böngészős megerősítés + RESET szó beírása
+- Nullázza minden normál játékos total_yang_won és total_coin_won értékét
+- Nem törli a Coin egyenleget, fiókot, inventoryt, játéktörténetet vagy jackpot auditot
+
+V6 JAVÍTÁS:
+- A 10 milliárd Yang jackpot ablak ÉRTETTEM gombja most biztosan működik.
+- A hibát az okozta, hogy a gomb eseménykezelője a HTML elem betöltése előtt futott le.
+- Most eseménydelegálással működik, ezért stabil.
+- ESC billentyűvel is bezárható a jackpot ablak.
+
+V7 KATTINTÁSI JAVÍTÁS:
+- A rejtett jackpot overlay többé nem tudja blokkolni az egész oldalt.
+- A rejtett belépési modal sem fogja el a kattintásokat.
+- A fejléc, menü, regisztráció, belépés, napi Coin, ranglista és admin link újra kattintható.
+- A jackpot ablak csak akkor kap pointer-events jogosultságot, amikor ténylegesen látható.

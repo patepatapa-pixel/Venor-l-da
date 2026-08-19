@@ -3,6 +3,14 @@
 <p class="small">Itt minden valódi 10 milliárd Yang nyerés szerveroldalon rögzítve jelenik meg. Átadás után jelöld átadottnak.</p>
 <div id="jackpots"></div>
 </section>
+<section class="card section" style="border-color:rgba(255,101,130,.35)">
+<h3>🔄 Ranglista reset</h3>
+<p class="small">
+Ez csak a ranglista számlálóit nullázza: az összes nyert Yang és az összes nyert Coin értékét.
+A játékosfiókok, jelenlegi Coin egyenlegek, inventoryk, játéktörténet és jackpot-ellenőrzések megmaradnak.
+</p>
+<button class="btn" id="resetLeaderboard" style="border-color:#8c3c50;color:#ff8da3">🔄 RANGLISTA RESET</button>
+</section>
 <section class="card section"><h3>📜 Coin tranzakciók</h3><div id="tx"></div></section></main><div class="toast" id="toast"></div><script>
 const $=s=>document.querySelector(s),fmt=n=>Number(n||0).toLocaleString("hu-HU");async function api(u,o={}){const r=await fetch(u,{...o,headers:{"Content-Type":"application/json"}});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||"Hiba");return d}function toast(x){const t=$("#toast");t.textContent=x;t.style.display="block";setTimeout(()=>t.style.display="none",2500)}
 async function stats(){const d=await api("/api/admin/stats");$("#stats").innerHTML=[["Játékosok",d.users],["Aktív",d.active],["Tiltva",d.banned],["Eljátszott",d.played],["Nyitások",d.opened],["Coin",d.coins],["Nyert Yang",d.yangWon],["Nyert Coin",d.coinWon]].map(x=>`<div class="metric"><small>${x[0]}</small><b>${fmt(x[1])}</b></div>`).join("")}
@@ -28,5 +36,21 @@ async function markJackpot(id,claimed){
 }
 function pick(id){$("#uid").value=id}async function ban(id,b){try{await api("/api/admin/ban",{method:"POST",body:JSON.stringify({userId:id,banned:b})});await Promise.all([users(),stats()])}catch(e){toast(e.message)}}
 $("#search").oninput=users;$("#coinBtn").onclick=async()=>{try{await api("/api/admin/coins",{method:"POST",body:JSON.stringify({userId:+$("#uid").value,amount:+$("#amount").value,reason:$("#reason").value})});toast("Coin módosítva");await Promise.all([users(),stats(),tx()])}catch(e){toast(e.message)}};$("#save").onclick=async()=>{try{await api("/api/admin/settings",{method:"POST",body:JSON.stringify({daily_bonus:+$("#daily").value,chest_price:+$("#price").value,announcement:$("#announcement").value,maintenance:$("#maintenance").checked})});toast("Mentve")}catch(e){toast(e.message)}};
+$("#resetLeaderboard").onclick=async()=>{
+ const first=confirm("Biztosan nullázod a teljes ranglistát?\n\nEz minden játékosnál 0-ra állítja az összes nyert Yang és összes nyert Coin ranglista értékét.\nA Coin egyenlegek és fiókok NEM törlődnek.");
+ if(!first)return;
+
+ const typed=prompt('A végleges megerősítéshez írd be pontosan: RESET');
+ if(typed!=="RESET"){
+   toast("Ranglista reset megszakítva.");
+   return;
+ }
+
+ try{
+   const d=await api("/api/admin/leaderboard-reset",{method:"POST",body:JSON.stringify({confirmation:"RESET"})});
+   toast(d.message||"Ranglista nullázva.");
+   await Promise.all([stats(),users()]);
+ }catch(e){toast(e.message)}
+};
 (async()=>{try{const me=await api("/api/me");if(me.user.role!=="admin")throw Error();await Promise.all([stats(),users(),settings(),tx(),jackpots()])}catch{location.href="/"}})();
 </script></body></html>
