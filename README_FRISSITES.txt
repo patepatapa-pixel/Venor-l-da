@@ -220,3 +220,10 @@ V33 FEKETE-ARANY:
 - Arany aktív gombok, arany kiemelések, fekete panelek.
 - Modern arany egyedi egérkurzor.
 - Játékos és admin oldal is ugyanazt az OMI Gamba stílust kapta.
+
+V34:
+- VENORI felirat teljesen lecserélve erre: O M I G A M B A.
+- Felelősségi szöveg javítva erre: GAMB csak saját felelősségre.
+- Minden Yang kategória külön ikont kapott:
+  100=🪙, 1K=💰, 10K=💵, 100K=💸, 1M=💎, 10M=🔷, 100M=👑, 1B=🏦, 10B=🏆.
+- Ritka PET ikon: 🐾.

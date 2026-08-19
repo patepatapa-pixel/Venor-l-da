@@ -1,5 +1,5 @@
-<!doctype html><html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>OMI Gamba – Gemblingezni csak saját felelősségre</title><link rel="stylesheet" href="/style.css"></head><body>
-<div class="omi-disclaimer">⚠️ OMI Gamba – Gemblingezni csak saját felelősségre!</div>
+<!doctype html><html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>O M I G A M B A – GAMB csak saját felelősségre</title><link rel="stylesheet" href="/style.css"></head><body>
+<div class="omi-disclaimer">⚠️ GAMB csak saját felelősségre</div>
 <header class="topbar"><a class="logo" href="/">VEN<span>ORI</span></a><nav class="nav"><a href="#ladak">Ládák</a><a href="#nyeremenyek">Nyeremények</a><a href="#jackpot">Jackpot</a><a href="#profil">Profil</a><a id="adminLink" href="/admin" style="display:none">Admin</a></nav><div class="top-actions"><div class="wallet">🪙 <b id="coins">—</b> Coin &nbsp;•&nbsp; 👻 <b id="soulPoints">—</b> Lélek Pont</div><button class="btn ghost" id="authBtn">Belépés</button><button class="btn primary" id="registerBtn">Regisztráció</button><button class="btn ghost" id="logout" style="display:none">Kilépés</button></div></header>
 <main class="wrap"><section class="hero"><span class="badge">OMI Gamba CHEST SYSTEM</span><h1>Nyisd ki. <span>Nyerj.</span> Ismételd.</h1><p>Online ládanyitó rendszer regisztrációval, napi Coinnal, jackpotokkal, ranglistával és külön adminpanellel.</p></section><div class="notice">📢 <span id="announcement">Betöltés...</span></div><div class="game-switch"><button class="game-mode active" id="modeChest">🎁 Ládázás</button><button class="game-mode" id="modeSlot">🎰 Slot</button><button class="game-mode" id="modeRedeem">🎟️ Kiváltás</button><button class="game-mode" id="modeStats">📊 Statisztika</button></div>
 <div id="chestMode"><div class="tabs" id="ladak"><button class="tab active" data-q="1">1× Nyitás</button><button class="tab" data-q="10">10× Nyitás</button><button class="tab" data-q="100">100× Nyitás</button><button class="tab" disabled>1000× Nyitás 🔒</button></div>
@@ -159,6 +159,23 @@ function showJackpotEffect(){
  if(x){x.style.display="flex";x.style.pointerEvents="auto";rewardChime("jackpot");}
 }
 
+
+function rewardIcon(name,type){
+ const icons={
+  "100 Yang":"🪙",
+  "1K Yang":"💰",
+  "10K Yang":"💵",
+  "100K Yang":"💸",
+  "1M Yang":"💎",
+  "10M Yang":"🔷",
+  "100M Yang":"👑",
+  "1B Yang":"🏦",
+  "10B Jackpot":"🏆",
+  "Ritka PET":"🐾"
+ };
+ return icons[name] || (type==="yang"?"💰":type==="item"?"🎁":"🪙");
+}
+
 async function loadCumulativeRewards(){
  if(!user){
    $("#resultCount").textContent="Jelentkezz be";
@@ -171,7 +188,7 @@ async function loadCumulativeRewards(){
    $("#resultCount").textContent=`${fmt(user.total_opened||0)} összes ládanyitás`;
    $("#resultRows").innerHTML=d.rows.length?d.rows.map(r=>`
      <div style="display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;gap:12px;padding:13px 14px;border:1px solid #332941;border-radius:12px;background:#0b0911">
-       <div style="font-size:26px;text-align:center">${r.reward_type==="yang"?"💰":r.reward_name==="Ritka PET"?"🐾":"🎁"}</div>
+       <div style="font-size:26px;text-align:center">${rewardIcon(r.reward_name,r.reward_type)}</div>
        <div>
          <b>${r.reward_name}</b>
          <div class="small">${r.reward_type==="yang"?"Yang nyeremény":"Tárgy / PET"} · folyamatosan mentve</div>

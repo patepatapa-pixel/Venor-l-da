@@ -482,3 +482,11 @@ button:hover,a:hover,.btn:hover,.open:hover,.game-mode:hover,.slot-bet:hover,.dr
 hr{
   border-color:var(--omi-border-soft) !important;
 }
+
+/* V34 — O M I G A M B A brand */
+.brand,.logo,header a:first-child{
+  letter-spacing:.22em !important;
+  color:#f2c14e !important;
+  font-weight:1000 !important;
+  white-space:nowrap;
+}
