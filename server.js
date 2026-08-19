@@ -85,6 +85,15 @@ async function init(){
    delivered BOOLEAN NOT NULL DEFAULT FALSE,
    delivered_at TIMESTAMPTZ,
    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+ )
+ CREATE TABLE IF NOT EXISTS user_reward_totals(
+   user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+   reward_name TEXT NOT NULL,
+   reward_type TEXT NOT NULL,
+   total_quantity BIGINT NOT NULL DEFAULT 0,
+   total_value BIGINT NOT NULL DEFAULT 0,
+   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+   PRIMARY KEY(user_id,reward_name)
  );`);
  await q("ALTER TABLE users ADD COLUMN IF NOT EXISTS total_yang_won BIGINT NOT NULL DEFAULT 0");
  await q("ALTER TABLE users ADD COLUMN IF NOT EXISTS total_coin_won BIGINT NOT NULL DEFAULT 0");
@@ -270,6 +279,25 @@ app.post("/api/open",auth,async(req,res)=>{
    for(const [name,n] of Object.entries(items))await client.query("INSERT INTO inventory(user_id,item_name,quantity) VALUES($1,$2,$3) ON CONFLICT(user_id,item_name) DO UPDATE SET quantity=inventory.quantity+EXCLUDED.quantity",[req.user.id,name,n]);
    const summary=results.map(r=>`${r.icon} ${r.name}`).join(", ");
    await client.query("INSERT INTO history(user_id,quantity,cost,reward_text) VALUES($1,$2,$3,$4)",[req.user.id,qty,cost,summary]);
+   const rewardTotals={};
+   for(const r of results){
+     const q=Number(r.qty||1);
+     if(!rewardTotals[r.name]) rewardTotals[r.name]={type:r.type,quantity:0,value:0};
+     rewardTotals[r.name].quantity+=q;
+     if(r.type==="yang") rewardTotals[r.name].value+=Number(r.amount||0)*q;
+     else rewardTotals[r.name].value+=q;
+   }
+   for(const [name,data] of Object.entries(rewardTotals)){
+     await client.query(`
+       INSERT INTO user_reward_totals(user_id,reward_name,reward_type,total_quantity,total_value)
+       VALUES($1,$2,$3,$4,$5)
+       ON CONFLICT(user_id,reward_name)
+       DO UPDATE SET
+         total_quantity=user_reward_totals.total_quantity+EXCLUDED.total_quantity,
+         total_value=user_reward_totals.total_value+EXCLUDED.total_value,
+         updated_at=NOW()
+     `,[req.user.id,name,data.type,data.quantity,data.value]);
+   }
 
    const jackpotHits=results.filter(r=>r.name==="10B Jackpot").length;
    for(let i=0;i<jackpotHits;i++){
@@ -291,6 +319,32 @@ app.post("/api/open",auth,async(req,res)=>{
 });
 
 app.get("/api/history",auth,async(req,res)=>res.json({rows:(await q("SELECT quantity,cost,reward_text,created_at FROM history WHERE user_id=$1 ORDER BY id DESC LIMIT 50",[req.user.id])).rows}));
+app.get("/api/my-reward-totals",auth,async(req,res)=>{
+ const rows=(await q(`
+   SELECT reward_name,reward_type,total_quantity,total_value,updated_at
+   FROM user_reward_totals
+   WHERE user_id=$1
+   ORDER BY
+     CASE reward_type WHEN 'yang' THEN 0 WHEN 'item' THEN 1 ELSE 2 END,
+     total_value DESC,
+     reward_name ASC
+ `,[req.user.id])).rows;
+
+ const summary=(await q(`
+   SELECT
+     COALESCE(SUM(CASE WHEN reward_type='yang' THEN total_value ELSE 0 END),0) AS total_yang,
+     COALESCE(SUM(total_quantity),0) AS total_rewards
+   FROM user_reward_totals
+   WHERE user_id=$1
+ `,[req.user.id])).rows[0];
+
+ res.json({
+   rows,
+   totalYang:Number(summary.total_yang||0),
+   totalRewards:Number(summary.total_rewards||0)
+ });
+});
+
 app.get("/api/inventory",auth,async(req,res)=>res.json({rows:(await q("SELECT item_name,quantity FROM inventory WHERE user_id=$1 ORDER BY item_name",[req.user.id])).rows}));
 app.get("/api/leaderboard",async(req,res)=>res.json({rows:(await q("SELECT username,total_yang_won,total_coin_won,played_coins,total_opened FROM users WHERE role='user' AND banned=FALSE ORDER BY total_yang_won DESC,total_coin_won DESC LIMIT 20")).rows}));
 app.get("/api/activity",async(req,res)=>res.json({rows:(await q("SELECT u.username,h.quantity,h.reward_text,h.created_at FROM history h JOIN users u ON u.id=h.user_id WHERE u.banned=FALSE ORDER BY h.id DESC LIMIT 8")).rows}));

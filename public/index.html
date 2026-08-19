@@ -10,7 +10,7 @@
 </div><div class="openbox"><div class="openrow"><span>Nyitási mennyiség</span><b id="qty">1×</b></div><button class="open" id="open">✦ 1× LÁDA NYITÁSA</button></div>
 <div id="openResults" style="margin-top:16px;padding:16px;border:1px solid #3a2d4d;border-radius:14px;background:linear-gradient(180deg,rgba(18,12,26,.98),rgba(10,7,14,.98));box-shadow:inset 0 1px 0 rgba(255,255,255,.025)">
   <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px">
-    <b>🎁 Legutóbbi nyitás eredménye</b><span class="small" id="resultCount">Még nincs nyitás</span>
+    <b>🏆 Összes eddigi ládanyereményed</b><span class="small" id="resultCount">Mentett eredmények</span>
   </div>
   <div id="resultRows" style="display:flex;flex-direction:column;gap:8px">
     <div class="small" style="padding:18px;border:1px dashed #3a3048;border-radius:12px;text-align:center">A megnyert dolgok itt jelennek meg egymás alatt.</div>
@@ -113,22 +113,36 @@ function showJackpotEffect(){
  if(x){x.style.display="flex";x.style.pointerEvents="auto";rewardChime("jackpot");}
 }
 
+async function loadCumulativeRewards(){
+ if(!user){
+   $("#resultCount").textContent="Jelentkezz be";
+   $("#resultRows").innerHTML="<div class='small' style='padding:18px;text-align:center'>Belépés után itt folyamatosan megmarad minden ládából nyert jutalmad.</div>";
+   $("#resultTotals").style.display="none";
+   return;
+ }
+ try{
+   const d=await api("/api/my-reward-totals");
+   $("#resultCount").textContent=`${fmt(user.total_opened||0)} összes ládanyitás`;
+   $("#resultRows").innerHTML=d.rows.length?d.rows.map(r=>`
+     <div style="display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;gap:12px;padding:13px 14px;border:1px solid #332941;border-radius:12px;background:#0b0911">
+       <div style="font-size:26px;text-align:center">${r.reward_type==="yang"?"💰":r.reward_name==="Ritka PET"?"🐾":"🎁"}</div>
+       <div>
+         <b>${r.reward_name}</b>
+         <div class="small">${r.reward_type==="yang"?"Yang nyeremény":"Tárgy / PET"} · folyamatosan mentve</div>
+       </div>
+       <b>${fmt(r.total_quantity)}×</b>
+     </div>`).join(""):"<div class='small' style='padding:18px;text-align:center'>Még nincs mentett ládanyereményed.</div>";
+   $("#resultTotals").style.display="block";
+   $("#resultTotals").innerHTML=`
+     <div class="stat"><span>💰 Összes ládából nyert Yang</span><b>${fmt(d.totalYang||0)}</b></div>
+     <div class="stat"><span>🎁 Összes nyert tétel / darab</span><b>${fmt(d.totalRewards||0)}</b></div>`;
+ }catch(e){
+   $("#resultRows").innerHTML=`<div class="small">Nem sikerült betölteni a mentett nyereményeket: ${e.message}</div>`;
+ }
+}
+
 function renderOpenResults(d){
- const grouped={};
- d.results.forEach(r=>{
-   if(!grouped[r.name]) grouped[r.name]={name:r.name,icon:r.icon,count:0,type:r.type};
-   grouped[r.name].count+=(r.qty||1);
- });
- $("#resultCount").textContent=`${d.results.length}× láda`;
- $("#resultRows").innerHTML=Object.values(grouped).filter(r=>r.name!=="500 Coin").map(r=>`
- <div style="display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;gap:12px;padding:13px 14px;border:1px solid #332941;border-radius:12px;background:#0b0911">
-   <div style="font-size:26px;text-align:center">${r.icon}</div>
-   <div><b>${r.name}</b><div class="small">${r.type==="yang"?"Yang nyeremény":r.type==="coin"?"Coin nyeremény":"Tárgy / PET"}</div></div>
-   <b>${r.count}×</b>
- </div>`).join("");
- $("#resultTotals").style.display="block";
- $("#resultTotals").innerHTML=`
- <div class="stat"><span>💰 Összes nyert Yang</span><b>${fmt(d.won?.yang||0)}</b></div>`;
+ loadCumulativeRewards();
 }
 function render(){const ok=!!user;$("#coins").textContent=ok?fmt(user.coins):"—";$("#coins2").textContent=ok?fmt(user.coins):"—";$("#soulPoints").textContent=ok?fmt(user.soul_points):"—";$("#soulPoints2").textContent=ok?fmt(user.soul_points):"—";$("#played").textContent=ok?fmt(user.played_coins):"—";$("#opened").textContent=ok?fmt(user.total_opened):"—";$("#yangWon").textContent=ok?fmt(user.total_yang_won):"—";$("#coinWon").textContent=ok?fmt(user.total_coin_won):"—";$("#name").textContent=ok?user.username:"Vendég";$("#authBtn").style.display=ok?"none":"inline-block";$("#registerBtn").style.display=ok?"none":"inline-block";$("#logout").style.display=ok?"inline-block":"none";$("#adminLink").style.display=ok&&user.role==="admin"?"inline":"none"}
 async function loadPublic(){cfg=await api("/api/public");$("#announcement").textContent=cfg.announcement;$("#dailyAmount").textContent=fmt(cfg.dailyBonus);if($("#dailySoulAmount"))$("#dailySoulAmount").textContent=fmt(cfg.dailySoulBonus);document.querySelectorAll(".tab:not([disabled])").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));b.classList.add("active");q=+b.dataset.q;$("#qty").textContent=q+"×";$("#price").textContent=fmt(cfg.soulChestPrice*q);$("#open").textContent="✦ "+q+"× LÁDA NYITÁSA"})}
@@ -161,7 +175,7 @@ function renderAdminPlayerActivity(){
      <div class="admin-player-metric"><span>🎰 Elpörgetett Coin</span><b>${fmt(x.slot_spent)}</b></div>
      <div class="admin-player-metric"><span>🔄 Slot pörgetés</span><b>${fmt(x.slot_spins)}</b></div>
      <div class="admin-player-metric"><span>🪙 Slotból nyert</span><b>${fmt(x.slot_coin_won)}</b></div>
-     <div class="admin-player-metric"><span>🎁 Láda nyitás</span><b>${fmt(x.total_opened)}</b></div>
+     <div class="admin-player-metric"><span>🎁 Láda nyitás</span><b>${fmt(x.total_opened)}</b></div><div class="admin-player-metric"><span>💰 Ládából nyert Yang</span><b>${fmt(x.total_yang_won)}</b></div>
      <div class="admin-player-metric"><span>💸 Összes eljátszott Coin</span><b>${fmt(x.played_coins)}</b></div>
      <div class="admin-player-metric"><span>💰 Jelenlegi Coin</span><b>${fmt(x.coins)}</b></div>
    </div>`).join(""):"<div class='small'>Nincs találat.</div>";
@@ -187,7 +201,7 @@ async function loadMyRedemptions(){
  }catch{}
 }
 
-async function loadMe(){try{user=(await api("/api/me")).user;render();if($("#redeemBalance"))$("#redeemBalance").textContent=fmt(user.coins);await Promise.all([hist(),inv(),loadMyRedemptions()]);await loadAdminPlayerActivity()}catch{user=null;render()}}
+async function loadMe(){try{user=(await api("/api/me")).user;render();await loadCumulativeRewards();if($("#redeemBalance"))$("#redeemBalance").textContent=fmt(user.coins);await Promise.all([hist(),inv(),loadMyRedemptions(),loadCumulativeRewards()]);await loadAdminPlayerActivity()}catch{user=null;render()}}
 async function hist(){if(!user)return;const d=await api("/api/history");$("#history").innerHTML=d.rows.length?d.rows.map(x=>`<div class="list-item"><b>${x.quantity}× nyitás</b> · ${fmt(x.cost)} Coin<br><span class="small">${x.reward_text}</span></div>`).join(""):"<div class='small'>Még nincs játék.</div>"}
 async function inv(){if(!user)return;const d=await api("/api/inventory");$("#inventory").innerHTML=d.rows.length?d.rows.map(x=>`<div class="list-item"><b>${x.item_name}</b> × ${x.quantity}</div>`).join(""):"<div class='small'>Az inventory üres.</div>"}
 async function loadDropsPublic(){

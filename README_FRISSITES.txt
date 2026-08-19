@@ -167,3 +167,11 @@ V24 SLOT ESÉLY:
 - Játékos oldalon a tényleges aktuális százalék jelenik meg.
 - Alapérték 60% NYERTES / 40% Koponya.
 - Admin beállítás panel egyúttal rendezve és kiegészítve a napi Lélek Pont, ládaár és Slot mezőkkel.
+
+V25 TARTÓS NYEREMÉNYLISTA:
+- A ládanyitás eredménye többé nem törlődik a következő nyitásnál.
+- Minden játékos minden nyereménye adatbázisban folyamatosan összeadódik.
+- 100x nyitás után újabb 100x nyitás hozzáadódik az előző eredményekhez.
+- A játékos kilépés/böngészőfrissítés után is ugyanazt a mentett összesítést látja.
+- Külön user_reward_totals adatbázistábla tárolja rewardonként a darabszámot és értéket.
+- A panel mutatja az összes ládanyitást, rewardonkénti összdarabszámot és összes nyert Yangot.
