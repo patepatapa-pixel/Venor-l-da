@@ -110,3 +110,13 @@ V16:
 - A blokk görgethető, így nem nyújtja több képernyő hosszúra az oldalt.
 - Keresőmező került bele.
 - A nyitás tényleges eredménye továbbra is közvetlenül a Nyitás gomb alatt jelenik meg.
+
+V17 STABILITÁS + EFFEKTEK:
+- A ládanyitás alatt a Nyitás gomb lezár, így nem küldhető el több 100x kérés egyszerre.
+- A gomb finally blokkban mindig visszakapcsol, hiba esetén is.
+- A belépés/regisztráció nem fagyhat be a sok nyitási kérés miatt.
+- A drop panel új, lenyitható "Láda tartalma" fiók lett, keresővel és típus szűrőkkel.
+- Ritka PET nyerésnél külön teljes képernyős PET effekt jelenik meg.
+- 10 milliárd Yang jackpot effekt és Hox figyelmeztetés megmaradt.
+- Ritka PET és 10B jackpot esetén csilingelő hang szól a böngésző Web Audio API-jával.
+- 10B jackpot elsőbbséget élvez, ha ugyanabban a nyitásban PET is esik.
