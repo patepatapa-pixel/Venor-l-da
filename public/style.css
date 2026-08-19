@@ -284,3 +284,201 @@ body::before { pointer-events: none !important; z-index: 0; }
   font-weight:900;
   letter-spacing:.02em;
 }
+
+/* =========================================================
+   OMI GAMBA V33 — FEKETE / ARANY PRÉMIUM TÉMA
+   ========================================================= */
+
+:root{
+  --omi-bg:#050505;
+  --omi-bg-2:#0a0a0a;
+  --omi-panel:#0d0d0d;
+  --omi-panel-2:#111111;
+  --omi-border:#3b2d10;
+  --omi-border-soft:#2a2110;
+  --omi-gold:#f2c14e;
+  --omi-gold-2:#d4a62a;
+  --omi-gold-soft:#9f7a24;
+  --omi-text:#f6f2e7;
+  --omi-muted:#9a9384;
+}
+
+/* Main page */
+html,body{
+  background:
+    radial-gradient(circle at 50% -10%, rgba(242,193,78,.08), transparent 36%),
+    linear-gradient(180deg,#050505 0%,#070707 42%,#030303 100%) !important;
+  color:var(--omi-text) !important;
+}
+
+/* Remove old purple feeling from main containers */
+header,
+.card,
+.case,
+.side,
+.section,
+.modal-card,
+.drop-drawer,
+.slot-machine,
+.slot-window,
+.slot-result,
+.stat-card,
+.redeem-card,
+.admin-player-row,
+.admin-player-name,
+.admin-player-metric,
+.list-item{
+  background:linear-gradient(180deg,var(--omi-panel-2),var(--omi-panel)) !important;
+  border-color:var(--omi-border-soft) !important;
+  box-shadow:none !important;
+}
+
+/* Header / logo */
+header{
+  border-bottom:1px solid var(--omi-border) !important;
+  background:rgba(5,5,5,.96) !important;
+  backdrop-filter:blur(14px);
+}
+.brand,
+.logo,
+header a:first-child{
+  color:var(--omi-gold) !important;
+  text-shadow:0 0 18px rgba(242,193,78,.15);
+  letter-spacing:.24em !important;
+  font-weight:1000 !important;
+}
+
+/* Links */
+a{
+  color:var(--omi-gold) !important;
+}
+a:hover{
+  color:#ffe08a !important;
+}
+
+/* Buttons */
+.btn,
+.open,
+.game-mode,
+.drop-filter,
+.slot-bet,
+.drop-drawer-toggle{
+  border-color:var(--omi-border) !important;
+  background:linear-gradient(180deg,#14110a,#0b0a07) !important;
+  color:var(--omi-text) !important;
+}
+.btn:hover,
+.open:hover,
+.game-mode:hover,
+.drop-filter:hover,
+.slot-bet:hover,
+.drop-drawer-toggle:hover{
+  border-color:var(--omi-gold-soft) !important;
+  box-shadow:0 0 0 1px rgba(242,193,78,.08),0 8px 22px rgba(0,0,0,.35) !important;
+}
+.btn.primary,
+.open,
+.game-mode.active,
+.drop-filter.active,
+.slot-bet.active{
+  background:linear-gradient(135deg,var(--omi-gold-2),var(--omi-gold)) !important;
+  color:#090909 !important;
+  border-color:#f6d675 !important;
+  text-shadow:none !important;
+  box-shadow:0 8px 28px rgba(212,166,42,.16) !important;
+}
+
+/* Inputs */
+.input,
+input,
+select,
+textarea{
+  background:#080808 !important;
+  color:var(--omi-text) !important;
+  border-color:var(--omi-border-soft) !important;
+}
+.input:focus,
+input:focus,
+select:focus,
+textarea:focus{
+  border-color:var(--omi-gold-soft) !important;
+  outline:none !important;
+  box-shadow:0 0 0 3px rgba(242,193,78,.08) !important;
+}
+
+/* Labels and special text */
+.small,
+label,
+.metric small,
+.stat-card span,
+.compact-drop-name span,
+.drop-chip-text small{
+  color:var(--omi-muted) !important;
+}
+h1,h2,h3,h4,strong,b{
+  color:var(--omi-text);
+}
+.rarity,
+.label,
+.stats-section-title{
+  color:var(--omi-gold) !important;
+}
+
+/* Warnings & jackpot */
+.omi-disclaimer,
+.jackpot-only-warning,
+.jackpot-pay-note{
+  border-color:var(--omi-gold-soft) !important;
+  background:linear-gradient(180deg,rgba(71,52,10,.34),rgba(18,15,7,.84)) !important;
+  color:var(--omi-gold) !important;
+}
+.jack,
+.jackpot-stat{
+  border-color:var(--omi-gold-soft) !important;
+  background:linear-gradient(180deg,#151007,#0b0905) !important;
+}
+
+/* Scrollbar */
+*{
+  scrollbar-width:thin;
+  scrollbar-color:var(--omi-gold-soft) #080808;
+}
+*::-webkit-scrollbar{
+  width:9px;
+  height:9px;
+}
+*::-webkit-scrollbar-track{
+  background:#080808;
+}
+*::-webkit-scrollbar-thumb{
+  background:linear-gradient(var(--omi-gold-soft),#6e5318);
+  border-radius:999px;
+  border:2px solid #080808;
+}
+
+/* Modern golden cursor - pure CSS SVG data cursor */
+html,body,
+button,a,input,select,textarea,label,[role="button"],.btn,.open,.game-mode,.slot-bet,.drop-filter{
+  cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath d='M3 2 L20 13 L13 15 L17 24 L13 26 L9 17 L4 22 Z' fill='%23f2c14e' stroke='%23000000' stroke-width='1.6' stroke-linejoin='round'/%3E%3C/svg%3E") 3 2, auto !important;
+}
+button:hover,a:hover,.btn:hover,.open:hover,.game-mode:hover,.slot-bet:hover,.drop-filter:hover{
+  cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'%3E%3Cpath d='M4 2 L22 14 L14 16 L19 26 L14 28 L10 18 L4 24 Z' fill='%23ffe08a' stroke='%23000000' stroke-width='1.7' stroke-linejoin='round'/%3E%3C/svg%3E") 4 2, pointer !important;
+}
+
+/* Make the old purple accents disappear where possible */
+[style*="#7"],
+[style*="purple"]{
+  --accent:var(--omi-gold);
+}
+
+/* Main hero accent */
+.hero span,
+.hero strong,
+.accent{
+  color:var(--omi-gold) !important;
+}
+
+/* Borders */
+hr{
+  border-color:var(--omi-border-soft) !important;
+}

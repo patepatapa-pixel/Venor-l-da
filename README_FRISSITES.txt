@@ -213,3 +213,10 @@ V32 OMI GAMBA:
 - Weboldal neve: OMI Gamba.
 - Böngésző címe: OMI Gamba – Gemblingezni csak saját felelősségre.
 - Játékos és admin oldalon is feltűnő felelősségi figyelmeztetés.
+
+V33 FEKETE-ARANY:
+- A felső logó most OMI GAMBA.
+- Teljes fekete/arany prémium megjelenés.
+- Arany aktív gombok, arany kiemelések, fekete panelek.
+- Modern arany egyedi egérkurzor.
+- Játékos és admin oldal is ugyanazt az OMI Gamba stílust kapta.
