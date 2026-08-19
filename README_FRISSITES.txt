@@ -398,3 +398,10 @@ V56:
 - Dropok: 10K, 100K, 1M, 10M, 100M, 1B, 4B főnyeremény, Ritka PET, Semmi.
 - A 4B főnyeremény jackpotként kerül naplózásra.
 - Minden drop esélye admin panelből továbbra is állítható.
+
+V57:
+- Minden régi 10 milliárd / 10B főnyeremény felirat javítva 4 milliárdra.
+- Főnyeremény panel: 4 000 000 000 Yang.
+- Tájékoztató: csak a 4B FŐNYEREMÉNY fizet játékban.
+- Átvételi szöveg: 4 milliárdos főnyeremény.
+- Felső láda összefoglaló jackpot kártya: 4B Yang.

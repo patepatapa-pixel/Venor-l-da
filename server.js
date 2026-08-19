@@ -171,7 +171,7 @@ async function init(){
  soul_chest_enabled:"1",
  announcement:"Napi 5 000 Coin + 5 000 Lélek Pont minden játékosnak!",
  maintenance:"0",
- reward_config:"[{\"name\":\"100 Yang\",\"icon\":\"\ud83e\ude99\",\"type\":\"yang\",\"amount\":100,\"active\":true,\"min_qty\":1,\"max_qty\":1,\"chance\":16.0},{\"name\":\"1K Yang\",\"icon\":\"\ud83d\udcb0\",\"type\":\"yang\",\"amount\":1000,\"active\":true,\"min_qty\":1,\"max_qty\":1,\"chance\":15.0},{\"name\":\"10K Yang\",\"icon\":\"\ud83d\udcb5\",\"type\":\"yang\",\"amount\":10000,\"active\":true,\"min_qty\":1,\"max_qty\":1,\"chance\":14.0},{\"name\":\"1M Yang\",\"icon\":\"\ud83d\udc8e\",\"type\":\"yang\",\"amount\":1000000,\"chance\":12.0,\"active\":true,\"min_qty\":1,\"max_qty\":1},{\"name\":\"10M Yang\",\"icon\":\"\ud83d\udd37\",\"type\":\"yang\",\"amount\":10000000,\"chance\":10.0,\"active\":true,\"min_qty\":1,\"max_qty\":1},{\"name\":\"100M Yang\",\"icon\":\"\ud83d\udc51\",\"type\":\"yang\",\"amount\":100000000,\"active\":true,\"min_qty\":1,\"max_qty\":1,\"chance\":7.0},{\"name\":\"1B Yang\",\"icon\":\"\ud83c\udfe6\",\"type\":\"yang\",\"amount\":1000000000,\"active\":true,\"min_qty\":1,\"max_qty\":1,\"chance\":3.0},{\"name\":\"10B Jackpot\",\"icon\":\"\ud83c\udfc6\",\"type\":\"yang\",\"amount\":10000000000,\"active\":true,\"min_qty\":1,\"max_qty\":1,\"chance\":0.1},{\"name\":\"Ritka PET\",\"icon\":\"\ud83d\udc3e\",\"type\":\"item\",\"amount\":1,\"active\":true,\"min_qty\":1,\"max_qty\":1,\"chance\":2.0},{\"name\":\"Semmi\",\"icon\":\"\u274c\",\"type\":\"nothing\",\"amount\":0,\"chance\":20.9,\"active\":true,\"min_qty\":1,\"max_qty\":1}]",
+ reward_config:"[{\"name\":\"100 Yang\",\"icon\":\"\ud83e\ude99\",\"type\":\"yang\",\"amount\":100,\"active\":true,\"min_qty\":1,\"max_qty\":1,\"chance\":16.0},{\"name\":\"1K Yang\",\"icon\":\"\ud83d\udcb0\",\"type\":\"yang\",\"amount\":1000,\"active\":true,\"min_qty\":1,\"max_qty\":1,\"chance\":15.0},{\"name\":\"10K Yang\",\"icon\":\"\ud83d\udcb5\",\"type\":\"yang\",\"amount\":10000,\"active\":true,\"min_qty\":1,\"max_qty\":1,\"chance\":14.0},{\"name\":\"1M Yang\",\"icon\":\"\ud83d\udc8e\",\"type\":\"yang\",\"amount\":1000000,\"chance\":12.0,\"active\":true,\"min_qty\":1,\"max_qty\":1},{\"name\":\"10M Yang\",\"icon\":\"\ud83d\udd37\",\"type\":\"yang\",\"amount\":10000000,\"chance\":10.0,\"active\":true,\"min_qty\":1,\"max_qty\":1},{\"name\":\"100M Yang\",\"icon\":\"\ud83d\udc51\",\"type\":\"yang\",\"amount\":100000000,\"active\":true,\"min_qty\":1,\"max_qty\":1,\"chance\":7.0},{\"name\":\"1B Yang\",\"icon\":\"\ud83c\udfe6\",\"type\":\"yang\",\"amount\":1000000000,\"active\":true,\"min_qty\":1,\"max_qty\":1,\"chance\":3.0},{\"name\":\"4B Főnyeremény\",\"icon\":\"\ud83c\udfc6\",\"type\":\"yang\",\"amount\":10000000000,\"active\":true,\"min_qty\":1,\"max_qty\":1,\"chance\":0.1},{\"name\":\"Ritka PET\",\"icon\":\"\ud83d\udc3e\",\"type\":\"item\",\"amount\":1,\"active\":true,\"min_qty\":1,\"max_qty\":1,\"chance\":2.0},{\"name\":\"Semmi\",\"icon\":\"\u274c\",\"type\":\"nothing\",\"amount\":0,\"chance\":20.9,\"active\":true,\"min_qty\":1,\"max_qty\":1}]",
  reward_schema_version:"v56",
  redemption_enabled:"1",
  redemption_config:"[{\"id\":\"pet_rare\",\"name\":\"Ritka PET\",\"type\":\"pet\",\"amount\":1,\"coin_cost\":10000,\"active\":true},{\"id\":\"yang_100m\",\"name\":\"100M Yang\",\"type\":\"yang\",\"amount\":100000000,\"coin_cost\":5000,\"active\":true},{\"id\":\"yang_1b\",\"name\":\"1 Milli\u00e1rd Yang\",\"type\":\"yang\",\"amount\":1000000000,\"coin_cost\":25000,\"active\":true}]",
@@ -543,7 +543,7 @@ app.get("/api/my-stats",auth,async(req,res)=>{
     yangWon:Number(x.chest_yang_won||0),
     jackpotCount,
     inGamePayingJackpots:jackpotCount,
-    nonJackpotYangNotice:"A normál Yang dropok statisztikai nyeremények. Játékon belüli kifizetés kizárólag a 10B JACKPOT után jár."
+    nonJackpotYangNotice:"A normál Yang dropok statisztikai nyeremények. Játékon belüli kifizetés kizárólag a 4B FŐNYEREMÉNY után jár."
   },
   balances:{
     coins:Number(u.coins||0),
@@ -1478,7 +1478,7 @@ app.post("/api/admin/jackpots-clear",auth,admin,async(req,res)=>{
  await q("DELETE FROM jackpot_wins");
  res.json({
    ok:true,
-   message:"A 10 milliárd Yang jackpot ellenőrző lista teljesen kiürítve."
+   message:"A 4 milliárd Yang jackpot ellenőrző lista teljesen kiürítve."
  });
 });
 

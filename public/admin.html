@@ -44,7 +44,7 @@
 <button class="btn primary" id="save" style="margin-top:12px">Mentés</button></div></section><section class="card section" data-admin-category="rewards" id="dropAdmin">
 <h3>🎁 Láda tartalma / Drop esélyek</h3>
 <p class="small">
-Itt pontos százalékban állíthatod a nyerési esélyeket. Például a 10B Jackpot lehet <b>0,10%</b>. Az aktív dropok összege pontosan <b>100%</b> legyen.
+Itt pontos százalékban állíthatod a nyerési esélyeket. Például a 4B Főnyeremény lehet <b>0,10%</b>. Az aktív dropok összege pontosan <b>100%</b> legyen.
 </p>
 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
   <input class="input" id="dropSearch" placeholder="Keresés item név alapján..." style="max-width:360px;margin:0">
@@ -62,8 +62,8 @@ Itt pontos százalékban állíthatod a nyerési esélyeket. Például a 10B Jac
 </section>
 
 <section class="card section" data-admin-category="players">
-<h3>🏆 10 MILLIÁRD YANG JACKPOT ELLENŐRZÉS</h3>
-<p class="small">Itt minden valódi 10 milliárd Yang nyerés szerveroldalon rögzítve jelenik meg. Átadás után jelöld átadottnak. A bejegyzéseket külön is törölheted, vagy az egész listát kiürítheted. Ez NEM törli a játékos fiókját, Coinját, ranglistáját vagy inventoryját.</p>
+<h3>🏆 4 MILLIÁRD YANG FŐNYEREMÉNY ELLENŐRZÉS</h3>
+<p class="small">Itt minden valódi 4 milliárd Yang nyerés szerveroldalon rögzítve jelenik meg. Átadás után jelöld átadottnak. A bejegyzéseket külön is törölheted, vagy az egész listát kiürítheted. Ez NEM törli a játékos fiókját, Coinját, ranglistáját vagy inventoryját.</p>
 <div style="margin-bottom:12px">
   <button class="btn" id="clearJackpotList" style="border-color:#8c3c50;color:#ff8da3">🗑️ JACKPOT LISTA KIÜRÍTÉSE</button>
 </div>
@@ -269,7 +269,7 @@ async function jackpots(){
  $("#jackpots").innerHTML=d.rows.length?d.rows.map(x=>`
  <div class="list-item" style="border-color:${x.claimed?'#2f6a4d':'#8a6829'}">
    <b>🏆 #${x.id} · ${x.username}</b><br>
-   <span>10 000 000 000 Yang · ${new Date(x.created_at).toLocaleString("hu-HU")}</span><br>
+   <span>4 000 000 000 Yang · ${new Date(x.created_at).toLocaleString("hu-HU")}</span><br>
    <span class="${x.claimed?'green':'gold'}">${x.claimed?'✅ ÁTADVA':'⚠️ MÉG NINCS ÁTADVA'}</span>
    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
      <button class="btn" onclick="markJackpot(${x.id},${!x.claimed})">${x.claimed?'Vissza nem adottra':'Megjelölés átadottnak'}</button>
@@ -285,7 +285,7 @@ async function markJackpot(id,claimed){
  }catch(e){toast(e.message)}
 }
 async function deleteJackpot(id,username){
- const ok=confirm(`Biztosan törlöd ${username} 10 milliárd Yang jackpot bejegyzését az ellenőrző listából?\n\nA játékos fiókja és egyéb adatai megmaradnak.`);
+ const ok=confirm(`Biztosan törlöd ${username} 4 milliárd Yang jackpot bejegyzését az ellenőrző listából?\n\nA játékos fiókja és egyéb adatai megmaradnak.`);
  if(!ok)return;
  try{
    const d=await api(`/api/admin/jackpots/${id}`,{method:"DELETE"});
@@ -295,7 +295,7 @@ async function deleteJackpot(id,username){
 }
 
 $("#clearJackpotList").onclick=async()=>{
- const first=confirm("Biztosan kiüríted a TELJES 10 milliárd Yang jackpot ellenőrző listát?\n\nEz csak ezt a listát törli. A játékosok és egyéb adatok megmaradnak.");
+ const first=confirm("Biztosan kiüríted a TELJES 4 milliárd Yang jackpot ellenőrző listát?\n\nEz csak ezt a listát törli. A játékosok és egyéb adatok megmaradnak.");
  if(!first)return;
 
  const typed=prompt('A végleges törléshez írd be pontosan: JACKPOT LISTA TÖRLÉS');
@@ -667,7 +667,7 @@ $("#saveShopConfig").onclick=async()=>{try{
       <div class="stat-card"><span>Kinyitott ládák</span><b id="apsOpened">0</b></div>
       <div class="stat-card"><span>Elköltött Lélek Pont</span><b id="apsSoulSpent">0</b></div>
       <div class="stat-card"><span>Nyert Yang</span><b id="apsYang">0</b></div>
-      <div class="stat-card jackpot-stat"><span>10B Jackpotok</span><b id="apsJackpots">0</b></div>
+      <div class="stat-card jackpot-stat"><span>4B Főnyereményok</span><b id="apsJackpots">0</b></div>
     </div>
 
     <div class="stats-section-title">🏆 Összes nyeremény</div>

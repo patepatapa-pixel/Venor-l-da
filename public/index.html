@@ -4,9 +4,9 @@
 <main class="wrap"><section class="hero"><span class="badge">OMI Gamba CHEST SYSTEM</span><h1>Nyisd ki. <span>Nyerj.</span> Ismételd.</h1><p>Online ládanyitó rendszer regisztrációval, napi Coinnal, jackpotokkal, ranglistával és külön adminpanellel.</p></section><div class="notice">📢 <span id="announcement">Betöltés...</span></div><div class="game-switch"><button class="game-mode active" id="modeChest">🎁 Ládázás</button><button class="game-mode" id="modeSlot">🎰 Slot</button><button class="game-mode" id="modeRedeem">🎟️ Kiváltás</button><button class="game-mode" id="modeStats">📊 Statisztika</button><button class="game-mode" id="modeInventory">🎒 Inventory</button><button class="game-mode" id="modeShop">🛒 Yang Shop</button></div>
 <div id="chestMode"><div class="tabs" id="ladak"><button class="tab active" data-q="1">1× Nyitás</button><button class="tab" data-q="10">10× Nyitás</button><button class="tab" data-q="100">100× Nyitás</button><button class="tab" disabled>1000× Nyitás 🔒</button></div>
 <section class="layout"><div class="card case"><div class="casehead"><h2>🧪 OMI Gamba Láda</h2><span class="small">Ár: <b id="price">1 000</b> Lélek Pont</span></div><div class="reward-grid" id="nyeremenyek">
-<div class="reward"><div class="icon">💰</div><div class="rarity">Yang</div><b>100 → 100M Yang</b><small>Több Yang szint</small></div>
+<div class="reward"><div class="icon">💰</div><div class="rarity">Yang</div><b>10K → 100M Yang</b><small>Több Yang szint</small></div>
 <div class="reward"><div class="icon">👑</div><div class="rarity">Nagy nyeremény</div><b>1B Yang</b><small>Ritka drop</small></div>
-<div class="reward"><div class="icon">🏆</div><div class="rarity">Jackpot</div><b>10B Yang</b><small>Hox adja át játékban</small></div>
+<div class="reward"><div class="icon">🏆</div><div class="rarity">Jackpot</div><b>4B Yang</b><small>Hox adja át játékban</small></div>
 <div class="reward"><div class="icon">🐾</div><div class="rarity">PET</div><b>Ritka PET</b><small>Csilingelő effekt</small></div>
 </div><div class="openbox"><div class="openrow"><span>Nyitási mennyiség</span><b id="qty">1×</b></div><button class="open" id="open">✦ 1× LÁDA NYITÁSA</button></div>
 <div id="openResults" style="margin-top:16px;padding:16px;border:1px solid #3a2d4d;border-radius:14px;background:linear-gradient(180deg,rgba(18,12,26,.98),rgba(10,7,14,.98));box-shadow:inset 0 1px 0 rgba(255,255,255,.025)">
@@ -18,16 +18,16 @@
   </div>
   <div id="resultTotals" style="display:none;margin-top:12px;padding-top:10px;border-top:1px solid #30283c"></div>
 </div></div>
-<aside class="card side" id="jackpot"><h2>🏆 Jackpotok</h2><div class="jackpot-pay-note">⚠️ <b>CSAK A JACKPOT FIZET JÁTÉKON BELÜL</b><br><span>A normál Yang dropok statisztikai nyeremények. Játékbeli kifizetés csak a 10B JACKPOT után jár.</span></div><div class="jack">
+<aside class="card side" id="jackpot"><h2>🏆 Jackpotok</h2><div class="jackpot-pay-note">⚠️ <b>CSAK A FŐNYEREMÉNY FIZET JÁTÉKON BELÜL</b><br><span>A normál Yang dropok statisztikai nyeremények. Játékbeli kifizetés csak a 4B FŐNYEREMÉNY után jár.</span></div><div class="jack">
 <div class="label">🏆 FŐNYEREMÉNY</div>
-<strong>10 000 000 000</strong><small>Yang</small>
+<strong>4 000 000 000</strong><small>Yang</small>
 <p style="margin:14px 0 0;line-height:1.55;color:#ddd">
-Ha megnyered a 10 milliárd Yang főnyereményt, a nyereményt játékban kapod meg.
+Ha megnyered a 4 milliárd Yang főnyereményt, a nyereményt játékban kapod meg.
 Az átvételhez írj a <b style="color:#fff">Hox</b> nevű játékosnak.
 </p>
-</div><div class="stat"><span>50M Yang</span><strong>50 000 000</strong></div><div class="stat"><span>MAX Jackpot</span><strong class="gold">10 000 000 000</strong></div><div style="margin-top:14px;padding:14px;border:1px solid rgba(255,215,0,.35);border-radius:12px;background:rgba(255,215,0,.06);line-height:1.55">
+</div><div class="stat"><span>50M Yang</span><strong>50 000 000</strong></div><div class="stat"><span>MAX Jackpot</span><strong class="gold">4 000 000 000</strong></div><div style="margin-top:14px;padding:14px;border:1px solid rgba(255,215,0,.35);border-radius:12px;background:rgba(255,215,0,.06);line-height:1.55">
 <b>🎮 Főnyeremény átvétele</b><br>
-A 10 milliárd Yang főnyereményt nem automatikusan írjuk jóvá. Ha megnyerted, keress meg játékban és írj a <b>Hox</b> nevű játékosnak, aki átadja neked a nyereményt.
+A 4 milliárd Yang főnyereményt nem automatikusan írjuk jóvá. Ha megnyerted, keress meg játékban és írj a <b>Hox</b> nevű játékosnak, aki átadja neked a nyereményt.
 </div>
 <div class="compact-drops">
   <div class="compact-drops-head">
@@ -163,12 +163,12 @@ A 10 milliárd Yang főnyereményt nem automatikusan írjuk jóvá. Ha megnyerte
         <div class="stat-card"><span>Összes kinyitott láda</span><b id="stChestOpened">0</b></div>
         <div class="stat-card"><span>Elköltött Lélek Pont</span><b id="stSoulSpent">0</b></div>
         <div class="stat-card"><span>Összes nyert Yang</span><b id="stYangWon">0</b></div>
-        <div class="stat-card jackpot-stat"><span>10B JACKPOT nyerések</span><b id="stJackpotCount">0</b></div>
+        <div class="stat-card jackpot-stat"><span>4B FŐNYEREMÉNY nyerések</span><b id="stJackpotCount">0</b></div>
       </div>
 
       <div class="jackpot-only-warning">
-        <b>⚠️ CSAK A JACKPOT FIZET JÁTÉKON BELÜL</b>
-        <p>A ládából megjelenő normál Yang nyeremények statisztikai eredmények. Játékon belüli tényleges kifizetés kizárólag a <strong>10 milliárd Yang JACKPOT</strong> után jár. Jackpot esetén keresd játékban a <strong>Hox</strong> nevű játékost.</p>
+        <b>⚠️ CSAK A FŐNYEREMÉNY FIZET JÁTÉKON BELÜL</b>
+        <p>A ládából megjelenő normál Yang nyeremények statisztikai eredmények. Játékon belüli tényleges kifizetés kizárólag a <strong>4 milliárd Yang JACKPOT</strong> után jár. Jackpot esetén keresd játékban a <strong>Hox</strong> nevű játékost.</p>
       </div>
 
       <div class="stats-section-title">💼 Jelenlegi egyenleg</div>
@@ -288,7 +288,7 @@ function rewardIcon(name,type){
   "10M Yang":"🔷",
   "100M Yang":"👑",
   "1B Yang":"🏦",
-  "10B Jackpot":"🏆",
+  "4B Főnyeremény":"🏆",
   "Ritka PET":"🐾",
   "Semmi":"❌"
  };
@@ -511,7 +511,7 @@ $("#open").onclick=async()=>{
    const all=Object.entries(grouped).filter(([n])=>n!=="500 Coin").map(([n,c])=>`${c}× ${n}`).join(" · ");
    if(all) toast(`🎉 ${all}`);
 
-   const jackpotWon=!!d.jackpot?.won || d.results.some(r=>r.name==="10B Jackpot");
+   const jackpotWon=!!d.jackpot?.won || d.results.some(r=>r.name==="4B Főnyeremény");
    const petWon=d.results.some(r=>r.name==="Ritka PET");
    if(jackpotWon) showJackpotEffect();
    else if(petWon) showPetEffect();
@@ -953,9 +953,9 @@ $("#resetMyChestResults")?.addEventListener("click",async()=>{
   <div style="width:min(680px,100%);text-align:center;padding:40px 28px;border-radius:24px;border:2px solid #ffcf62;background:linear-gradient(180deg,#211530,#0d0912);box-shadow:0 0 80px rgba(255,207,98,.28),0 30px 100px #000">
     <div id="jackpotFx" style="font-size:74px;filter:drop-shadow(0 0 20px rgba(255,207,98,.5))">🏆</div>
     <div style="color:#ffcf62;font-weight:1000;letter-spacing:2px;font-size:15px;margin-top:8px">JACKPOT!</div>
-    <h1 style="font-size:clamp(36px,7vw,64px);margin:8px 0 12px;line-height:1">NYERTÉL<br>10 MILLIÁRD YANGOT!</h1>
+    <h1 style="font-size:clamp(36px,7vw,64px);margin:8px 0 12px;line-height:1">NYERTÉL<br>4 MILLIÁRD YANGOT!</h1>
     <p style="font-size:18px;line-height:1.65;color:#ddd;max-width:540px;margin:0 auto 20px">
-      Gratulálunk! A 10 000 000 000 Yang főnyereményt biztosan megnyerted.
+      Gratulálunk! A 4 000 000 000 Yang főnyereményt biztosan megnyerted.
       A nyeremény átvételéhez játékban keresd a <b style="color:white">Hox</b> nevű játékost.
     </p>
     <div style="padding:13px;border:1px solid rgba(255,207,98,.35);border-radius:12px;background:rgba(255,207,98,.06);margin-bottom:18px">
