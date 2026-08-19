@@ -7,6 +7,7 @@ const rateLimit=require("express-rate-limit");
 const {Pool}=require("pg");
 
 const app=express();
+let databaseReady=false;
 const PORT = Number(process.env.PORT || 3000);
 const JWT_SECRET=process.env.JWT_SECRET||"CHANGE_ME";
 const COOKIE_SECURE=String(process.env.COOKIE_SECURE).toLowerCase()==="true";
@@ -21,6 +22,7 @@ app.use(express.json({limit:"100kb"}));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname,"public")));
 app.get("/api/health",(req,res)=>res.status(200).send("OK"));
+app.get("/api/ready",(req,res)=>res.status(databaseReady?200:503).json({ready:databaseReady}));
 const loginLimiter=rateLimit({windowMs:15*60*1000,limit:60,standardHeaders:true,legacyHeaders:false});
 
 async function q(text,params=[]){return pool.query(text,params)}
@@ -123,7 +125,11 @@ async function auth(req,res,next){
    req.user=u;next();
  }catch{res.status(401).json({error:"Érvénytelen munkamenet."})}
 }
-function admin(req,res,next){if(req.user.role!=="admin")return res.status(403).json({error:"Admin jogosultság szükséges."});next()}
+function admin(req,res,next){
+ if(req.user.role!=="admin")return res.status(403).json({error:"Admin jogosultság szükséges."});
+ if(!databaseReady)return res.status(503).json({error:"Az adatbázis még inicializálódik. Próbáld újra néhány másodperc múlva."});
+ next();
+}
 
 
 app.get("/api/public",async(req,res)=>res.json({
@@ -466,7 +472,7 @@ const httpServer=app.listen(PORT,"0.0.0.0",()=>{
 });
 
 init()
-  .then(()=>console.log("VENORI database initialized successfully."))
+  .then(()=>{databaseReady=true;console.log("VENORI database initialized successfully.");})
   .catch(e=>{
     console.error("VENORI database initialization error:",e);
   });

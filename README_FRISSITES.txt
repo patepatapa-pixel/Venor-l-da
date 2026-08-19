@@ -136,3 +136,11 @@ V19 RENDER PORT FIX:
 - /api/health azonnal 200 OK választ ad.
 - PostgreSQL kapcsolat időtúllépést kapott, hogy ne tudja végtelenül blokkolni az indulást.
 - SIGTERM kezelés hozzáadva.
+
+V21 ADMIN BELÉPÉS JAVÍTÁS:
+- Az admin oldal többé nem dob vissza a főoldalra attól, hogy egy admin blokk betöltése hibázik.
+- Csak akkor irányít vissza, ha nincs érvényes admin munkamenet vagy a fiók nem admin.
+- Külön "Admin adatok újratöltése" gomb került az oldalra.
+- A szerver /api/ready végponttal jelzi az adatbázis inicializáltságát.
+- Admin API-k egyértelmű 503 üzenetet adnak, ha a Render indulás után még inicializálja az adatbázist.
+- server.js és frontend JS szintaxis ellenőrizve.

@@ -1,4 +1,8 @@
-<!doctype html><html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>VENORI Admin</title><link rel="stylesheet" href="/style.css"></head><body><header class="topbar"><a class="logo" href="/">VEN<span>ORI</span></a><nav class="nav"><a href="/">Játékos oldal</a></nav><div class="wallet">🛡️ ADMIN</div></header><main class="wrap"><section class="card section"><h2>VENORI Admin Panel</h2><div class="profile" id="stats"></div></section><section class="columns"><div class="card section"><h3>👥 Játékosok</h3><input class="input" id="search" placeholder="Keresés"><div id="users"></div></div><div class="card section"><h3>🪙 Coin kezelés</h3><input class="input" id="uid" type="number" placeholder="Játékos ID"><input class="input" id="amount" type="number" placeholder="+5000 vagy -5000"><input class="input" id="reason" placeholder="Indok"><button class="btn primary" id="coinBtn">Mentés</button><h3 style="margin-top:24px">⚙️ Beállítások</h3><input class="input" id="daily" type="number"><input class="input" id="price" type="number"><input class="input" id="announcement"><label><input id="maintenance" type="checkbox"> Karbantartási mód</label><br><button class="btn primary" id="save" style="margin-top:12px">Mentés</button></div></section><section class="card section" id="dropAdmin">
+<!doctype html><html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>VENORI Admin</title><link rel="stylesheet" href="/style.css"></head><body><header class="topbar"><a class="logo" href="/">VEN<span>ORI</span></a><nav class="nav"><a href="/">Játékos oldal</a></nav><div class="wallet">🛡️ ADMIN</div></header><main class="wrap"><section class="card section"><h2>VENORI Admin Panel</h2>
+<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0 12px">
+  <span class="small">🛡️ Admin munkamenet aktív</span>
+  <button class="btn" id="reloadAdmin" type="button">↻ Admin adatok újratöltése</button>
+</div><div class="profile" id="stats"></div></section><section class="columns"><div class="card section"><h3>👥 Játékosok</h3><input class="input" id="search" placeholder="Keresés"><div id="users"></div></div><div class="card section"><h3>🪙 Coin kezelés</h3><input class="input" id="uid" type="number" placeholder="Játékos ID"><input class="input" id="amount" type="number" placeholder="+5000 vagy -5000"><input class="input" id="reason" placeholder="Indok"><button class="btn primary" id="coinBtn">Mentés</button><h3 style="margin-top:24px">⚙️ Beállítások</h3><input class="input" id="daily" type="number"><input class="input" id="price" type="number"><input class="input" id="announcement"><label><input id="maintenance" type="checkbox"> Karbantartási mód</label><br><button class="btn primary" id="save" style="margin-top:12px">Mentés</button></div></section><section class="card section" id="dropAdmin">
 <h3>🎁 Láda tartalma / Drop esélyek</h3>
 <p class="small">
 Itt állíthatod, melyik nyeremény aktív, milyen súllyal essen, és itemeknél minimum/maximum hány darab nyitható.
@@ -227,5 +231,46 @@ $("#resetLeaderboard").onclick=async()=>{
    await Promise.all([stats(),users()]);
  }catch(e){toast(e.message)}
 };
-(async()=>{try{const me=await api("/api/me");if(me.user.role!=="admin")throw Error();await Promise.all([stats(),users(),settings(),tx(),jackpots(),loadDrops()])}catch{location.href="/"}})();
+$("#reloadAdmin").onclick=async()=>{
+  const tasks=[stats(),users(),settings(),tx(),jackpots(),loadDrops()];
+  const result=await Promise.allSettled(tasks);
+  const failed=result.filter(x=>x.status==="rejected").length;
+  toast(failed?`${failed} admin blokk nem töltődött be.`:"Admin adatok frissítve.");
+};
+
+async function bootAdmin(){
+  // Csak akkor dobunk vissza a főoldalra, ha tényleg nincs admin munkamenet.
+  let me;
+  try{
+    me=await api("/api/me");
+  }catch(e){
+    location.href="/";
+    return;
+  }
+
+  if(!me?.user || me.user.role!=="admin"){
+    location.href="/";
+    return;
+  }
+
+  // Az egyes admin blokkok hibái többé nem dobják ki az admint.
+  const loaders=[
+    ["Statisztika",stats],
+    ["Játékoslista",users],
+    ["Beállítások",settings],
+    ["Tranzakciók",tx],
+    ["Jackpot lista",jackpots],
+    ["Drop lista",loadDrops]
+  ];
+
+  for(const [name,fn] of loaders){
+    try{
+      await fn();
+    }catch(e){
+      console.error(name+" betöltési hiba:",e);
+      toast(name+" betöltési hiba: "+e.message);
+    }
+  }
+}
+bootAdmin();
 </script></body></html>
