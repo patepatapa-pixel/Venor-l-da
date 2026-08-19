@@ -7,17 +7,20 @@ const rateLimit=require("express-rate-limit");
 const {Pool}=require("pg");
 
 const app=express();
-const PORT=Number(process.env.PORT||3000);
+const PORT = Number(process.env.PORT || 3000);
 const JWT_SECRET=process.env.JWT_SECRET||"CHANGE_ME";
 const COOKIE_SECURE=String(process.env.COOKIE_SECURE).toLowerCase()==="true";
 const pool=new Pool({
   connectionString:process.env.DATABASE_URL,
-  ssl:process.env.DATABASE_URL?.includes("localhost")?false:{rejectUnauthorized:false}
+  ssl:process.env.DATABASE_URL?.includes("localhost")?false:{rejectUnauthorized:false},
+  connectionTimeoutMillis:15000,
+  idleTimeoutMillis:30000
 });
 
 app.use(express.json({limit:"100kb"}));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname,"public")));
+app.get("/api/health",(req,res)=>res.status(200).send("OK"));
 const loginLimiter=rateLimit({windowMs:15*60*1000,limit:60,standardHeaders:true,legacyHeaders:false});
 
 async function q(text,params=[]){return pool.query(text,params)}
@@ -119,7 +122,7 @@ async function auth(req,res,next){
 }
 function admin(req,res,next){if(req.user.role!=="admin")return res.status(403).json({error:"Admin jogosultság szükséges."});next()}
 
-app.get("/api/health",(req,res)=>res.json({ok:true}));
+
 app.get("/api/public",async(req,res)=>res.json({
  dailyBonus:await intSetting("daily_bonus"),
  chestPrice:await intSetting("chest_price"),
@@ -425,4 +428,17 @@ app.get("/api/admin/transactions",auth,admin,async(req,res)=>res.json({rows:(awa
 app.get("/admin",(req,res)=>res.sendFile(path.join(__dirname,"public","admin.html")));
 app.get("/{*splat}",(req,res)=>res.sendFile(path.join(__dirname,"public","index.html")));
 
-init().then(()=>app.listen(PORT,()=>console.log("VENORI fut a porton:",PORT))).catch(e=>{console.error(e);process.exit(1)});
+const httpServer=app.listen(PORT,"0.0.0.0",()=>{
+  console.log(`VENORI server listening on 0.0.0.0:${PORT}`);
+});
+
+init()
+  .then(()=>console.log("VENORI database initialized successfully."))
+  .catch(e=>{
+    console.error("VENORI database initialization error:",e);
+  });
+
+process.on("SIGTERM",()=>{
+  console.log("SIGTERM received, closing server.");
+  httpServer.close(()=>process.exit(0));
+});

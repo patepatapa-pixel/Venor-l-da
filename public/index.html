@@ -56,6 +56,48 @@ A 10 milliárd Yang főnyereményt nem automatikusan írjuk jóvá. Ha megnyerte
 let user=null,q=1,mode="login",cfg={};const $=s=>document.querySelector(s),fmt=n=>Number(n||0).toLocaleString("hu-HU");
 async function api(u,o={}){const r=await fetch(u,{...o,headers:{"Content-Type":"application/json",...(o.headers||{})}});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||"Hiba");return d}
 function toast(x){const t=$("#toast");t.textContent=x;t.style.display="block";clearTimeout(window.tt);window.tt=setTimeout(()=>t.style.display="none",2900)}
+
+let openingInProgress=false;
+
+function setOpeningState(active){
+ openingInProgress=active;
+ const b=$("#open");
+ if(!b)return;
+ b.disabled=active;
+ b.style.opacity=active?".65":"1";
+ b.textContent=active?"⏳ NYITÁS FOLYAMATBAN...":`✦ ${q}× LÁDA NYITÁSA`;
+}
+
+function rewardChime(kind){
+ try{
+   const AC=window.AudioContext||window.webkitAudioContext;
+   if(!AC)return;
+   const ctx=new AC();
+   const master=ctx.createGain();
+   master.gain.value=.10;
+   master.connect(ctx.destination);
+   const notes=kind==="jackpot"?[523.25,659.25,783.99,1046.5]:[659.25,783.99,987.77];
+   notes.forEach((f,i)=>{
+     const o=ctx.createOscillator(),g=ctx.createGain(),t=ctx.currentTime+i*.12;
+     o.type="sine";o.frequency.value=f;
+     g.gain.setValueAtTime(.001,t);
+     g.gain.exponentialRampToValueAtTime(1,t+.02);
+     g.gain.exponentialRampToValueAtTime(.001,t+.32);
+     o.connect(g);g.connect(master);o.start(t);o.stop(t+.34);
+   });
+   setTimeout(()=>ctx.close().catch(()=>{}),1500);
+ }catch(e){}
+}
+
+function showPetEffect(){
+ const x=$("#petOverlay");
+ if(x){x.style.display="flex";x.style.pointerEvents="auto";rewardChime("pet");}
+}
+function showJackpotEffect(){
+ const x=$("#jackpotOverlay");
+ if(x){x.style.display="flex";x.style.pointerEvents="auto";rewardChime("jackpot");}
+}
+
 function renderOpenResults(d){
  const grouped={};
  d.results.forEach(r=>{
@@ -106,6 +148,17 @@ async function lists(){
  const l=await api("/api/leaderboard");
  $("#leader").innerHTML=l.rows.map((x,i)=>`<div class="list-item leader"><span class="rank">#${i+1}</span><b>${x.username}</b><span>💰 ${fmt(x.total_yang_won)} Yang · 🪙 ${fmt(x.total_coin_won)} Coin</span></div>`).join("")||"<div class='small'>Nincs ranglista.</div>";
 }
+function loadRememberedLogin(){
+ try{
+   const remember=localStorage.getItem("venori_remember_login")==="1";
+   const saved=localStorage.getItem("venori_remembered_username")||"";
+   const cb=$("#rememberMe");
+   const u=$("#username");
+   if(cb) cb.checked=remember;
+   if(u && remember && !u.value) u.value=saved;
+ }catch(e){}
+}
+
 function saveRememberedLogin(){
  const remember=$("#rememberMe").checked;
  if(remember){
@@ -117,7 +170,14 @@ function saveRememberedLogin(){
  }
 }
 function openModal(m){mode=m;$("#modal").style.display="flex";$("#modal").style.pointerEvents="auto";$("#modalTitle").textContent=m==="login"?"Belépés":"Regisztráció";$("#submit").textContent=m==="login"?"Belépés":"Regisztráció";$("#switch").textContent=m==="login"?"Regisztráció":"Belépés";loadRememberedLogin()}
-$("#authBtn").onclick=()=>openModal("login");$("#registerBtn").onclick=()=>openModal("register");$("#close").onclick=()=>$("#modal").style.display="none";$("#modal").style.pointerEvents="none";$("#switch").onclick=()=>openModal(mode==="login"?"register":"login");
+$("#authBtn").onclick=()=>openModal("login");
+$("#registerBtn").onclick=()=>openModal("register");
+$("#close").onclick=()=>{
+ const m=$("#modal");
+ m.style.display="none";
+ m.style.pointerEvents="none";
+};
+$("#switch").onclick=()=>openModal(mode==="login"?"register":"login");
 $("#submit").onclick=async()=>{try{
  const remember=$("#rememberMe").checked;
  const d=await api("/api/"+mode,{method:"POST",body:JSON.stringify({
@@ -135,18 +195,41 @@ $("#submit").onclick=async()=>{try{
 }catch(e){toast(e.message)}};
 $("#logout").onclick=async()=>{await api("/api/logout",{method:"POST"});user=null;render();toast("Kijelentkeztél.")};
 $("#daily").onclick=async()=>{if(!user){openModal("login");return}try{const d=await api("/api/daily",{method:"POST"});user=d.user;render();toast("🎁 +"+fmt(d.bonus)+" Coin")}catch(e){toast(e.message)}};
-$("#open").onclick=async()=>{if(!user){openModal("login");return}try{
- const d=await api("/api/open",{method:"POST",body:JSON.stringify({quantity:q})});
- user=d.user;render();renderOpenResults(d);
- const grouped={};d.results.forEach(r=>grouped[r.name]=(grouped[r.name]||0)+(r.qty||1));
- const all=Object.entries(grouped).filter(([n])=>n!=="500 Coin").map(([n,c])=>`${c}× ${n}`).join(" · ");
- toast(`🎉 ${all} | +${fmt(d.won?.yang||0)} Yang | +${fmt(d.won?.coin||0)} Coin`);
- if(d.jackpot?.won){
-   $("#jackpotOverlay").style.display="flex";$("#jackpotOverlay").style.pointerEvents="auto";
+$("#open").onclick=async()=>{
+ if(!user){openModal("login");return}
+ if(openingInProgress)return;
+ setOpeningState(true);
+ try{
+   const d=await api("/api/open",{method:"POST",body:JSON.stringify({quantity:q})});
+   user=d.user;
+   render();
+   renderOpenResults(d);
+
+   const grouped={};
+   d.results.forEach(r=>grouped[r.name]=(grouped[r.name]||0)+(r.qty||1));
+   const all=Object.entries(grouped).filter(([n])=>n!=="500 Coin").map(([n,c])=>`${c}× ${n}`).join(" · ");
+   if(all) toast(`🎉 ${all}`);
+
+   const jackpotWon=!!d.jackpot?.won || d.results.some(r=>r.name==="10B Jackpot");
+   const petWon=d.results.some(r=>r.name==="Ritka PET");
+   if(jackpotWon) showJackpotEffect();
+   else if(petWon) showPetEffect();
+
+   await hist().catch(()=>{});
+   await inv().catch(()=>{});
+   setTimeout(()=>lists().catch(()=>{}),100);
+ }catch(e){
+   toast(e.message);
+ }finally{
+   setOpeningState(false);
  }
- await Promise.all([hist(),inv(),lists()]);
-}catch(e){toast(e.message)}};
+};
 document.addEventListener("click",(e)=>{
+  if(e.target && e.target.id==="closePet"){
+    const overlay=document.getElementById("petOverlay");
+    if(overlay){overlay.style.display="none";overlay.style.pointerEvents="none";}
+    return;
+  }
   if(e.target && e.target.id==="closeJackpot"){
     const overlay=document.getElementById("jackpotOverlay");
     if(overlay){overlay.style.display="none";overlay.style.pointerEvents="none";}
@@ -156,6 +239,8 @@ document.addEventListener("keydown",(e)=>{
   if(e.key==="Escape"){
     const overlay=document.getElementById("jackpotOverlay");
     if(overlay && overlay.style.display!=="none"){overlay.style.display="none";overlay.style.pointerEvents="none";}
+    const pet=document.getElementById("petOverlay");
+    if(pet && pet.style.display!=="none"){pet.style.display="none";pet.style.pointerEvents="none";}
   }
 });
 
@@ -176,6 +261,17 @@ document.addEventListener("input",(e)=>{
 });
 (async()=>{await loadPublic();await loadMe();await Promise.all([lists(),loadDropsPublic()]);setInterval(lists,15000)})();
 </script>
+
+<div id="petOverlay" style="display:none;pointer-events:none;position:fixed;inset:0;z-index:9998;background:radial-gradient(circle at center,rgba(64,220,157,.30),rgba(0,0,0,.92));align-items:center;justify-content:center;padding:20px">
+  <div style="width:min(620px,100%);text-align:center;padding:38px 28px;border-radius:24px;border:2px solid #66e6ad;background:linear-gradient(180deg,#10251d,#090d0b);box-shadow:0 0 80px rgba(102,230,173,.22),0 30px 100px #000">
+    <div style="font-size:72px">🐾</div>
+    <div style="color:#72efb8;font-weight:1000;letter-spacing:2px">RITKA DROP!</div>
+    <h1 style="font-size:clamp(34px,6vw,56px);margin:8px 0 12px">RITKA PETET NYERTÉL!</h1>
+    <p style="font-size:17px;line-height:1.6;color:#ddd">Gratulálunk! Ritka PET esett a ládából. A nyeremény bekerült az inventorydba.</p>
+    <button class="btn primary" id="closePet" type="button" style="margin-top:12px">ÉRTETTEM 🐾</button>
+  </div>
+</div>
+
 <div id="jackpotOverlay" style="display:none;pointer-events:none;position:fixed;inset:0;z-index:9999;background:radial-gradient(circle at center,rgba(119,55,210,.45),rgba(0,0,0,.92));align-items:center;justify-content:center;padding:20px">
   <div style="width:min(680px,100%);text-align:center;padding:40px 28px;border-radius:24px;border:2px solid #ffcf62;background:linear-gradient(180deg,#211530,#0d0912);box-shadow:0 0 80px rgba(255,207,98,.28),0 30px 100px #000">
     <div id="jackpotFx" style="font-size:74px;filter:drop-shadow(0 0 20px rgba(255,207,98,.5))">🏆</div>

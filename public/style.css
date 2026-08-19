@@ -171,3 +171,8 @@ body::before { pointer-events: none !important; z-index: 0; }
 }
 #open:disabled{pointer-events:none}
 @media(max-width:520px){.drop-grid{grid-template-columns:1fr}}
+
+/* V18 login + overlay safety */
+#petOverlay{pointer-events:none}
+#petOverlay[style*="display: flex"],#petOverlay[style*="display:flex"]{pointer-events:auto}
+#open:disabled{pointer-events:none}

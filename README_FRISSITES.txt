@@ -120,3 +120,19 @@ V17 STABILITÁS + EFFEKTEK:
 - 10 milliárd Yang jackpot effekt és Hox figyelmeztetés megmaradt.
 - Ritka PET és 10B jackpot esetén csilingelő hang szól a böngésző Web Audio API-jával.
 - 10B jackpot elsőbbséget élvez, ha ugyanabban a nyitásban PET is esik.
+
+V18 BELÉPÉS JAVÍTÁS:
+- Javítva a valódi belépési hiba: a loadRememberedLogin függvény hiányzott.
+- A Belépés / Regisztráció modal gombkezelése átírva stabilabbra.
+- 100x nyitás közben a nyitás gomb zárolódik, majd mindig visszakapcsol.
+- PET effekt + csilingelés.
+- 10B jackpot effekt + csilingelés + Hox figyelmeztetés megmaradt.
+- Frontend JavaScript és server.js szintaktikai ellenőrzés: OK.
+
+V19 RENDER PORT FIX:
+- A szerver most explicit 0.0.0.0 címen figyel.
+- A Render által biztosított PORT környezeti változót használja.
+- A HTTP szerver azonnal elindul, nem vár az adatbázis inicializálására.
+- /api/health azonnal 200 OK választ ad.
+- PostgreSQL kapcsolat időtúllépést kapott, hogy ne tudja végtelenül blokkolni az indulást.
+- SIGTERM kezelés hozzáadva.
