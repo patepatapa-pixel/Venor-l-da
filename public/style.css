@@ -644,3 +644,10 @@ body[data-shop-cursor="karambit_neon"],body[data-shop-cursor="karambit_neon"] *{
 .weapon-admin-extra{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:10px;border:1px dashed #5d4820;border-radius:10px}
 @media(max-width:850px){.weapon-grid{grid-template-columns:1fr}.weapon-stats,.weapon-admin-extra{grid-template-columns:1fr 1fr}}
 @media(max-width:500px){.weapon-stats,.weapon-admin-extra{grid-template-columns:1fr}}
+
+/* V47 weapon rarities */
+.weapon-rarity{display:inline-block;margin:4px 0 2px;padding:3px 7px;border-radius:999px;font-size:9px;font-weight:1000;letter-spacing:.08em}
+.rarity-normal{color:#ddd;border:1px solid #555;background:#151515}
+.rarity-rare{color:#70b7ff;border:1px solid #245c98;background:#071421}
+.rarity-mitic{color:#d493ff;border:1px solid #704096;background:#180a22}
+.rarity-legendary{color:#ffd45d;border:1px solid #9b7620;background:#211804;box-shadow:0 0 12px rgba(242,193,78,.12)}

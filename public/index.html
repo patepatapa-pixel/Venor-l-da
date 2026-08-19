@@ -159,14 +159,13 @@ A 10 milliárd Yang főnyereményt nem automatikusan írjuk jóvá. Ha megnyerte
     <div class="stats-title-row">
       <div>
         <h2 style="margin:0">🎒 Saját Inventory</h2>
-        <div class="small">Fegyverek húzása Yangért · felszerelt fegyver bónuszt ad a Slothoz.</div>
+        <div class="small">Fegyverek húzása Yangért · a felszerelt fegyver csak a Slot Coin nyereményét növeli.</div>
       </div>
       <button class="btn danger" id="resetInventoryBtn" type="button">🗑 Inventory reset</button>
     </div>
 
     <div class="inventory-bonus-info">
-      ⚔️ A felszerelt fegyver <b>szorzót</b> ad a Slot nyereményre és <b>plusz nyerési esélyt</b> ad.
-      A fegyvert Yangért újrahúzhatod.
+      ⚔️ A felszerelt fegyver csak a <b>Slot Coin nyeremény összegét</b> szorozza meg. A nyerési esélyt nem módosítja. A fegyvert Yangért újrahúzhatod.
     </div>
 
     <h3>⚔️ Yang Shop fegyvereim</h3>
@@ -762,6 +761,15 @@ document.addEventListener("mousemove",e=>{
 });
 
 
+function weaponRarityLabel(r){
+ const map={
+  normal:{name:"NORMAL",icon:"⚪",min:1.05},
+  rare:{name:"RARE",icon:"🔵",min:1.20},
+  mitic:{name:"MITIC",icon:"🟣",min:1.50},
+  legendary:{name:"LEGENDARY",icon:"🟡",min:2.00}
+ };
+ return map[r]||map.normal;
+}
 async function loadFullInventory(){
  if(!user)return;
  try{
@@ -770,14 +778,14 @@ async function loadFullInventory(){
    $("#weaponInventory").innerHTML=(d.weapons||[]).length?(d.weapons||[]).map(w=>{
      const equipped=String(d.equippedWeapon||"")===String(w.id);
      return `<div class="weapon-card ${equipped?"equipped":""}">
-       <div class="weapon-top"><span class="weapon-icon">⚔️</span><div><b>${w.name}</b><div class="small">Alap érték: ${fmt(w.base_value||100)}</div></div></div>
+       <div class="weapon-top"><span class="weapon-icon">⚔️</span><div><b>${w.name}</b><div class="weapon-rarity rarity-${w.rarity||"normal"}">${weaponRarityLabel(w.rarity).icon} ${weaponRarityLabel(w.rarity).name}</div><div class="small">Alap érték: ${fmt(w.base_value||100)}</div></div></div>
        <div class="weapon-stats">
          <div><span>Aktuális érték</span><b>${fmt(w.value_score)}</b></div>
          <div><span>Slot szorzó</span><b>x${Number(w.slot_multiplier).toFixed(3)}</b></div>
-         <div><span>Szerencse</span><b>+${Number(w.luck_bonus).toFixed(3)}%</b></div>
+         
          <div><span>Húzások</span><b>${fmt(w.roll_count)}</b></div>
        </div>
-       <div class="small weapon-max">Max: x${Number(w.max_multiplier||1.35).toFixed(2)} szorzó · +${Number(w.max_luck||4).toFixed(2)}% szerencse</div>
+       <div class="small weapon-max">Húzható Coin szorzó: x${weaponRarityLabel(w.rarity).min.toFixed(2)} – x${Number(w.max_multiplier||1.20).toFixed(2)}</div>
        <div class="weapon-actions">
          <button class="btn primary" data-weapon-roll="${w.id}">🎲 Húzás · ${fmt(w.roll_cost||5000000)} Yang</button>
          <button class="btn ${equipped?"active":""}" data-weapon-equip="${w.id}">${equipped?"✓ Felszerelve":"⚔️ Felszerelés"}</button>

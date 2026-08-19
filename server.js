@@ -191,6 +191,30 @@ async function init(){
  yang_balance_backfill_version:"0",
  shop_schema_version:"v43"};
  for(const [k,v] of Object.entries(defaults)) await q("INSERT INTO settings(key,value) VALUES($1,$2) ON CONFLICT(key) DO NOTHING",[k,v]);
+ if((await setting("v47_weapon_rarity_done"))!=="1"){
+   let arr=[];try{arr=JSON.parse(await setting("shop_config")||"[]")}catch{}
+   const rarityDefaults={
+     "inv_dragon_sword":{rarity:"normal",price:15000000,roll_cost:3000000,max_multiplier:1.20},
+     "inv_royal_fan":{rarity:"normal",price:18000000,roll_cost:3500000,max_multiplier:1.20},
+     "inv_moon_blade":{rarity:"rare",price:30000000,roll_cost:6000000,max_multiplier:1.50},
+     "inv_arcane_bow":{rarity:"rare",price:32000000,roll_cost:6500000,max_multiplier:1.50},
+     "inv_shadow_dagger":{rarity:"mitic",price:50000000,roll_cost:10000000,max_multiplier:2.00},
+     "inv_demon_spear":{rarity:"legendary",price:80000000,roll_cost:18000000,max_multiplier:3.00}
+   };
+   arr=arr.map(x=>{
+     if(x.type!=="inventory")return x;
+     const d=rarityDefaults[x.id]||{rarity:"normal",price:Number(x.price||15000000),roll_cost:Number(x.roll_cost||3000000),max_multiplier:1.20};
+     return {...x,
+       rarity:["normal","rare","mitic","legendary"].includes(String(x.rarity))?x.rarity:d.rarity,
+       price:Number(x.price||d.price),
+       roll_cost:Number(x.roll_cost||d.roll_cost),
+       max_multiplier:Number(x.max_multiplier||d.max_multiplier)
+     };
+   });
+   await q("UPDATE settings SET value=$1 WHERE key='shop_config'",[JSON.stringify(arr)]);
+   await q("INSERT INTO settings(key,value) VALUES('v47_weapon_rarity_done','1') ON CONFLICT(key) DO UPDATE SET value='1'");
+ }
+
  if((await setting("v45_weapon_stats_done"))!=="1"){
    let arr=[];try{arr=JSON.parse(await setting("shop_config")||"[]")}catch{}
    const defs={"inv_dragon_sword":{"base_value":100,"roll_cost":5000000,"max_multiplier":1.35,"max_luck":4.0},"inv_moon_blade":{"base_value":125,"roll_cost":7000000,"max_multiplier":1.45,"max_luck":5.0},"inv_demon_spear":{"base_value":160,"roll_cost":10000000,"max_multiplier":1.6,"max_luck":6.5},"inv_arcane_bow":{"base_value":140,"roll_cost":8000000,"max_multiplier":1.5,"max_luck":6.0},"inv_royal_fan":{"base_value":110,"roll_cost":6000000,"max_multiplier":1.4,"max_luck":5.0},"inv_shadow_dagger":{"base_value":150,"roll_cost":9000000,"max_multiplier":1.55,"max_luck":7.0}};
@@ -702,11 +726,15 @@ app.post("/api/inventory/roll",auth,async(req,res)=>{
    if(Number(u.yang_balance||0)<cost)throw new Error(`Nincs elég Yangod a húzáshoz. Ár: ${cost.toLocaleString("hu-HU")} Yang.`);
 
    const base=Math.max(1,Math.floor(Number(item.base_value||100)));
-   const maxMult=Math.max(1,Number(item.max_multiplier||1.35));
-   const maxLuck=Math.max(0,Number(item.max_luck||4));
+   const rarity=String(item.rarity||"normal");
+   const rarityMin={normal:1.05,rare:1.20,mitic:1.50,legendary:2.00};
+   const rarityDefaultMax={normal:1.20,rare:1.50,mitic:2.00,legendary:3.00};
+   const minMult=rarityMin[rarity]||1.05;
+   const maxMult=Math.max(minMult,Number(item.max_multiplier||rarityDefaultMax[rarity]||1.20));
+   const maxLuck=0;
    const valueScore=Math.floor(base + Math.random()*(base+1));
-   const mult=Number((1 + Math.random()*(maxMult-1)).toFixed(3));
-   const luck=Number((Math.random()*maxLuck).toFixed(3));
+   const mult=Number((minMult + Math.random()*(maxMult-minMult)).toFixed(3));
+   const luck=0;
 
    await client.query("UPDATE users SET yang_balance=yang_balance-$1 WHERE id=$2",[cost,req.user.id]);
    await client.query(`
@@ -720,7 +748,7 @@ app.post("/api/inventory/roll",auth,async(req,res)=>{
        updated_at=NOW()
    `,[req.user.id,itemId,valueScore,mult,luck]);
    await client.query("COMMIT");
-   res.json({ok:true,user:await userView(req.user.id),result:{valueScore,slotMultiplier:mult,luckBonus:luck},message:`Húzás kész: érték ${valueScore}, x${mult.toFixed(3)}, +${luck.toFixed(3)}% szerencse.`});
+   res.json({ok:true,user:await userView(req.user.id),result:{valueScore,slotMultiplier:mult,luckBonus:luck},message:`${rarity.toUpperCase()} húzás kész: érték ${valueScore}, Coin nyereményszorzó x${mult.toFixed(3)}.`});
  }catch(e){
    await client.query("ROLLBACK");
    res.status(400).json({error:e.message});
@@ -880,10 +908,11 @@ app.post("/api/admin/shop-config",auth,admin,async(req,res)=>{
    type:["chime","soul","coin","background","cursor","inventory"].includes(x.type)?x.type:"soul",
    value:["chime","background","cursor","inventory"].includes(x.type)?String(x.value||""):Math.max(1,Math.floor(Number(x.value||1))),
    price:Math.max(0,Math.floor(Number(x.price||0))),
+   rarity:x.type==="inventory"?(["normal","rare","mitic","legendary"].includes(String(x.rarity))?String(x.rarity):"normal"):"",
    base_value:x.type==="inventory"?Math.max(1,Math.floor(Number(x.base_value||100))):0,
    roll_cost:x.type==="inventory"?Math.max(1,Math.floor(Number(x.roll_cost||5000000))):0,
    max_multiplier:x.type==="inventory"?Math.max(1,Math.min(10,Number(x.max_multiplier||1.35))):1,
-   max_luck:x.type==="inventory"?Math.max(0,Math.min(50,Number(x.max_luck||4))):0,
+   max_luck:0,
    active:x.active!==false
  }));
 
@@ -980,12 +1009,12 @@ app.post("/api/slot-spin",auth,async(req,res)=>{
    const u=(await client.query("SELECT * FROM users WHERE id=$1 FOR UPDATE",[req.user.id])).rows[0];
    if(Number(u.coins)<bet)throw new Error("Nincs elég Coinod ehhez a téthez.");
    const baseWinChance=Math.max(0,Math.min(100,Number(await intSetting("slot_win_chance")||60)));
-   let weaponBonus={itemId:null,luck:0,multiplier:1,value:0};
+   let weaponBonus={itemId:null,multiplier:1,value:0};
    if(u.equipped_weapon){
-     const ws=(await client.query("SELECT value_score,slot_multiplier,luck_bonus FROM user_inventory_stats WHERE user_id=$1 AND item_id=$2",[req.user.id,u.equipped_weapon])).rows[0];
-     if(ws)weaponBonus={itemId:u.equipped_weapon,luck:Number(ws.luck_bonus||0),multiplier:Number(ws.slot_multiplier||1),value:Number(ws.value_score||0)};
+     const ws=(await client.query("SELECT value_score,slot_multiplier FROM user_inventory_stats WHERE user_id=$1 AND item_id=$2",[req.user.id,u.equipped_weapon])).rows[0];
+     if(ws)weaponBonus={itemId:u.equipped_weapon,multiplier:Number(ws.slot_multiplier||1),value:Number(ws.value_score||0)};
    }
-   const winChance=Math.max(0,Math.min(95,baseWinChance+weaponBonus.luck));
+   const winChance=baseWinChance;
    const won=Math.random()<(winChance/100);
    const boostedPayout=Math.floor(payout*weaponBonus.multiplier);
    const reward=won?boostedPayout:0;

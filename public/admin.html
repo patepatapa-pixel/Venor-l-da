@@ -111,7 +111,7 @@ A játékosfiókok, jelenlegi Coin egyenlegek, inventoryk, játéktörténet és
 
 <section class="card section">
   <h3>🛒 Yang Shop kezelése</h3>
-  <div class="small">Itt állíthatod a Yangból vásárolható csilingeléseket, Lélek Pontot, Coint, háttér témákat és kurzorokat. Minden ár külön módosítható.</div>
+  <div class="small">Itt állíthatod a Yangból vásárolható csilingeléseket, Lélek Pontot, Coint, háttereket, kurzorokat és fegyvereket. A fegyver ritkasága növekvő Coin-szorzó tartományt ad: NORMAL < RARE < MITIC < LEGENDARY.</div>
   <label style="display:block;margin:10px 0"><input id="shopEnabledAdmin" type="checkbox"> Yang Shop engedélyezve</label>
   <div id="shopAdminRows" style="display:grid;gap:8px;margin-top:10px"></div>
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
@@ -518,15 +518,22 @@ function renderShopAdmin(){
      <label class="small"><input type="checkbox" data-shop-i="${i}" data-shop-f="active" ${x.active!==false?"checked":""}> aktív</label>
      <button class="btn" data-shop-delete="${i}">Törlés</button>
      ${x.type==="inventory"?`<div class="weapon-admin-extra">
-       <label class="small">Alap érték<input class="input" type="number" min="1" data-shop-i="${i}" data-shop-f="base_value" value="${x.base_value||100}"></label>
+       <label class="small">Ritkaság
+ <select class="input" data-shop-i="${i}" data-shop-f="rarity">
+   <option value="normal" ${x.rarity==="normal"?"selected":""}>NORMAL</option>
+   <option value="rare" ${x.rarity==="rare"?"selected":""}>RARE</option>
+   <option value="mitic" ${x.rarity==="mitic"?"selected":""}>MITIC</option>
+   <option value="legendary" ${x.rarity==="legendary"?"selected":""}>LEGENDARY</option>
+ </select>
+</label><label class="small">Alap érték<input class="input" type="number" min="1" data-shop-i="${i}" data-shop-f="base_value" value="${x.base_value||100}"></label>
        <label class="small">Húzás ára (Yang)<input class="input" type="number" min="1" data-shop-i="${i}" data-shop-f="roll_cost" value="${x.roll_cost||5000000}"></label>
-       <label class="small">Max szorzó<input class="input" type="number" min="1" max="10" step="0.01" data-shop-i="${i}" data-shop-f="max_multiplier" value="${x.max_multiplier||1.35}"></label>
-       <label class="small">Max szerencse %<input class="input" type="number" min="0" max="50" step="0.01" data-shop-i="${i}" data-shop-f="max_luck" value="${x.max_luck||4}"></label>
+       <label class="small">Max Coin nyereményszorzó<input class="input" type="number" min="1" max="10" step="0.01" data-shop-i="${i}" data-shop-f="max_multiplier" value="${x.max_multiplier||1.35}"></label>
+       
      </div>`:""}
    </div>`).join("");
  document.querySelectorAll("[data-shop-i]").forEach(el=>el.onchange=()=>{
    const i=+el.dataset.shopI,f=el.dataset.shopF;
-   shopAdminCache[i][f]=f==="active"?el.checked:(["price","base_value","roll_cost","max_multiplier","max_luck"].includes(f)?+el.value:el.value);
+   shopAdminCache[i][f]=f==="active"?el.checked:(["price","base_value","roll_cost","max_multiplier"].includes(f)?+el.value:el.value);
  });
 }
 $("#addShopItem").onclick=()=>{shopAdminCache.push({id:"shop_"+Date.now(),name:"Új shop tétel",type:"soul",value:1000,price:1000000,base_value:100,roll_cost:5000000,max_multiplier:1.35,max_luck:4,active:true});renderShopAdmin()};

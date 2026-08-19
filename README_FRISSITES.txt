@@ -320,3 +320,21 @@ V45:
 - Egy fegyver felszerelhető, és a Slotban a nyerési esélyhez +luck%, a nyereményhez x multiplier bónuszt ad.
 - Adminból állítható fegyverenként: alap érték, húzás Yang ára, max szorzó, max szerencse.
 - Jackpot/admin audit nem törlődik a játékos történet resetjével.
+
+V46:
+- A húzható fegyverek NEM növelik a Slot nyerési esélyét.
+- Szerencse bónusz kikapcsolva / 0.
+- A fegyverek kizárólag a megnyert Coin összegét szorozzák.
+- Adminból csak az alap érték, húzás Yang ára és max Coin nyereményszorzó állítható.
+
+V47 FEGYVER RITKASÁG:
+- NORMAL, RARE, MITIC, LEGENDARY fegyver kategóriák.
+- Mindegyik Yangért kiváltható.
+- Húzáskor csak a Coin nyeremény szorzója változik.
+- Nyerési esélyt továbbra sem növelnek.
+- Szorzó tartomány növekvő:
+  NORMAL: min x1.05, alap max x1.20
+  RARE: min x1.20, alap max x1.50
+  MITIC: min x1.50, alap max x2.00
+  LEGENDARY: min x2.00, alap max x3.00
+- Adminból a ritkaság, vásárlási Yang ár, húzás ára és max Coin szorzó is állítható.
