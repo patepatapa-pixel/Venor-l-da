@@ -57,18 +57,45 @@ A 10 milliárd Yang főnyereményt nem automatikusan írjuk jóvá. Ha megnyerte
     <div class="exchange-card">
       <div class="exchange-title">💰 Yang → 👻 Lélekpont</div>
       <div class="exchange-rate" id="rateYangSoul">Betöltés...</div>
+      <div class="exchange-qty">
+        <label class="small">Mennyiség</label>
+        <div class="exchange-qty-row">
+          <button class="btn exchange-minus" data-exchange-step="yang-to-soul" data-delta="-1" type="button">−</button>
+          <input class="input exchange-amount" data-exchange-amount="yang-to-soul" type="number" min="1" max="1000000" step="1" value="1">
+          <button class="btn exchange-plus" data-exchange-step="yang-to-soul" data-delta="1" type="button">+</button>
+        </div>
+        <div class="small exchange-total" data-exchange-total="yang-to-soul">1× átváltás</div>
+      </div>
       <button class="btn primary" data-exchange="yang-to-soul">Átváltás</button>
     </div>
 
     <div class="exchange-card">
       <div class="exchange-title">👻 Lélekpont → 🪙 Coin</div>
       <div class="exchange-rate" id="rateSoulCoin">Betöltés...</div>
+      <div class="exchange-qty">
+        <label class="small">Mennyiség</label>
+        <div class="exchange-qty-row">
+          <button class="btn exchange-minus" data-exchange-step="soul-to-coin" data-delta="-1" type="button">−</button>
+          <input class="input exchange-amount" data-exchange-amount="soul-to-coin" type="number" min="1" max="1000000" step="1" value="1">
+          <button class="btn exchange-plus" data-exchange-step="soul-to-coin" data-delta="1" type="button">+</button>
+        </div>
+        <div class="small exchange-total" data-exchange-total="soul-to-coin">1× átváltás</div>
+      </div>
       <button class="btn primary" data-exchange="soul-to-coin">Átváltás</button>
     </div>
 
     <div class="exchange-card">
       <div class="exchange-title">🪙 Coin → 👻 Lélekpont</div>
       <div class="exchange-rate" id="rateCoinSoul">Betöltés...</div>
+      <div class="exchange-qty">
+        <label class="small">Mennyiség</label>
+        <div class="exchange-qty-row">
+          <button class="btn exchange-minus" data-exchange-step="coin-to-soul" data-delta="-1" type="button">−</button>
+          <input class="input exchange-amount" data-exchange-amount="coin-to-soul" type="number" min="1" max="1000000" step="1" value="1">
+          <button class="btn exchange-plus" data-exchange-step="coin-to-soul" data-delta="1" type="button">+</button>
+        </div>
+        <div class="small exchange-total" data-exchange-total="coin-to-soul">1× átváltás</div>
+      </div>
       <button class="btn primary" data-exchange="coin-to-soul">Átváltás</button>
     </div>
   </div>
@@ -604,10 +631,12 @@ async function loadLeaderboard(){
 
 (async()=>{await loadPublic();await loadSlotConfig();await loadMe();await Promise.all([lists(),loadDropsPublic(),loadLeaderboard()]);setInterval(()=>{lists();loadLeaderboard().catch(()=>{})},15000)})();
 
+let currentExchangeConfig={};
 async function loadExchangeConfig(){
  if(!user)return;
  try{
    const d=await api("/api/exchange-config");
+   currentExchangeConfig=d;
    const map=[
      ["rateYangSoul",d.yangToSoul,"Yang","Lélekpont","yang-to-soul"],
      ["rateSoulCoin",d.soulToCoin,"Lélekpont","Coin","soul-to-coin"],
@@ -618,18 +647,48 @@ async function loadExchangeConfig(){
      if(!cfg.enabled){el.textContent="Kikapcsolva";if(btn)btn.disabled=true;continue}
      el.innerHTML=`<b>${fmt(cfg.cost)} ${a}</b> → <b>${fmt(cfg.reward)} ${b}</b>`;
      if(btn)btn.disabled=false;
+     updateExchangeTotal(action);
    }
  }catch(e){if($("#exchangeMsg"))$("#exchangeMsg").textContent="❌ "+e.message}
 }
+function exchangeCfg(action){
+ return action==="yang-to-soul"?currentExchangeConfig.yangToSoul:
+        action==="soul-to-coin"?currentExchangeConfig.soulToCoin:
+        currentExchangeConfig.coinToSoul;
+}
+function updateExchangeTotal(action){
+ const inp=document.querySelector(`[data-exchange-amount="${action}"]`);
+ const el=document.querySelector(`[data-exchange-total="${action}"]`);
+ const cfg=exchangeCfg(action);
+ if(!inp||!el||!cfg)return;
+ const n=Math.max(1,Math.min(1000000,Math.floor(Number(inp.value||1))));
+ inp.value=n;
+ const names=action==="yang-to-soul"?["Yang","Lélekpont"]:action==="soul-to-coin"?["Lélekpont","Coin"]:["Coin","Lélekpont"];
+ el.innerHTML=`${n.toLocaleString("hu-HU")}× · <b>${fmt(cfg.cost*n)} ${names[0]}</b> → <b>${fmt(cfg.reward*n)} ${names[1]}</b>`;
+}
+document.addEventListener("click",e=>{
+ const s=e.target.closest("[data-exchange-step]");
+ if(!s)return;
+ const action=s.dataset.exchangeStep,inp=document.querySelector(`[data-exchange-amount="${action}"]`);
+ if(!inp)return;
+ inp.value=Math.max(1,Math.min(1000000,Math.floor(Number(inp.value||1))+Number(s.dataset.delta||0)));
+ updateExchangeTotal(action);
+});
+document.addEventListener("input",e=>{
+ if(!e.target.matches("[data-exchange-amount]"))return;
+ updateExchangeTotal(e.target.dataset.exchangeAmount);
+});
+
 document.addEventListener("click",async e=>{
  const b=e.target.closest("[data-exchange]");
  if(!b)return;
  if(!user){openModal("login");return}
- if(!confirm("Biztosan végrehajtod az átváltást?"))return;
+ const amount=Math.max(1,Math.min(1000000,Math.floor(Number(document.querySelector(`[data-exchange-amount="${b.dataset.exchange}"]`)?.value||1))));
+ if(!confirm(`Biztosan végrehajtod az átváltást ${amount.toLocaleString("hu-HU")}× mennyiséggel?`))return;
  const msg=$("#exchangeMsg");
  try{
    b.disabled=true;
-   const d=await api(`/api/exchange/${b.dataset.exchange}`,{method:"POST",body:"{}"});
+   const d=await api(`/api/exchange/${b.dataset.exchange}`,{method:"POST",body:JSON.stringify({amount})});
    user=d.user;render();msg.textContent="✅ "+d.message;
    await loadMyStats().catch(()=>{});
    await loadCumulativeRewards().catch(()=>{});

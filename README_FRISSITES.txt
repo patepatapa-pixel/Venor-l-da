@@ -350,3 +350,5 @@ V48 ADMIN:
 - Átváltások
 - Coin tranzakciók
 - Az utoljára megnyitott admin fül megmarad oldalfrissítés után.
+
+V49: minden átváltási típusnál külön mennyiség mező és +/- gomb; a költség és jutalom automatikusan felszorzódik.

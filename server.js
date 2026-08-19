@@ -804,17 +804,20 @@ app.get("/api/exchange-config",auth,async(req,res)=>{
 });
 
 app.post("/api/exchange/yang-to-soul",auth,async(req,res)=>{
+ const amount=Math.max(1,Math.min(1000000,Math.floor(Number(req.body?.amount||1))));
  const client=await pool.connect();
  try{
    await client.query("BEGIN");
    if((await setting("yang_soul_enabled"))!=="true")throw new Error("A Yang → Lélekpont átváltás ki van kapcsolva.");
-   const cost=Math.max(1,Number(await setting("yang_soul_yang")||100000000));
-   const reward=Math.max(1,Number(await setting("yang_soul_soul")||1000));
+   const unitCost=Math.max(1,Number(await setting("yang_soul_yang")||100000000));
+   const unitReward=Math.max(1,Number(await setting("yang_soul_soul")||1000));
+   const cost=unitCost*amount;
+   const reward=unitReward*amount;
    const u=(await client.query("SELECT yang_balance,soul_points FROM users WHERE id=$1 FOR UPDATE",[req.user.id])).rows[0];
    if(Number(u.yang_balance||0)<cost)throw new Error(`Nincs elég Yangod. Szükséges: ${cost.toLocaleString("hu-HU")} Yang.`);
    await client.query("UPDATE users SET yang_balance=yang_balance-$1,soul_points=soul_points+$2 WHERE id=$3",[cost,reward,req.user.id]);
    await client.query("COMMIT");
-   res.json({ok:true,user:await userView(req.user.id),message:`${cost.toLocaleString("hu-HU")} Yang → ${reward.toLocaleString("hu-HU")} Lélekpont`});
+   res.json({ok:true,user:await userView(req.user.id),message:`${amount.toLocaleString("hu-HU")}× átváltás · ${cost.toLocaleString("hu-HU")} Yang → ${reward.toLocaleString("hu-HU")} Lélekpont`});
  }catch(e){
    await client.query("ROLLBACK");
    res.status(400).json({error:e.message});
@@ -822,17 +825,20 @@ app.post("/api/exchange/yang-to-soul",auth,async(req,res)=>{
 });
 
 app.post("/api/exchange/soul-to-coin",auth,async(req,res)=>{
+ const amount=Math.max(1,Math.min(1000000,Math.floor(Number(req.body?.amount||1))));
  const client=await pool.connect();
  try{
    await client.query("BEGIN");
    if((await setting("soul_coin_enabled"))!=="true")throw new Error("A Lélekpont → Coin átváltás ki van kapcsolva.");
-   const cost=Math.max(1,Number(await setting("soul_coin_soul")||1000));
-   const reward=Math.max(1,Number(await setting("soul_coin_coin")||500));
+   const unitCost=Math.max(1,Number(await setting("soul_coin_soul")||1000));
+   const unitReward=Math.max(1,Number(await setting("soul_coin_coin")||500));
+   const cost=unitCost*amount;
+   const reward=unitReward*amount;
    const u=(await client.query("SELECT soul_points,coins FROM users WHERE id=$1 FOR UPDATE",[req.user.id])).rows[0];
    if(Number(u.soul_points||0)<cost)throw new Error(`Nincs elég Lélekpontod. Szükséges: ${cost.toLocaleString("hu-HU")}.`);
    await client.query("UPDATE users SET soul_points=soul_points-$1,coins=coins+$2 WHERE id=$3",[cost,reward,req.user.id]);
    await client.query("COMMIT");
-   res.json({ok:true,user:await userView(req.user.id),message:`${cost.toLocaleString("hu-HU")} Lélekpont → ${reward.toLocaleString("hu-HU")} Coin`});
+   res.json({ok:true,user:await userView(req.user.id),message:`${amount.toLocaleString("hu-HU")}× átváltás · ${cost.toLocaleString("hu-HU")} Lélekpont → ${reward.toLocaleString("hu-HU")} Coin`});
  }catch(e){
    await client.query("ROLLBACK");
    res.status(400).json({error:e.message});
@@ -840,17 +846,20 @@ app.post("/api/exchange/soul-to-coin",auth,async(req,res)=>{
 });
 
 app.post("/api/exchange/coin-to-soul",auth,async(req,res)=>{
+ const amount=Math.max(1,Math.min(1000000,Math.floor(Number(req.body?.amount||1))));
  const client=await pool.connect();
  try{
    await client.query("BEGIN");
    if((await setting("coin_soul_enabled"))!=="true")throw new Error("A Coin → Lélekpont átváltás ki van kapcsolva.");
-   const cost=Math.max(1,Number(await setting("coin_soul_coin")||1000));
-   const reward=Math.max(1,Number(await setting("coin_soul_soul")||500));
+   const unitCost=Math.max(1,Number(await setting("coin_soul_coin")||1000));
+   const unitReward=Math.max(1,Number(await setting("coin_soul_soul")||500));
+   const cost=unitCost*amount;
+   const reward=unitReward*amount;
    const u=(await client.query("SELECT soul_points,coins FROM users WHERE id=$1 FOR UPDATE",[req.user.id])).rows[0];
    if(Number(u.coins||0)<cost)throw new Error(`Nincs elég Coinod. Szükséges: ${cost.toLocaleString("hu-HU")}.`);
    await client.query("UPDATE users SET coins=coins-$1,soul_points=soul_points+$2 WHERE id=$3",[cost,reward,req.user.id]);
    await client.query("COMMIT");
-   res.json({ok:true,user:await userView(req.user.id),message:`${cost.toLocaleString("hu-HU")} Coin → ${reward.toLocaleString("hu-HU")} Lélekpont`});
+   res.json({ok:true,user:await userView(req.user.id),message:`${amount.toLocaleString("hu-HU")}× átváltás · ${cost.toLocaleString("hu-HU")} Coin → ${reward.toLocaleString("hu-HU")} Lélekpont`});
  }catch(e){
    await client.query("ROLLBACK");
    res.status(400).json({error:e.message});

@@ -668,3 +668,8 @@ body[data-shop-cursor="karambit_neon"],body[data-shop-cursor="karambit_neon"] *{
  .admin-tabbar-v48{padding:8px}
  .admin-tabbar-v48 .admin-tab{padding:9px 11px;font-size:11px}
 }
+
+.exchange-qty{margin:12px 0 10px;padding:10px;border:1px solid #302713;border-radius:10px;background:#080806}
+.exchange-qty-row{display:grid;grid-template-columns:42px 1fr 42px;gap:6px;margin-top:5px}
+.exchange-amount{text-align:center;font-weight:900;font-size:15px}
+.exchange-total{margin-top:7px;min-height:18px;color:#b9ae92}
