@@ -361,3 +361,13 @@ V51 STABIL JAVÍTÁS:
 - Slot játékos oldalon nem látszik a Koponya/Nyertes százalék.
 - Admin játékos statisztika ablakban külön nullázható: Coin, Lélek Pont, Yang.
 - Az egyenleg nullázása nem törli a játékos statisztikáját.
+
+V52 LÁDA TESZT RESET:
+- Adminpanelen külön "Láda teszt reset – MINDEN JÁTÉKOS" gomb.
+- Törli minden játékos ládanyitási történetét.
+- Törli az összesített ládanyeremény-listát.
+- Nullázza a láda nyitásszám / elköltött Lélek Pont / nyert Yang statisztikát.
+- A nem átadott jackpot teszteredményeket törli.
+- A már átadott jackpotok megmaradnak.
+- Coin, Lélek Pont, elkölthető Yang és megvásárolt inventory NEM törlődik.
+- Kétlépcsős megerősítés: confirm + "LADA RESET".

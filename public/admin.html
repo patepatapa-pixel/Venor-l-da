@@ -87,6 +87,24 @@ A játékosfiókok, jelenlegi Coin egyenlegek, inventoryk, játéktörténet és
 </p>
 <button class="btn" id="resetLeaderboard" style="border-color:#8c3c50;color:#ff8da3">🔄 RANGLISTA RESET</button>
 </section>
+
+<section class="card section" data-admin-category="rewards">
+  <h3>🧪 Láda teszt reset – MINDEN JÁTÉKOS</h3>
+  <div class="small">
+    Ezzel minden játékos korábbi <b>ládaeredménye, ládanyitási története és ládastatisztikája</b> törlődik,
+    így tisztán lehet például 100 ládás drop tesztet futtatni.
+  </div>
+  <div class="small" style="margin-top:8px;color:#d7c59b">
+    ✅ Megmarad: Coin, Lélek Pont, elkölthető Yang, megvásárolt kozmetikumok és inventory.<br>
+    ✅ A már átadottnak jelölt jackpot rekordok is megmaradnak.<br>
+    🗑 Törlődik/nullázódik: ládanyitási történet, összesített ládanyeremények, ládanyitások száma, nyert Yang statisztika és nem átadott jackpot teszteredmények.
+  </div>
+  <button class="btn danger" id="resetAllChestTestResults" type="button" style="margin-top:12px">
+    🧪 ÖSSZES LÁDAEREDMÉNY TÖRLÉSE
+  </button>
+  <div class="small" id="chestTestResetMsg" style="margin-top:8px"></div>
+</section>
+
 <section class="card section" data-admin-category="rewards"><h3>🎟️ Kiváltható jutalmak kezelése</h3>
 <label><input id="redemptionEnabled" type="checkbox"> Kiváltás engedélyezve</label>
 <div id="redemptionEditor" style="display:grid;gap:8px;margin:12px 0"></div>
@@ -485,6 +503,25 @@ function setAdminTab(tab){
 document.querySelectorAll("[data-admin-page]").forEach(btn=>{
  btn.onclick=()=>setAdminTab(btn.dataset.adminPage);
 });
+
+
+$("#resetAllChestTestResults").onclick=async()=>{
+ const ok1=confirm("Biztosan törlöd MINDEN játékos összes eddigi ládaeredményét és ládastatisztikáját?");
+ if(!ok1)return;
+ const phrase=prompt('Megerősítéshez írd be pontosan: LADA RESET');
+ if(phrase!=="LADA RESET"){
+   $("#chestTestResetMsg").textContent="❌ Megszakítva: hibás megerősítő szöveg.";
+   return;
+ }
+ try{
+   const d=await api("/api/admin/chest-test-reset",{method:"POST",body:"{}"});
+   $("#chestTestResetMsg").textContent="✅ "+d.message;
+   toast("Láda teszt reset kész.");
+   try{await users()}catch{}
+ }catch(e){
+   $("#chestTestResetMsg").textContent="❌ "+e.message;
+ }
+};
 
 async function bootAdmin(){
   // Csak akkor dobunk vissza a főoldalra, ha tényleg nincs admin munkamenet.

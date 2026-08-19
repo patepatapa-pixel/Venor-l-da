@@ -688,3 +688,14 @@ body[data-shop-cursor="karambit_neon"],body[data-shop-cursor="karambit_neon"] *{
 @media(max-width:700px){
   .admin-player-balance-actions{grid-template-columns:1fr}
 }
+
+/* V52 chest test reset */
+#resetAllChestTestResults{
+  border-color:#8a5b26!important;
+  color:#ffd39a!important;
+  background:linear-gradient(180deg,#1a1007,#0c0906)!important;
+}
+#resetAllChestTestResults:hover{
+  border-color:#d99239!important;
+  box-shadow:0 0 0 1px rgba(217,146,57,.14),0 8px 24px rgba(0,0,0,.35)!important;
+}

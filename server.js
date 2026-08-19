@@ -1148,6 +1148,57 @@ app.post("/api/admin/player-balance-reset/:id",auth,admin,async(req,res)=>{
  }
 });
 
+
+app.post("/api/admin/chest-test-reset",auth,admin,async(req,res)=>{
+ const client=await pool.connect();
+ try{
+   await client.query("BEGIN");
+
+   // Ládanyitási történet
+   await client.query("DELETE FROM history");
+
+   // Összesített ládanyeremény-listák
+   await client.query("DELETE FROM user_reward_totals");
+
+   // Tartós ládastatisztikák nullázása
+   await client.query(`
+     UPDATE user_game_stats
+     SET chest_opens=0,
+         soul_spent=0,
+         chest_yang_won=0,
+         updated_at=NOW()
+   `);
+
+   // Régi / kompatibilitási számlálók nullázása
+   await client.query(`
+     UPDATE users
+     SET total_opened=0,
+         total_yang_won=0,
+         chest_soul_spent=0
+     WHERE role<>'admin'
+   `);
+
+   // Jackpot teszteredmények törlése.
+   // A tényleges, már átadottnak jelölt jackpot rekordokat megtartjuk.
+   await client.query(`
+     DELETE FROM jackpot_wins
+     WHERE COALESCE(claimed,false)=false
+   `);
+
+   await client.query("COMMIT");
+   res.json({
+     ok:true,
+     message:"Minden játékos ládaeredménye és ládastatisztikája törölve. A Coin, Lélek Pont, elkölthető Yang és megvásárolt inventory megmaradt."
+   });
+ }catch(e){
+   try{await client.query("ROLLBACK")}catch(_){}
+   console.error("CHEST TEST RESET ERROR:",e);
+   res.status(500).json({error:"A láda teszt reset nem sikerült."});
+ }finally{
+   client.release();
+ }
+});
+
 app.get("/api/admin/player-stats/:id",auth,admin,async(req,res)=>{
  const id=Number(req.params.id);
  if(!Number.isInteger(id))return res.status(400).json({error:"Hibás játékos ID."});
