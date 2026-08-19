@@ -9,7 +9,16 @@
 <div class="reward"><div class="icon">🏆</div><div class="rarity">Jackpot</div><b>10B Yang</b><small>Max. főnyeremény</small></div>
 <div class="reward"><div class="icon">🐾</div><div class="rarity">Legendás</div><b>Ritka PET</b><small>Csengő + tűzijáték</small></div>
 <div class="reward"><div class="icon">🪙</div><div class="rarity">Coin</div><b>500 Coin</b><small>Azonnal hozzáadódik</small></div>
-</div><div class="openbox"><div class="openrow"><span>Nyitási mennyiség</span><b id="qty">1×</b></div><button class="open" id="open">✦ 1× LÁDA NYITÁSA</button></div></div>
+</div><div class="openbox"><div class="openrow"><span>Nyitási mennyiség</span><b id="qty">1×</b></div><button class="open" id="open">✦ 1× LÁDA NYITÁSA</button></div>
+<div id="openResults" style="margin-top:16px;padding:14px;border:1px solid #30283c;border-radius:14px;background:rgba(255,255,255,.018)">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px">
+    <b>🎁 Legutóbbi nyitás eredménye</b><span class="small" id="resultCount">Még nincs nyitás</span>
+  </div>
+  <div id="resultRows" style="display:flex;flex-direction:column;gap:8px">
+    <div class="small" style="padding:18px;border:1px dashed #3a3048;border-radius:12px;text-align:center">A megnyert dolgok itt jelennek meg egymás alatt.</div>
+  </div>
+  <div id="resultTotals" style="display:none;margin-top:12px;padding-top:10px;border-top:1px solid #30283c"></div>
+</div></div>
 <aside class="card side" id="jackpot"><h2>🏆 Jackpotok</h2><div class="jack">
 <div class="label">🏆 FŐNYEREMÉNY</div>
 <strong>10 000 000 000</strong><small>Yang</small>
@@ -20,7 +29,7 @@ Az átvételhez írj a <b style="color:#fff">Hox</b> nevű játékosnak.
 </div><div class="stat"><span>500K Yang</span><strong>500 000</strong></div><div class="stat"><span>1M Yang</span><strong>1 000 000</strong></div><div class="stat"><span>5M Yang</span><strong>5 000 000</strong></div><div class="stat"><span>MAX Jackpot</span><strong class="gold">10 000 000 000</strong></div><div style="margin-top:14px;padding:14px;border:1px solid rgba(255,215,0,.35);border-radius:12px;background:rgba(255,215,0,.06);line-height:1.55">
 <b>🎮 Főnyeremény átvétele</b><br>
 A 10 milliárd Yang főnyereményt nem automatikusan írjuk jóvá. Ha megnyerted, keress meg játékban és írj a <b>Hox</b> nevű játékosnak, aki átadja neked a nyereményt.
-</div><h3 style="margin:18px 0 8px">⚡ Legutóbbi nyerések</h3><div class="list" id="activity"></div><button class="btn primary" id="daily" style="width:100%;margin-top:14px">🎁 Napi <span id="dailyAmount">5 000</span> Coin</button></aside></section>
+</div><h3 style="margin:18px 0 8px">⚡ Legutóbbi nyerések</h3><div class="list" id="activity"></div><button class="btn primary" id="daily" style="width:100%;margin-top:14px">🎁 Napi <span id="dailyAmount">5 000</span> Coin · csak 1×/nap</button></aside></section>
 <section class="card section" id="profil"><h3>👤 Saját profil és nyeremények</h3><div class="profile"><div class="metric"><small>Felhasználó</small><b id="name">Vendég</b></div><div class="metric"><small>Coin egyenleg</small><b id="coins2">—</b></div><div class="metric"><small>Eljátszott Coin</small><b id="played">—</b></div><div class="metric"><small>Összes nyitás</small><b id="opened">—</b></div><div class="metric"><small>Összes nyert Yang</small><b id="yangWon">—</b></div><div class="metric"><small>Összes nyert Coin</small><b id="coinWon">—</b></div></div></section>
 <section class="columns"><div class="card section"><h3>🏅 Ranglista</h3><div class="list" id="leader"></div></div><div class="card section"><h3>🎒 Inventory</h3><div class="list" id="inventory"><div class="small">Jelentkezz be.</div></div></div></section><section class="card section"><h3>🕘 Saját játéktörténet</h3><div class="list" id="history"><div class="small">Jelentkezz be.</div></div></section></main>
 <footer>VENORI © 2026 · Multiplayer Chest System</footer><div class="toast" id="toast"></div>
@@ -29,6 +38,24 @@ A 10 milliárd Yang főnyereményt nem automatikusan írjuk jóvá. Ha megnyerte
 let user=null,q=1,mode="login",cfg={};const $=s=>document.querySelector(s),fmt=n=>Number(n||0).toLocaleString("hu-HU");
 async function api(u,o={}){const r=await fetch(u,{...o,headers:{"Content-Type":"application/json",...(o.headers||{})}});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||"Hiba");return d}
 function toast(x){const t=$("#toast");t.textContent=x;t.style.display="block";clearTimeout(window.tt);window.tt=setTimeout(()=>t.style.display="none",2900)}
+function renderOpenResults(d){
+ const grouped={};
+ d.results.forEach(r=>{
+   if(!grouped[r.name]) grouped[r.name]={name:r.name,icon:r.icon,count:0,type:r.type};
+   grouped[r.name].count++;
+ });
+ $("#resultCount").textContent=`${d.results.length}× láda`;
+ $("#resultRows").innerHTML=Object.values(grouped).map(r=>`
+ <div style="display:grid;grid-template-columns:44px 1fr auto;align-items:center;gap:10px;padding:12px;border:1px solid #30283c;border-radius:12px;background:rgba(255,255,255,.025)">
+   <div style="font-size:26px;text-align:center">${r.icon}</div>
+   <div><b>${r.name}</b><div class="small">${r.type==="yang"?"Yang nyeremény":r.type==="coin"?"Coin nyeremény":"Tárgy / PET"}</div></div>
+   <b>${r.count}×</b>
+ </div>`).join("");
+ $("#resultTotals").style.display="block";
+ $("#resultTotals").innerHTML=`
+ <div class="stat"><span>💰 Összes nyert Yang</span><b>${fmt(d.won?.yang||0)}</b></div>
+ <div class="stat"><span>🪙 Összes nyert Coin</span><b>${fmt(d.won?.coin||0)}</b></div>`;
+}
 function render(){const ok=!!user;$("#coins").textContent=ok?fmt(user.coins):"—";$("#coins2").textContent=ok?fmt(user.coins):"—";$("#played").textContent=ok?fmt(user.played_coins):"—";$("#opened").textContent=ok?fmt(user.total_opened):"—";$("#yangWon").textContent=ok?fmt(user.total_yang_won):"—";$("#coinWon").textContent=ok?fmt(user.total_coin_won):"—";$("#name").textContent=ok?user.username:"Vendég";$("#authBtn").style.display=ok?"none":"inline-block";$("#registerBtn").style.display=ok?"none":"inline-block";$("#logout").style.display=ok?"inline-block":"none";$("#adminLink").style.display=ok&&user.role==="admin"?"inline":"none"}
 async function loadPublic(){cfg=await api("/api/public");$("#announcement").textContent=cfg.announcement;$("#dailyAmount").textContent=fmt(cfg.dailyBonus);document.querySelectorAll(".tab:not([disabled])").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));b.classList.add("active");q=+b.dataset.q;$("#qty").textContent=q+"×";$("#price").textContent=fmt(cfg.chestPrice*q);$("#open").textContent="✦ "+q+"× LÁDA NYITÁSA"})}
 async function loadMe(){try{user=(await api("/api/me")).user;render();await Promise.all([hist(),inv()])}catch{user=null;render()}}
@@ -40,6 +67,33 @@ $("#authBtn").onclick=()=>openModal("login");$("#registerBtn").onclick=()=>openM
 $("#submit").onclick=async()=>{try{const d=await api("/api/"+mode,{method:"POST",body:JSON.stringify({username:$("#username").value,password:$("#password").value})});user=d.user;$("#modal").style.display="none";render();toast(mode==="login"?"Sikeres belépés!":"Sikeres regisztráció!");await Promise.all([hist(),inv(),lists()])}catch(e){toast(e.message)}};
 $("#logout").onclick=async()=>{await api("/api/logout",{method:"POST"});user=null;render();toast("Kijelentkeztél.")};
 $("#daily").onclick=async()=>{if(!user){openModal("login");return}try{const d=await api("/api/daily",{method:"POST"});user=d.user;render();toast("🎁 +"+fmt(d.bonus)+" Coin")}catch(e){toast(e.message)}};
-$("#open").onclick=async()=>{if(!user){openModal("login");return}try{const d=await api("/api/open",{method:"POST",body:JSON.stringify({quantity:q})});user=d.user;render();const grouped={};d.results.forEach(r=>grouped[r.name]=(grouped[r.name]||0)+1);const all=Object.entries(grouped).map(([n,c])=>`${c}× ${n}`).join(" · ");toast(`🎉 ${all} | +${fmt(d.won?.yang||0)} Yang | +${fmt(d.won?.coin||0)} Coin`);await Promise.all([hist(),inv(),lists()])}catch(e){toast(e.message)}};
+$("#open").onclick=async()=>{if(!user){openModal("login");return}try{
+ const d=await api("/api/open",{method:"POST",body:JSON.stringify({quantity:q})});
+ user=d.user;render();renderOpenResults(d);
+ const grouped={};d.results.forEach(r=>grouped[r.name]=(grouped[r.name]||0)+1);
+ const all=Object.entries(grouped).map(([n,c])=>`${c}× ${n}`).join(" · ");
+ toast(`🎉 ${all} | +${fmt(d.won?.yang||0)} Yang | +${fmt(d.won?.coin||0)} Coin`);
+ if(d.jackpot?.won){
+   $("#jackpotOverlay").style.display="flex";
+ }
+ await Promise.all([hist(),inv(),lists()]);
+}catch(e){toast(e.message)}};
+$("#closeJackpot").onclick=()=>$("#jackpotOverlay").style.display="none";
 (async()=>{await loadPublic();await loadMe();await lists();setInterval(lists,15000)})();
-</script></body></html>
+</script>
+<div id="jackpotOverlay" style="display:none;position:fixed;inset:0;z-index:9999;background:radial-gradient(circle at center,rgba(119,55,210,.45),rgba(0,0,0,.92));align-items:center;justify-content:center;padding:20px">
+  <div style="width:min(680px,100%);text-align:center;padding:40px 28px;border-radius:24px;border:2px solid #ffcf62;background:linear-gradient(180deg,#211530,#0d0912);box-shadow:0 0 80px rgba(255,207,98,.28),0 30px 100px #000">
+    <div id="jackpotFx" style="font-size:74px;filter:drop-shadow(0 0 20px rgba(255,207,98,.5))">🏆</div>
+    <div style="color:#ffcf62;font-weight:1000;letter-spacing:2px;font-size:15px;margin-top:8px">JACKPOT!</div>
+    <h1 style="font-size:clamp(36px,7vw,64px);margin:8px 0 12px;line-height:1">NYERTÉL<br>10 MILLIÁRD YANGOT!</h1>
+    <p style="font-size:18px;line-height:1.65;color:#ddd;max-width:540px;margin:0 auto 20px">
+      Gratulálunk! A 10 000 000 000 Yang főnyereményt biztosan megnyerted.
+      A nyeremény átvételéhez játékban keresd a <b style="color:white">Hox</b> nevű játékost.
+    </p>
+    <div style="padding:13px;border:1px solid rgba(255,207,98,.35);border-radius:12px;background:rgba(255,207,98,.06);margin-bottom:18px">
+      ✅ A nyeremény rögzítve lett az admin ellenőrző rendszerében.
+    </div>
+    <button class="btn primary" id="closeJackpot" style="font-size:16px;padding:13px 24px">ÉRTETTEM 🎉</button>
+  </div>
+</div>
+</body></html>

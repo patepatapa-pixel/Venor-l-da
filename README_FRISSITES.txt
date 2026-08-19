@@ -15,3 +15,13 @@ Módosítások:
 - meglévő Render PostgreSQL adatbázishoz automatikus migráció
 
 - 10 milliárd Yang főnyeremény átvétel: játékban a Hox nevű játékosnak kell írni; a jackpot nem automatikus jóváírás.
+
+ÚJ V3:
+- 10 milliárd Yang nyeréskor teljes képernyős NYERTÉL 10 MILLIÁRD YANGOT effekt
+- gratuláció és Hox játékos megkeresésére szóló üzenet
+- minden 10B jackpot szerveroldalon külön jackpot_wins táblába kerül
+- adminpanelen külön jackpot ellenőrző lista
+- admin átadottnak tudja jelölni a 10B nyereményt
+- napi 5000 Coin adatbázis-szinten atomikusan csak napi 1 alkalommal vehető fel
+
+V4: A ládanyitó gomb alatt oszloposan megjelenik a legutóbbi nyitás összes nyereménye, összevont darabszámmal, valamint az összes nyert Yang és Coin.

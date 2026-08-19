@@ -60,6 +60,15 @@ async function init(){
    amount BIGINT NOT NULL,
    reason TEXT NOT NULL,
    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+ );
+ CREATE TABLE IF NOT EXISTS jackpot_wins(
+   id BIGSERIAL PRIMARY KEY,
+   user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+   amount BIGINT NOT NULL,
+   reward_name TEXT NOT NULL,
+   claimed BOOLEAN NOT NULL DEFAULT FALSE,
+   claimed_at TIMESTAMPTZ,
+   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
  );`);
  await q("ALTER TABLE users ADD COLUMN IF NOT EXISTS total_yang_won BIGINT NOT NULL DEFAULT 0");
  await q("ALTER TABLE users ADD COLUMN IF NOT EXISTS total_coin_won BIGINT NOT NULL DEFAULT 0");
@@ -127,12 +136,21 @@ app.post("/api/logout",(req,res)=>{res.clearCookie("venori_token");res.json({ok:
 app.get("/api/me",auth,async(req,res)=>res.json({user:await userView(req.user.id)}));
 
 app.post("/api/daily",auth,async(req,res)=>{
- const u=await userView(req.user.id),d=today();
- if(u.last_daily_at && String(u.last_daily_at).slice(0,10)===d)return res.status(400).json({error:"A mai napi Coin már át lett véve."});
  const bonus=await intSetting("daily_bonus");
- await q("UPDATE users SET coins=coins+$1,last_daily_at=$2 WHERE id=$3",[bonus,d,u.id]);
- await q("INSERT INTO transactions(user_id,amount,reason) VALUES($1,$2,$3)",[u.id,bonus,"Napi Coin"]);
- res.json({user:await userView(u.id),bonus});
+ const result=await q(`
+   UPDATE users
+   SET coins=coins+$1,last_daily_at=CURRENT_DATE
+   WHERE id=$2
+     AND (last_daily_at IS NULL OR last_daily_at<>CURRENT_DATE)
+   RETURNING id
+ `,[bonus,req.user.id]);
+
+ if(!result.rows[0]){
+   return res.status(400).json({error:"A mai napi 5 000 Coin már át lett véve. Naponta csak egyszer vehető fel."});
+ }
+
+ await q("INSERT INTO transactions(user_id,amount,reason) VALUES($1,$2,$3)",[req.user.id,bonus,"Napi Coin"]);
+ res.json({user:await userView(req.user.id),bonus});
 });
 
 const rewards=[
@@ -170,8 +188,23 @@ app.post("/api/open",auth,async(req,res)=>{
    for(const [name,n] of Object.entries(items))await client.query("INSERT INTO inventory(user_id,item_name,quantity) VALUES($1,$2,$3) ON CONFLICT(user_id,item_name) DO UPDATE SET quantity=inventory.quantity+EXCLUDED.quantity",[req.user.id,name,n]);
    const summary=results.map(r=>`${r.icon} ${r.name}`).join(", ");
    await client.query("INSERT INTO history(user_id,quantity,cost,reward_text) VALUES($1,$2,$3,$4)",[req.user.id,qty,cost,summary]);
+
+   const jackpotHits=results.filter(r=>r.name==="10B Jackpot").length;
+   for(let i=0;i<jackpotHits;i++){
+     await client.query(
+       "INSERT INTO jackpot_wins(user_id,amount,reward_name) VALUES($1,$2,$3)",
+       [req.user.id,10000000000,"10B Jackpot"]
+     );
+   }
+
    await client.query("COMMIT");
-   res.json({user:await userView(req.user.id),results,cost,won:{yang:yangWin,coin:coinWin}});
+   res.json({
+     user:await userView(req.user.id),
+     results,
+     cost,
+     won:{yang:yangWin,coin:coinWin},
+     jackpot:{won:jackpotHits>0,count:jackpotHits,amount:10000000000}
+   });
  }catch(e){await client.query("ROLLBACK");res.status(400).json({error:e.message})}finally{client.release()}
 });
 
@@ -208,6 +241,30 @@ app.post("/api/admin/coins",auth,admin,async(req,res)=>{
 app.post("/api/admin/ban",auth,admin,async(req,res)=>{const id=Number(req.body.userId);if(id===Number(req.user.id))return res.status(400).json({error:"Saját admin fiók nem tiltható."});await q("UPDATE users SET banned=$1 WHERE id=$2",[!!req.body.banned,id]);res.json({ok:true})});
 app.get("/api/admin/settings",auth,admin,async(req,res)=>res.json({daily_bonus:await intSetting("daily_bonus"),chest_price:await intSetting("chest_price"),announcement:await setting("announcement"),maintenance:Boolean(await intSetting("maintenance"))}));
 app.post("/api/admin/settings",auth,admin,async(req,res)=>{const daily=Number(req.body.daily_bonus),price=Number(req.body.chest_price);if(!Number.isInteger(daily)||daily<0||!Number.isInteger(price)||price<1)return res.status(400).json({error:"Hibás beállítás."});const vals={daily_bonus:String(daily),chest_price:String(price),announcement:String(req.body.announcement||"").slice(0,180),maintenance:String(req.body.maintenance?1:0)};for(const [k,v] of Object.entries(vals))await q("UPDATE settings SET value=$1 WHERE key=$2",[v,k]);res.json({ok:true})});
+app.get("/api/admin/jackpots",auth,admin,async(req,res)=>{
+ const rows=(await q(`
+   SELECT j.id,j.amount,j.reward_name,j.claimed,j.claimed_at,j.created_at,u.username
+   FROM jackpot_wins j
+   JOIN users u ON u.id=j.user_id
+   ORDER BY j.id DESC
+   LIMIT 200
+ `)).rows;
+ res.json({rows});
+});
+
+app.post("/api/admin/jackpots/claim",auth,admin,async(req,res)=>{
+ const id=Number(req.body.id);
+ if(!Number.isInteger(id)) return res.status(400).json({error:"Érvénytelen jackpot ID."});
+ const r=await q(`
+   UPDATE jackpot_wins
+   SET claimed=$1,claimed_at=CASE WHEN $1 THEN NOW() ELSE NULL END
+   WHERE id=$2
+   RETURNING id
+ `,[!!req.body.claimed,id]);
+ if(!r.rows[0]) return res.status(404).json({error:"Jackpot nyeremény nem található."});
+ res.json({ok:true});
+});
+
 app.get("/api/admin/transactions",auth,admin,async(req,res)=>res.json({rows:(await q("SELECT t.created_at,u.username,t.amount,t.reason FROM transactions t JOIN users u ON u.id=t.user_id ORDER BY t.id DESC LIMIT 100")).rows}));
 
 app.get("/admin",(req,res)=>res.sendFile(path.join(__dirname,"public","admin.html")));
