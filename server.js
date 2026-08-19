@@ -1101,6 +1101,29 @@ app.post("/api/admin/redemption-config",auth,admin,async(req,res)=>{
  res.json({ok:true,rewards:cleaned});
 });
 
+
+app.post("/api/admin/player-balance-reset/:id",auth,admin,async(req,res)=>{
+ try{
+   const id=Number(req.params.id);
+   if(!Number.isInteger(id))return res.status(400).json({error:"Hibás játékos ID."});
+   const type=String(req.body.type||"");
+   const allowed=["coins","soul_points","yang_balance"];
+   if(!allowed.includes(type))return res.status(400).json({error:"Ismeretlen egyenlegtípus."});
+
+   const player=(await q("SELECT id,username,role FROM users WHERE id=$1",[id])).rows[0];
+   if(!player)return res.status(404).json({error:"Játékos nem található."});
+   if(player.role==="admin")return res.status(403).json({error:"Admin egyenlegét innen nem lehet resetelni."});
+
+   await q(`UPDATE users SET ${type}=0 WHERE id=$1`,[id]);
+
+   const label=type==="coins"?"Coin":type==="soul_points"?"Lélek Pont":"Yang";
+   res.json({ok:true,message:`${player.username} ${label} egyenlege 0-ra állítva.`,user:await userView(id)});
+ }catch(e){
+   console.error("ADMIN PLAYER BALANCE RESET ERROR:",e);
+   res.status(500).json({error:"Az egyenleg reset nem sikerült."});
+ }
+});
+
 app.get("/api/admin/player-stats/:id",auth,admin,async(req,res)=>{
  const id=Number(req.params.id);
  if(!Number.isInteger(id))return res.status(400).json({error:"Hibás játékos ID."});

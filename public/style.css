@@ -673,3 +673,12 @@ body[data-shop-cursor="karambit_neon"],body[data-shop-cursor="karambit_neon"] *{
 .exchange-qty-row{display:grid;grid-template-columns:42px 1fr 42px;gap:6px;margin-top:5px}
 .exchange-amount{text-align:center;font-weight:900;font-size:15px}
 .exchange-total{margin-top:7px;min-height:18px;color:#b9ae92}
+
+/* V50 */
+.slot-chance,.slot-odds,.slot-probability,[id*="slotChance"],[class*="slotChance"]{display:none!important}
+.admin-balance-reset-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:14px}
+@media(max-width:650px){.admin-balance-reset-grid{grid-template-columns:1fr}}
+
+body[data-shop-bg="midnight"]{background:radial-gradient(circle at 45% 0,rgba(35,90,150,.22),transparent 38%),linear-gradient(180deg,#02050a,#07101c 58%,#010204)!important}
+body[data-shop-bg="crimson"]{background:radial-gradient(circle at 50% 0,rgba(160,20,55,.28),transparent 40%),linear-gradient(180deg,#120307,#090306 58%,#020102)!important}
+body[data-shop-bg="emerald"]{background:radial-gradient(circle at 50% 0,rgba(15,120,75,.26),transparent 40%),linear-gradient(180deg,#03100b,#04100b 58%,#010302)!important}

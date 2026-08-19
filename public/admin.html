@@ -394,7 +394,9 @@ async function loadAdminRedemptions(){
 }
 async function markDelivered(id,delivered){await api("/api/admin/redemptions/deliver",{method:"POST",body:JSON.stringify({id,delivered})});await loadAdminRedemptions()}
 
+let currentAdminStatsPlayerId=null;
 async function openPlayerStats(id){
+ currentAdminStatsPlayerId=id;
  try{
    const d=await api(`/api/admin/player-stats/${id}`);
    $("#playerStatsTitle").textContent=`📊 ${d.user.username} statisztikája`;
@@ -432,6 +434,24 @@ async function openPlayerStats(id){
    $("#playerStatsModal").style.display="flex";
  }catch(e){toast(e.message)}
 }
+
+
+async function resetSelectedPlayerBalance(type,label){
+ if(!currentAdminStatsPlayerId)return;
+ if(!confirm(`Biztosan 0-ra állítod ennek a játékosnak a(z) ${label} egyenlegét?`))return;
+ try{
+   const d=await api(`/api/admin/player-balance-reset/${currentAdminStatsPlayerId}`,{
+     method:"POST",
+     body:JSON.stringify({type})
+   });
+   toast(d.message);
+   await openPlayerStats(currentAdminStatsPlayerId);
+   try{await users()}catch{}
+ }catch(e){toast(e.message)}
+}
+$("#resetPlayerCoins").onclick=()=>resetSelectedPlayerBalance("coins","Coin");
+$("#resetPlayerSoul").onclick=()=>resetSelectedPlayerBalance("soul_points","Lélek Pont");
+$("#resetPlayerYang").onclick=()=>resetSelectedPlayerBalance("yang_balance","Yang");
 
 document.addEventListener("click",(e)=>{
  const b=e.target.closest("[data-player-stats]");
@@ -578,7 +598,15 @@ $("#saveShopConfig").onclick=async()=>{try{
       <button class="btn" id="closePlayerStats">✕ Bezárás</button>
     </div>
 
-    <div class="stats-section-title">🎰 Slot</div>
+    
+    <div class="stats-section-title">💳 Játékos egyenlegek</div>
+    <div class="admin-balance-reset-grid">
+      <button class="btn danger" id="resetPlayerCoins" type="button">🪙 Coin → 0</button>
+      <button class="btn danger" id="resetPlayerSoul" type="button">👻 Lélek Pont → 0</button>
+      <button class="btn danger" id="resetPlayerYang" type="button">💰 Yang → 0</button>
+    </div>
+
+<div class="stats-section-title">🎰 Slot</div>
     <div class="stats-grid">
       <div class="stat-card"><span>Pörgetések</span><b id="apsSpins">0</b></div>
       <div class="stat-card"><span>Megforgatott Coin</span><b id="apsWagered">0</b></div>

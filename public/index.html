@@ -744,6 +744,57 @@ function playPurchasedChime(name){
  }catch{}
 }
 
+
+function playShopChimePreview(name){
+ try{
+   const AudioCtx=window.AudioContext||window.webkitAudioContext;
+   if(!AudioCtx){toast("A böngésző nem támogatja a hangelőnézetet.");return}
+   const ctx=new AudioCtx();
+   if(ctx.state==="suspended")ctx.resume();
+   const now=ctx.currentTime;
+   const presets={
+     classic:{notes:[880,1174],type:"sine",gap:.11},
+     crystal:{notes:[1046,1318,1568,2093],type:"sine",gap:.09},
+     royal:{notes:[523,659,784,1046],type:"triangle",gap:.12},
+     arcane:{notes:[392,523,659,988],type:"sine",gap:.14},
+     heaven:{notes:[659,988,1318,1760],type:"sine",gap:.16},
+     dark:{notes:[220,196,164,130],type:"triangle",gap:.15},
+     pixel:{notes:[784,1046,1318,1046,1568],type:"square",gap:.08}
+   };
+   const p=presets[name]||presets.classic;
+   p.notes.forEach((freq,i)=>{
+     const t=now+i*p.gap;
+     const o=ctx.createOscillator(),g=ctx.createGain();
+     o.type=p.type;o.frequency.setValueAtTime(freq,t);
+     g.gain.setValueAtTime(.0001,t);
+     g.gain.exponentialRampToValueAtTime(.16,t+.02);
+     g.gain.exponentialRampToValueAtTime(.0001,t+.20);
+     o.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+.22);
+   });
+   setTimeout(()=>ctx.close().catch(()=>{}),2000);
+ }catch(e){toast("Hangelőnézet hiba: "+e.message)}
+}
+function previewShopBackground(name){
+ const previous=document.body.dataset.shopBg||user?.selected_background||"black_gold";
+ document.body.dataset.shopBg=name||"black_gold";
+ clearTimeout(window.__shopBgPreviewTimer);
+ window.__shopBgPreviewTimer=setTimeout(()=>{
+   document.body.dataset.shopBg=user?.selected_background||previous;
+ },7000);
+ toast("🎨 Háttér előnézet aktív 7 másodpercig.");
+}
+function previewShopCursor(name){
+ const previous=document.body.dataset.shopCursor||user?.selected_cursor||"gold_small";
+ document.body.dataset.shopCursor=name||"gold_small";
+ window.activeShopCursor=name||"gold_small";
+ clearTimeout(window.__shopCursorPreviewTimer);
+ window.__shopCursorPreviewTimer=setTimeout(()=>{
+   const back=user?.selected_cursor||previous;
+   document.body.dataset.shopCursor=back;window.activeShopCursor=back;
+ },7000);
+ toast("🖱️ Kurzor előnézet aktív 7 másodpercig.");
+}
+
 async function loadShop(){
  if(!user)return;
  try{
@@ -759,9 +810,9 @@ async function loadShop(){
                 x.type==="coin"?fmt(x.value)+" Coin":
                 x.type==="chime"?"Nyereményhang":
                 x.type==="background"?"Háttér téma":x.type==="inventory"?"Gyűjthető inventory tárgy":"Kurzor / egéreffekt";
-     const preview=x.type==="chime"?`<button class="btn" data-preview-chime="${x.value}">▶ Meghallgatás</button>`:
-                   x.type==="background"?`<button class="btn" data-preview-bg="${x.value}">👁 Előnézet</button>`:
-                   x.type==="cursor"?`<button class="btn" data-preview-cursor="${x.value}">👁 Kipróbálás</button>`:"";
+     const preview=x.type==="chime"?`<button class="btn" data-preview-chime="${x.value}" type="button">▶ Meghallgatás</button>`:
+                   x.type==="background"?`<button class="btn" data-preview-bg="${x.value}" type="button">👁 Előnézet</button>`:
+                   x.type==="cursor"?`<button class="btn" data-preview-cursor="${x.value}" type="button">👁 Kipróbálás</button>`:"";
      const action=(cosmetic||x.type==="inventory")&&has
        ? (x.type==="inventory"?`<button class="btn" disabled>✓ Inventoryban</button>`:`<button class="btn primary" data-shop-select="${x.id}">✓ Kiválasztás</button>`)
        : `<button class="btn primary" data-shop-buy="${x.id}">${x.price==0?"Feloldás":"Vásárlás"}</button>`;
@@ -778,6 +829,16 @@ async function loadShop(){
    applyPurchasedCursor(user.selected_cursor);
  }catch(e){$("#shopMsg").textContent="❌ "+e.message}
 }
+
+
+document.addEventListener("click",e=>{
+ const ch=e.target.closest("[data-preview-chime]");
+ if(ch){e.preventDefault();playShopChimePreview(ch.dataset.previewChime);return}
+ const bg=e.target.closest("[data-preview-bg]");
+ if(bg){e.preventDefault();previewShopBackground(bg.dataset.previewBg);return}
+ const cu=e.target.closest("[data-preview-cursor]");
+ if(cu){e.preventDefault();previewShopCursor(cu.dataset.previewCursor);return}
+});
 
 document.addEventListener("click",async e=>{
  const buy=e.target.closest("[data-shop-buy]");

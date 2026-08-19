@@ -352,3 +352,11 @@ V48 ADMIN:
 - Az utoljára megnyitott admin fül megmarad oldalfrissítés után.
 
 V49: minden átváltási típusnál külön mennyiség mező és +/- gomb; a költség és jutalom automatikusan felszorzódik.
+
+V50:
+- Javítva a Yang Shop csengőhang Meghallgatás gomb.
+- Javítva a háttér Előnézet, 7 másodpercig mutatja.
+- Javítva a kurzor Kipróbálás előnézet.
+- Admin játékos statisztikából külön resetelhető: Coin, Lélek Pont, Yang -> 0.
+- Admin fiókot az egyenleg reset nem érinti.
+- Slot játékos oldalon a Koponya/Nyertes százalékok elrejtve.
