@@ -178,3 +178,42 @@ body::before { pointer-events: none !important; z-index: 0; }
 #open:disabled{pointer-events:none}
 
 .game-switch{display:flex;justify-content:center;gap:10px;margin:18px auto}.game-mode{padding:11px 18px;border-radius:12px;border:1px solid #39294e;background:#100c17;color:#b7adc3;font-weight:900}.game-mode.active{background:linear-gradient(135deg,#7137d0,#a25ef0);color:white}.slot-machine{padding:18px;border:1px dashed #463454;border-radius:16px;background:#09070e;margin-bottom:15px}.slot-window{min-height:190px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid #392d46;border-radius:14px}.slot-symbol{font-size:74px}.slot-word{font-size:26px;font-weight:1000;margin-top:12px}.slot-bets{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}.slot-bet{border:1px solid #332840;background:#0b0911;color:#ddd3e5;padding:12px;border-radius:11px;text-align:left}.slot-bet b,.slot-bet small{display:block}.slot-bet.active{border-color:#9e61ed;background:#181020}.slot-result{margin-top:14px;min-height:78px;border:1px solid #2e2539;border-radius:12px;display:flex;align-items:center;justify-content:center}.slot-result-win{color:#75efb8;font-weight:900}.slot-result-lose{color:#ff8397;font-weight:900}
+
+/* V22 admin játékos statisztika a normál játékfelületen */
+.admin-player-row{
+  display:grid;
+  grid-template-columns:minmax(150px,1.4fr) repeat(6,minmax(110px,1fr));
+  gap:8px;
+  align-items:stretch;
+  padding:10px;
+  border:1px solid #30263b;
+  border-radius:12px;
+  background:#0a0810;
+}
+.admin-player-name,
+.admin-player-metric{
+  padding:9px 10px;
+  border:1px solid #27202f;
+  border-radius:9px;
+  background:#0d0a13;
+}
+.admin-player-name b,
+.admin-player-name small,
+.admin-player-metric span,
+.admin-player-metric b{
+  display:block;
+}
+.admin-player-name small,
+.admin-player-metric span{
+  color:#8f859b;
+  font-size:10px;
+  margin-bottom:3px;
+}
+.admin-player-metric b{
+  font-size:13px;
+}
+@media(max-width:1000px){
+  .admin-player-row{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+
+.redeem-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.redeem-card{display:grid;grid-template-columns:46px 1fr auto;gap:10px;align-items:center;padding:14px;border:1px solid #30263b;border-radius:12px;background:#0b0911}.redeem-card .btn{grid-column:1/-1}.redeem-icon{font-size:30px;text-align:center}.redeem-cost{font-weight:900;color:#ffcf62}@media(max-width:650px){.redeem-grid{grid-template-columns:1fr}.redeem-card{grid-template-columns:40px 1fr}}

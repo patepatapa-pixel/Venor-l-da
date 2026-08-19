@@ -144,3 +144,19 @@ V21 ADMIN BELÉPÉS JAVÍTÁS:
 - A szerver /api/ready végponttal jelzi az adatbázis inicializáltságát.
 - Admin API-k egyértelmű 503 üzenetet adnak, ha a Render indulás után még inicializálja az adatbázist.
 - server.js és frontend JS szintaxis ellenőrizve.
+
+V22 ADMIN JÁTÉKOS STATISZTIKA:
+- Admin fiókkal a normál játékos felületen külön "Admin · Játékos aktivitás" panel látható.
+- Látszik játékosonként: elpörgetett Coin, slot pörgetések, slotból nyert Coin, ládanyitások, összes eljátszott Coin és jelenlegi Coin.
+- A panel csak admin szerepkörnél jelenik meg.
+- Kereső és manuális frissítés gomb került bele.
+
+V23:
+- Minden új játékos 5000 Coinnal és 5000 Lélek Ponttal kezd.
+- Napi 5000 Coin külön, naponta egyszer vehető fel.
+- Napi 5000 Lélek Pont külön, naponta egyszer vehető fel.
+- Láda csak Lélek Pontért nyitható, alapár 1000 Lélek Pont / láda.
+- Coin kizárólag Slothoz és jutalomkiváltáshoz használható.
+- Láda drop: 100, 1K, 10K, 100K, 1M, 10M, 100M, 1B, 10B Yang + Ritka PET.
+- Admin állítja a láda drop súlyokat, a Lélek Pont ládaárat, Slot téteket/nyereményeket és kiváltható jutalmakat.
+- Kiváltás admin átadási listára kerül.
