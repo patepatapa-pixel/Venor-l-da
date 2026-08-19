@@ -391,3 +391,10 @@ V55:
 - Semmi visszakerült a ládába.
 - Drop lista: 10K, 100K, 1M, 10M, 100M, 1B Yang + Ritka PET + Semmi.
 - Minden esély továbbra is admin panelből állítható.
+
+V56:
+- Főnyeremény: 4 milliárd Yang.
+- 10 milliárd Yang teljesen kikerült a ládából.
+- Dropok: 10K, 100K, 1M, 10M, 100M, 1B, 4B főnyeremény, Ritka PET, Semmi.
+- A 4B főnyeremény jackpotként kerül naplózásra.
+- Minden drop esélye admin panelből továbbra is állítható.
