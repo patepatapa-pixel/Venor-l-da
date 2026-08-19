@@ -371,3 +371,5 @@ V52 LÁDA TESZT RESET:
 - A már átadott jackpotok megmaradnak.
 - Coin, Lélek Pont, elkölthető Yang és megvásárolt inventory NEM törlődik.
 - Kétlépcsős megerősítés: confirm + "LADA RESET".
+
+V53: minden játékos saját maga törölheti az Összes eddigi ládanyereményed panel adatait, hogy tiszta 100 ládás tesztet indíthasson. Coin/Lélekpont/Yang egyenleg és inventory nem törlődik.

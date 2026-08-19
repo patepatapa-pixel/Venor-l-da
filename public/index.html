@@ -49,6 +49,11 @@ A 10 milliárd Yang főnyereményt nem automatikusan írjuk jóvá. Ha megnyerte
   <div class="exchange-head">
     <div>
       <h3>🔁 Átváltás</h3>
+<div class="chest-self-reset">
+ <button class="btn danger" id="resetMyChestResults" type="button">🗑 Saját ládaeredmények törlése</button>
+ <span class="small">Törlés után újra mérheted például, hogy 100 ládából mi esik.</span>
+</div>
+
       <div class="small">Az árfolyamokat az admin állítja.</div>
     </div>
   </div>
@@ -917,6 +922,20 @@ $("#resetInventoryBtn").onclick=async()=>{
    user=d.user;render();$("#inventoryModeMsg").textContent="✅ "+d.message;await loadFullInventory();
  }catch(e){$("#inventoryModeMsg").textContent="❌ "+e.message}
 };
+
+
+$("#resetMyChestResults")?.addEventListener("click",async()=>{
+ if(!confirm("Biztosan törlöd a SAJÁT összes eddigi ládaeredményedet?\n\nAz egyenlegeid és inventoryd nem törlődnek."))return;
+ try{
+   const d=await api("/api/me/reset-chest-results",{method:"POST",body:"{}"});
+   toast("🗑 "+d.message);
+   if(typeof loadRewardTotals==="function")await loadRewardTotals();
+   if(typeof loadMyRewardTotals==="function")await loadMyRewardTotals();
+   if(typeof loadStats==="function")await loadStats();
+   if(typeof loadMyStats==="function")await loadMyStats();
+   setTimeout(()=>location.reload(),350);
+ }catch(e){toast(e.message)}
+});
 
 </script>
 

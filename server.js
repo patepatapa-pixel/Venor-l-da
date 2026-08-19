@@ -552,6 +552,32 @@ app.get("/api/my-stats",auth,async(req,res)=>{
  });
 });
 
+
+app.post("/api/me/reset-chest-results",auth,async(req,res)=>{
+ const client=await pool.connect();
+ try{
+   await client.query("BEGIN");
+   await client.query("DELETE FROM user_reward_totals WHERE user_id=$1",[req.user.id]);
+   await client.query("DELETE FROM history WHERE user_id=$1",[req.user.id]);
+   await client.query(`
+     UPDATE user_game_stats
+     SET chest_opens=0, soul_spent=0, chest_yang_won=0, updated_at=NOW()
+     WHERE user_id=$1
+   `,[req.user.id]);
+   await client.query(`
+     UPDATE users
+     SET total_opened=0, total_yang_won=0, chest_soul_spent=0
+     WHERE id=$1
+   `,[req.user.id]);
+   await client.query("COMMIT");
+   res.json({ok:true,message:"A saját ládaeredményeid törölve. Most tiszta ládatesztet kezdhetsz."});
+ }catch(e){
+   try{await client.query("ROLLBACK")}catch(_){}
+   console.error("SELF CHEST RESULT RESET ERROR:",e);
+   res.status(500).json({error:"A ládaeredmények törlése nem sikerült."});
+ }finally{client.release()}
+});
+
 app.get("/api/my-reward-totals",auth,async(req,res)=>{
  await q(`
    CREATE TABLE IF NOT EXISTS user_reward_totals(

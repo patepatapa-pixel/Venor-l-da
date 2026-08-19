@@ -699,3 +699,6 @@ body[data-shop-cursor="karambit_neon"],body[data-shop-cursor="karambit_neon"] *{
   border-color:#d99239!important;
   box-shadow:0 0 0 1px rgba(217,146,57,.14),0 8px 24px rgba(0,0,0,.35)!important;
 }
+
+.chest-self-reset{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:9px 0 12px;padding:9px 10px;border:1px solid #44252b;border-radius:10px;background:#0d080a}
+#resetMyChestResults{border-color:#7a3540!important;color:#ff9eaa!important}
