@@ -590,6 +590,66 @@ app.post("/api/admin/redemption-config",auth,admin,async(req,res)=>{
  res.json({ok:true,rewards:cleaned});
 });
 
+app.get("/api/admin/player-stats/:id",auth,admin,async(req,res)=>{
+ const id=Number(req.params.id);
+ if(!Number.isInteger(id))return res.status(400).json({error:"Hibás játékos ID."});
+
+ const u=await userView(id);
+ if(!u)return res.status(404).json({error:"Játékos nem található."});
+
+ await q("INSERT INTO user_game_stats(user_id) VALUES($1) ON CONFLICT(user_id) DO NOTHING",[id]);
+ const s=(await q("SELECT * FROM user_game_stats WHERE user_id=$1",[id])).rows[0];
+
+ const rewards=(await q(`
+   SELECT reward_name,reward_type,total_quantity,total_value,updated_at
+   FROM user_reward_totals
+   WHERE user_id=$1
+   ORDER BY CASE reward_type WHEN 'yang' THEN 0 WHEN 'item' THEN 1 ELSE 2 END,total_value DESC,reward_name ASC
+ `,[id])).rows;
+
+ const jackpots=(await q(`
+   SELECT id,amount,reward_name,claimed,claimed_at,created_at
+   FROM jackpot_wins
+   WHERE user_id=$1
+   ORDER BY id DESC
+ `,[id])).rows;
+
+ const redemptions=(await q(`
+   SELECT id,reward_name,reward_type,reward_amount,coin_cost,delivered,delivered_at,created_at
+   FROM redemption_claims
+   WHERE user_id=$1
+   ORDER BY id DESC
+   LIMIT 100
+ `,[id])).rows;
+
+ const wagered=Number(s.slot_wagered||0);
+ const won=Number(s.slot_won||0);
+ const net=won-wagered;
+
+ res.json({
+   user:u,
+   slot:{
+     spins:Number(s.slot_spins||0),
+     wagered,
+     won,
+     lost:Number(s.slot_lost||0),
+     profit:Math.max(net,0),
+     loss:Math.max(-net,0),
+     net,
+     roi:wagered?Number((net/wagered*100).toFixed(2)):0
+   },
+   chest:{
+     opened:Number(s.chest_opens||0),
+     soulSpent:Number(s.soul_spent||0),
+     yangWon:Number(s.chest_yang_won||0),
+     jackpotCount:jackpots.length
+   },
+   rewards,
+   jackpots,
+   redemptions
+ });
+});
+
 app.get("/api/admin/player-activity",auth,admin,async(req,res)=>{
  const rows=(await q(`
    SELECT

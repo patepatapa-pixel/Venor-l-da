@@ -202,3 +202,14 @@ V30 STATISZTIKA + JACKPOT SZABÁLY:
 - Ládánál: nyitások, elköltött Lélek Pont, összes nyert Yang, 10B jackpotok száma.
 - Feltűnő figyelmeztetés: CSAK A JACKPOT FIZET JÁTÉKON BELÜL.
 - A normál Yang dropok statisztikai eredmények, tényleges játékbeli kifizetés csak 10B JACKPOT esetén, Hox játékosnál.
+
+V31 ADMIN JÁTÉKOS STATISZTIKÁK:
+- Adminpanelen minden játékosnál külön Statisztika gomb.
+- Megnyitható játékosonként: Slot pörgetések, megforgatott Coin, nyert/bukott Coin, profit, veszteség, nettó, ROI.
+- Láda: összes nyitás, elköltött Lélek Pont, nyert Yang, 10B jackpotok száma.
+- Látható a játékos összes mentett nyereménye és kiváltása is.
+
+V32 OMI GAMBA:
+- Weboldal neve: OMI Gamba.
+- Böngésző címe: OMI Gamba – Gemblingezni csak saját felelősségre.
+- Játékos és admin oldalon is feltűnő felelősségi figyelmeztetés.

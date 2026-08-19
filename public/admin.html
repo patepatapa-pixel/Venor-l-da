@@ -1,4 +1,5 @@
-<!doctype html><html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>VENORI Admin</title><link rel="stylesheet" href="/style.css"></head><body><header class="topbar"><a class="logo" href="/">VEN<span>ORI</span></a><nav class="nav"><a href="/">Játékos oldal</a></nav><div class="wallet">🛡️ ADMIN</div></header><main class="wrap"><section class="card section"><h2>VENORI Admin Panel</h2>
+<!doctype html><html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>OMI Gamba – Gemblingezni csak saját felelősségre</title><link rel="stylesheet" href="/style.css"></head><body>
+<div class="omi-disclaimer">⚠️ OMI Gamba – Gemblingezni csak saját felelősségre!</div><header class="topbar"><a class="logo" href="/">VEN<span>ORI</span></a><nav class="nav"><a href="/">Játékos oldal</a></nav><div class="wallet">🛡️ ADMIN</div></header><main class="wrap"><section class="card section"><h2>OMI Gamba Admin Panel</h2>
 <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0 12px">
   <span class="small">🛡️ Admin munkamenet aktív</span>
   <button class="btn" id="reloadAdmin" type="button">↻ Admin adatok újratöltése</button>
@@ -76,7 +77,7 @@ A játékosfiókok, jelenlegi Coin egyenlegek, inventoryk, játéktörténet és
 <section class="card section"><h3>📦 Játékos kiváltások</h3><div id="adminRedemptions"></div></section><section class="card section"><h3>📜 Coin tranzakciók</h3><div id="tx"></div></section></main><div class="toast" id="toast"></div><script>
 const $=s=>document.querySelector(s),fmt=n=>Number(n||0).toLocaleString("hu-HU");async function api(u,o={}){const r=await fetch(u,{...o,headers:{"Content-Type":"application/json"}});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||"Hiba");return d}function toast(x){const t=$("#toast");t.textContent=x;t.style.display="block";setTimeout(()=>t.style.display="none",2500)}
 async function stats(){const d=await api("/api/admin/stats");$("#stats").innerHTML=[["Játékosok",d.users],["Aktív",d.active],["Tiltva",d.banned],["Eljátszott",d.played],["Nyitások",d.opened],["Coin",d.coins],["Nyert Yang",d.yangWon],["Nyert Coin",d.coinWon],["Slot elpörgetett",d.slotSpent],["Slot pörgetések",d.slotSpins],["Slot nyeremény",d.slotWon]].map(x=>`<div class="metric"><small>${x[0]}</small><b>${fmt(x[1])}</b></div>`).join("")}
-async function users(){const d=await api("/api/admin/users?q="+encodeURIComponent($("#search").value));$("#users").innerHTML=d.rows.map(u=>`<div class="list-item"><b>#${u.id} ${u.username}</b> · ${fmt(u.coins)} Coin · ${u.banned?"TILTVA":"AKTÍV"}<br><button class="btn" onclick="pick(${u.id})">Coin</button> <button class="btn" onclick="ban(${u.id},${!u.banned})">${u.banned?"Feloldás":"Tiltás"}</button></div>`).join("")}
+async function users(){const d=await api("/api/admin/users?q="+encodeURIComponent($("#search").value));$("#users").innerHTML=d.rows.map(u=>`<div class="list-item"><b>#${u.id} ${u.username}</b> · ${fmt(u.coins)} Coin · ${u.banned?"TILTVA":"AKTÍV"}<br><button class="btn" onclick="pick(${u.id})">Coin</button> <button class="btn" onclick="ban(${u.id},${!u.banned})">${u.banned?"Feloldás":"Tiltás"}</button><button class="btn" data-player-stats="${u.id}">📊 Statisztika</button></div>`).join("")}
 async function settings(){
  const d=await api("/api/admin/settings");
  $("#daily").value=d.daily_bonus;
@@ -318,6 +319,53 @@ async function loadAdminRedemptions(){
 }
 async function markDelivered(id,delivered){await api("/api/admin/redemptions/deliver",{method:"POST",body:JSON.stringify({id,delivered})});await loadAdminRedemptions()}
 
+async function openPlayerStats(id){
+ try{
+   const d=await api(`/api/admin/player-stats/${id}`);
+   $("#playerStatsTitle").textContent=`📊 ${d.user.username} statisztikája`;
+   $("#playerStatsSub").textContent=`ID: ${d.user.id} · Coin: ${fmt(d.user.coins)} · Lélek Pont: ${fmt(d.user.soul_points)}`;
+
+   $("#apsSpins").textContent=fmt(d.slot.spins);
+   $("#apsWagered").textContent=fmt(d.slot.wagered);
+   $("#apsWon").textContent=fmt(d.slot.won);
+   $("#apsLost").textContent=fmt(d.slot.lost);
+   $("#apsProfit").textContent=fmt(d.slot.profit);
+   $("#apsLoss").textContent=fmt(d.slot.loss);
+   $("#apsNet").textContent=(d.slot.net>=0?"+":"")+fmt(d.slot.net);
+   $("#apsNet").className=d.slot.net>=0?"positive":"negative";
+   $("#apsRoi").textContent=(d.slot.roi>=0?"+":"")+d.slot.roi+"%";
+
+   $("#apsOpened").textContent=fmt(d.chest.opened);
+   $("#apsSoulSpent").textContent=fmt(d.chest.soulSpent);
+   $("#apsYang").textContent=fmt(d.chest.yangWon);
+   $("#apsJackpots").textContent=fmt(d.chest.jackpotCount);
+
+   $("#apsRewards").innerHTML=d.rewards.length?d.rewards.map(r=>`
+     <div class="list-item">
+       <b>${r.reward_name}</b>
+       <span style="float:right">${fmt(r.total_quantity)}×</span>
+       <div class="small">${r.reward_type==="yang"?fmt(r.total_value)+" össz Yang":"Összesített nyeremény"}</div>
+     </div>`).join(""):"<div class='small'>Nincs mentett nyeremény.</div>";
+
+   $("#apsRedemptions").innerHTML=d.redemptions.length?d.redemptions.map(r=>`
+     <div class="list-item">
+       <b>${r.reward_name}</b>
+       <span style="float:right">${fmt(r.coin_cost)} Coin</span>
+       <div class="small">${r.delivered?"✅ Átadva":"⏳ Átadásra vár"}</div>
+     </div>`).join(""):"<div class='small'>Nincs kiváltás.</div>";
+
+   $("#playerStatsModal").style.display="flex";
+ }catch(e){toast(e.message)}
+}
+
+document.addEventListener("click",(e)=>{
+ const b=e.target.closest("[data-player-stats]");
+ if(b){openPlayerStats(Number(b.dataset.playerStats));return}
+ if(e.target?.id==="closePlayerStats" || e.target?.id==="playerStatsModal"){
+   $("#playerStatsModal").style.display="none";
+ }
+});
+
 async function bootAdmin(){
   // Csak akkor dobunk vissza a főoldalra, ha tényleg nincs admin munkamenet.
   let me;
@@ -353,4 +401,43 @@ async function bootAdmin(){
   }
 }
 bootAdmin();
-</script></body></html>
+</script>
+<div id="playerStatsModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.82);align-items:center;justify-content:center;padding:20px">
+  <div class="card" style="width:min(1050px,96vw);max-height:90vh;overflow:auto;padding:20px">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+      <div>
+        <h2 id="playerStatsTitle" style="margin:0">📊 Játékos statisztika</h2>
+        <div class="small" id="playerStatsSub"></div>
+      </div>
+      <button class="btn" id="closePlayerStats">✕ Bezárás</button>
+    </div>
+
+    <div class="stats-section-title">🎰 Slot</div>
+    <div class="stats-grid">
+      <div class="stat-card"><span>Pörgetések</span><b id="apsSpins">0</b></div>
+      <div class="stat-card"><span>Megforgatott Coin</span><b id="apsWagered">0</b></div>
+      <div class="stat-card"><span>Nyert Coin</span><b id="apsWon">0</b></div>
+      <div class="stat-card"><span>Elbukott Coin</span><b id="apsLost">0</b></div>
+      <div class="stat-card"><span>Profit</span><b id="apsProfit">0</b></div>
+      <div class="stat-card"><span>Veszteség</span><b id="apsLoss">0</b></div>
+      <div class="stat-card"><span>Nettó</span><b id="apsNet">0</b></div>
+      <div class="stat-card"><span>ROI</span><b id="apsRoi">0%</b></div>
+    </div>
+
+    <div class="stats-section-title">🎁 Láda</div>
+    <div class="stats-grid">
+      <div class="stat-card"><span>Kinyitott ládák</span><b id="apsOpened">0</b></div>
+      <div class="stat-card"><span>Elköltött Lélek Pont</span><b id="apsSoulSpent">0</b></div>
+      <div class="stat-card"><span>Nyert Yang</span><b id="apsYang">0</b></div>
+      <div class="stat-card jackpot-stat"><span>10B Jackpotok</span><b id="apsJackpots">0</b></div>
+    </div>
+
+    <div class="stats-section-title">🏆 Összes nyeremény</div>
+    <div id="apsRewards" style="display:grid;gap:8px"></div>
+
+    <div class="stats-section-title">🎟️ Kiváltások</div>
+    <div id="apsRedemptions" style="display:grid;gap:8px"></div>
+  </div>
+</div>
+
+</body></html>
