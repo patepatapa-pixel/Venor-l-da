@@ -87,3 +87,10 @@ V13:
 - 1M Yang teljesen kikerült a ládából.
 - A régi adatbázisban esetleg elmentett drop configból is automatikusan kiszűri ezt a két nyereményt.
 - Az admin drop-listában sem jelennek meg többé.
+
+V14 RENDER JAVÍTOTT:
+- Javítva a Render hiba: ReferenceError: getRewardConfig is not defined.
+- Javítva/definiálva a baseRewards, getRewardConfig és pickFrom.
+- 500K Yang és 1M Yang továbbra sincs a ládában.
+- A meglévő itemes drop-admin rendszer megmaradt.
+- Node.js szintaktikai ellenőrzés: OK.
