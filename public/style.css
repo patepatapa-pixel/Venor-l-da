@@ -651,3 +651,20 @@ body[data-shop-cursor="karambit_neon"],body[data-shop-cursor="karambit_neon"] *{
 .rarity-rare{color:#70b7ff;border:1px solid #245c98;background:#071421}
 .rarity-mitic{color:#d493ff;border:1px solid #704096;background:#180a22}
 .rarity-legendary{color:#ffd45d;border:1px solid #9b7620;background:#211804;box-shadow:0 0 12px rgba(242,193,78,.12)}
+
+/* V48 – clearer admin navigation */
+.admin-tabbar-v48{
+ display:flex;gap:7px;position:sticky;top:0;z-index:500;
+ padding:10px 12px;overflow-x:auto;white-space:nowrap;
+ background:rgba(5,5,5,.97);border-bottom:1px solid #3b2d10;
+ scrollbar-width:thin
+}
+.admin-tabbar-v48 .admin-tab{flex:0 0 auto}
+.admin-page-intro{display:flex;justify-content:space-between;align-items:center;margin:16px 0 10px;padding:13px 15px;border:1px solid #302713;border-radius:12px;background:#090806}
+.admin-page-intro h2{margin:0 0 3px}
+[data-admin-category]{animation:adminTabIn .16s ease-out}
+@keyframes adminTabIn{from{opacity:.35;transform:translateY(3px)}to{opacity:1;transform:none}}
+@media(max-width:700px){
+ .admin-tabbar-v48{padding:8px}
+ .admin-tabbar-v48 .admin-tab{padding:9px 11px;font-size:11px}
+}

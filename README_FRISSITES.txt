@@ -338,3 +338,15 @@ V47 FEGYVER RITKASÁG:
   MITIC: min x1.50, alap max x2.00
   LEGENDARY: min x2.00, alap max x3.00
 - Adminból a ritkaság, vásárlási Yang ár, húzás ára és max Coin szorzó is állítható.
+
+V48 ADMIN:
+- Admin panel külön, elnevezett fülekre bontva.
+- Áttekintés
+- Játékosok
+- Játék beállítások
+- Drop & jutalmak
+- Yang Shop
+- Fegyverek
+- Átváltások
+- Coin tranzakciók
+- Az utoljára megnyitott admin fül megmarad oldalfrissítés után.
