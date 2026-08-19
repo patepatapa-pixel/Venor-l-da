@@ -46,7 +46,7 @@ function renderOpenResults(d){
  const grouped={};
  d.results.forEach(r=>{
    if(!grouped[r.name]) grouped[r.name]={name:r.name,icon:r.icon,count:0,type:r.type};
-   grouped[r.name].count++;
+   grouped[r.name].count+=(r.qty||1);
  });
  $("#resultCount").textContent=`${d.results.length}× láda`;
  $("#resultRows").innerHTML=Object.values(grouped).map(r=>`
@@ -103,7 +103,7 @@ $("#daily").onclick=async()=>{if(!user){openModal("login");return}try{const d=aw
 $("#open").onclick=async()=>{if(!user){openModal("login");return}try{
  const d=await api("/api/open",{method:"POST",body:JSON.stringify({quantity:q})});
  user=d.user;render();renderOpenResults(d);
- const grouped={};d.results.forEach(r=>grouped[r.name]=(grouped[r.name]||0)+1);
+ const grouped={};d.results.forEach(r=>grouped[r.name]=(grouped[r.name]||0)+(r.qty||1));
  const all=Object.entries(grouped).map(([n,c])=>`${c}× ${n}`).join(" · ");
  toast(`🎉 ${all} | +${fmt(d.won?.yang||0)} Yang | +${fmt(d.won?.coin||0)} Coin`);
  if(d.jackpot?.won){

@@ -59,3 +59,15 @@ V9:
 - Van külön JACKPOT LISTA KIÜRÍTÉSE gomb.
 - A lista törlése NEM törli a játékos fiókját, Coinját, ranglistáját, inventoryját vagy játéktörténetét.
 - A teljes lista törléséhez külön megerősítő szöveg szükséges.
+
+V10 ITEM DROP BŐVÍTÉS:
+- A felhasználó képe alapján 88 külön item került a Venori ládába.
+- Az itemekből egy sikeres item-drop esetén véletlenszerűen 1, 2 vagy maximum 3 db nyitható.
+- A meglévő Yang, Coin, Ritka PET és 10 milliárd Yang jackpot nyeremények megmaradtak.
+- A nyitási eredménylistában az itemek tényleges darabszáma összeadódik és megjelenik.
+
+V11 TOVÁBBI ITEMEK:
+- A két új képről további 117 item került a ládába.
+- A V10-ben lévő 88 item és minden korábbi nyeremény megmaradt.
+- Ezekből is 1, 2 vagy maximum 3 db nyitható egy item-drop alkalmával.
+- Kategóriák: kulcsok/belépők, Aura, növények, anyagok, eventes tárgyak.
