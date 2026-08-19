@@ -373,3 +373,21 @@ V52 LÁDA TESZT RESET:
 - Kétlépcsős megerősítés: confirm + "LADA RESET".
 
 V53: minden játékos saját maga törölheti az Összes eddigi ládanyereményed panel adatait, hogy tiszta 100 ládás tesztet indíthasson. Coin/Lélekpont/Yang egyenleg és inventory nem törlődik.
+
+V54 LÁDA DROP:
+Csak ezek maradtak a ládában:
+- 10K Yang
+- 100K Yang
+- 1M Yang
+- 10M Yang
+- 100M Yang
+- 1B Yang
+A korábbi 100 Yang, 1K Yang, 10B Jackpot, Ritka PET és Semmi kikerült.
+Az admin Drop panelen a százalékok továbbra is módosíthatók.
+Alap esélyek: 35%, 27%, 18%, 12%, 6%, 2% = 100%.
+
+V55:
+- Ritka PET visszakerült a ládába.
+- Semmi visszakerült a ládába.
+- Drop lista: 10K, 100K, 1M, 10M, 100M, 1B Yang + Ritka PET + Semmi.
+- Minden esély továbbra is admin panelből állítható.
