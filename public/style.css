@@ -525,3 +525,52 @@ hr{
   font-size:11px;
   line-height:1.5;
 }
+
+.exchange-panel{margin:0 0 16px;padding:16px}
+.exchange-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.exchange-grid,.exchange-admin-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.exchange-card,.exchange-admin-card{padding:14px;border:1px solid var(--omi-border-soft,#30263b);border-radius:12px;background:#0b0911}
+.exchange-title{font-weight:900;margin-bottom:8px;color:#f2c14e}
+.exchange-rate{margin-bottom:10px;color:#ddd3c1;line-height:1.5}
+.exchange-admin-card label{display:block;margin-top:9px}
+.exchange-admin-card .input{margin-top:5px}
+@media(max-width:800px){.exchange-grid,.exchange-admin-grid{grid-template-columns:1fr}}
+
+/* V41 Coin + Lélek Pont ranglista */
+.rank-dual-row{
+  display:grid;
+  grid-template-columns:56px minmax(140px,1fr) minmax(220px,1.4fr);
+  gap:12px;
+  align-items:center;
+  padding:12px 14px;
+  margin-bottom:8px;
+  border:1px solid var(--omi-border-soft,#30263b);
+  border-radius:12px;
+  background:linear-gradient(180deg,#0e0d0a,#090909);
+}
+.rank-place{
+  font-size:18px;
+  font-weight:1000;
+  color:#f2c14e;
+  text-align:center;
+}
+.rank-user b,.rank-user span{display:block}
+.rank-user span{font-size:10px;color:#938a77;margin-top:3px}
+.rank-values{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+.rank-values>div{
+  padding:8px 10px;
+  border:1px solid #2f2818;
+  border-radius:9px;
+  background:#080808;
+}
+.rank-values span,.rank-values b{display:block}
+.rank-values span{font-size:9px;color:#918a7a;margin-bottom:2px}
+.rank-values b{font-size:13px}
+@media(max-width:650px){
+  .rank-dual-row{grid-template-columns:44px 1fr}
+  .rank-values{grid-column:1/-1}
+}

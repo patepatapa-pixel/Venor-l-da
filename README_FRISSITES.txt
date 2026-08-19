@@ -254,3 +254,37 @@ V38:
 - A Kiváltás fül tetején nagy, arany figyelmeztető panel jelzi:
   "⚠️ Fontos: sikeres Coinos kiváltás után a teljes Coin egyenleged 0-ra áll."
 - Külön magyarázat is jelzi, hogy a megmaradt Coin is elveszik sikeres kiváltáskor.
+
+V39 TELJES YANG DROP:
+A ládába visszakerült:
+- 100 Yang
+- 1K Yang
+- 10K Yang
+- 1M Yang
+- 10M Yang
+- 100M Yang
+- 1B Yang
+- Semmi
+
+Továbbra is benne maradt:
+- 10B Jackpot
+- Ritka PET
+
+Minden drop külön ikonnal jelenik meg.
+Az esélyek továbbra is adminból százalékosan állíthatók.
+10B Jackpot alapból 0.10%.
+
+V40 ÁTVÁLTÁSI RENDSZER:
+- Yang -> Lélekpont átváltás
+- Lélekpont -> Coin átváltás
+- Coin -> Lélekpont átváltás
+- Mindhárom árfolyam és kapcsoló külön állítható adminpanelen.
+- A játékos a Kiváltás fülön látja az aktuális árfolyamokat és ott válthat.
+- A korábbi Coinos jutalomkiváltás utáni Coin=0 szabály változatlanul megmaradt.
+
+V41 RANGLISTA:
+- A ranglista most Coin és Lélek Pont értéket is figyel.
+- Sorrend: Coin + Lélek Pont összesített érték alapján.
+- A ranglistán külön látszik a Coin és a Lélek Pont.
+- Admin fiók és tiltott fiókok nem kerülnek bele.
+- Automatikus frissítés kb. 15 másodpercenként.

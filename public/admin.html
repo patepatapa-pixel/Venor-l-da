@@ -73,7 +73,38 @@ A játékosfiókok, jelenlegi Coin egyenlegek, inventoryk, játéktörténet és
 <label><input id="redemptionEnabled" type="checkbox"> Kiváltás engedélyezve</label>
 <div id="redemptionEditor" style="display:grid;gap:8px;margin:12px 0"></div>
 <div style="display:flex;gap:8px"><button class="btn" id="addRedemption">+ Új jutalom</button><button class="btn primary" id="saveRedemptions">💾 Mentés</button></div></section>
-<section class="card section"><h3>📦 Játékos kiváltások</h3><div id="adminRedemptions"></div></section><section class="card section"><h3>📜 Coin tranzakciók</h3><div id="tx"></div></section></main><div class="toast" id="toast"></div><script>
+<section class="card section"><h3>📦 Játékos kiváltások</h3><div id="adminRedemptions"></div></section><section class="card section"><h3>📜 Coin tranzakciók</h3><div id="tx"></div></section>
+<section class="card section">
+  <h3>🔁 Átváltási rendszer</h3>
+  <div class="small" style="margin-bottom:12px">Itt állíthatod mindhárom átváltás árfolyamát és azt is, hogy engedélyezve legyen-e.</div>
+
+  <div class="exchange-admin-grid">
+    <div class="exchange-admin-card">
+      <b>💰 Yang → 👻 Lélekpont</b>
+      <label class="small">Yang költség<input class="input" id="admYangSoulCost" type="number" min="1"></label>
+      <label class="small">Kapott Lélekpont<input class="input" id="admYangSoulReward" type="number" min="1"></label>
+      <label class="small"><input id="admYangSoulEnabled" type="checkbox"> Engedélyezve</label>
+    </div>
+
+    <div class="exchange-admin-card">
+      <b>👻 Lélekpont → 🪙 Coin</b>
+      <label class="small">Lélekpont költség<input class="input" id="admSoulCoinCost" type="number" min="1"></label>
+      <label class="small">Kapott Coin<input class="input" id="admSoulCoinReward" type="number" min="1"></label>
+      <label class="small"><input id="admSoulCoinEnabled" type="checkbox"> Engedélyezve</label>
+    </div>
+
+    <div class="exchange-admin-card">
+      <b>🪙 Coin → 👻 Lélekpont</b>
+      <label class="small">Coin költség<input class="input" id="admCoinSoulCost" type="number" min="1"></label>
+      <label class="small">Kapott Lélekpont<input class="input" id="admCoinSoulReward" type="number" min="1"></label>
+      <label class="small"><input id="admCoinSoulEnabled" type="checkbox"> Engedélyezve</label>
+    </div>
+  </div>
+
+  <button class="btn primary" id="saveExchangeConfig" style="margin-top:12px">💾 Átváltások mentése</button>
+  <div class="small" id="exchangeAdminMsg" style="margin-top:8px"></div>
+</section>
+</main><div class="toast" id="toast"></div><script>
 const $=s=>document.querySelector(s),fmt=n=>Number(n||0).toLocaleString("hu-HU");async function api(u,o={}){const r=await fetch(u,{...o,headers:{"Content-Type":"application/json"}});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||"Hiba");return d}function toast(x){const t=$("#toast");t.textContent=x;t.style.display="block";setTimeout(()=>t.style.display="none",2500)}
 async function stats(){const d=await api("/api/admin/stats");$("#stats").innerHTML=[["Játékosok",d.users],["Aktív",d.active],["Tiltva",d.banned],["Eljátszott",d.played],["Nyitások",d.opened],["Coin",d.coins],["Nyert Yang",d.yangWon],["Nyert Coin",d.coinWon],["Slot elpörgetett",d.slotSpent],["Slot pörgetések",d.slotSpins],["Slot nyeremény",d.slotWon]].map(x=>`<div class="metric"><small>${x[0]}</small><b>${fmt(x[1])}</b></div>`).join("")}
 async function users(){const d=await api("/api/admin/users?q="+encodeURIComponent($("#search").value));$("#users").innerHTML=d.rows.map(u=>`<div class="list-item"><b>#${u.id} ${u.username}</b> · ${fmt(u.coins)} Coin · ${u.banned?"TILTVA":"AKTÍV"}<br><button class="btn" onclick="pick(${u.id})">Coin</button> <button class="btn" onclick="ban(${u.id},${!u.banned})">${u.banned?"Feloldás":"Tiltás"}</button><button class="btn" data-player-stats="${u.id}">📊 Statisztika</button></div>`).join("")}
@@ -391,7 +422,7 @@ async function bootAdmin(){
     ["Beállítások",settings],
     ["Tranzakciók",tx],
     ["Jackpot lista",jackpots],
-    ["Drop lista",loadDrops],["Kiváltási jutalmak",loadRedemptionConfig],["Kiváltások",loadAdminRedemptions]
+    ["Drop lista",loadDrops],["Kiváltási jutalmak",loadRedemptionConfig],["Kiváltások",loadAdminRedemptions],["Átváltási rendszer",loadExchangeAdmin]
   ];
 
   for(const [name,fn] of loaders){
@@ -404,6 +435,28 @@ async function bootAdmin(){
   }
 }
 bootAdmin();
+
+async function loadExchangeAdmin(){
+ try{
+   const d=await api("/api/admin/exchange-config");
+   $("#admYangSoulCost").value=d.yangToSoul.cost;$("#admYangSoulReward").value=d.yangToSoul.reward;$("#admYangSoulEnabled").checked=d.yangToSoul.enabled;
+   $("#admSoulCoinCost").value=d.soulToCoin.cost;$("#admSoulCoinReward").value=d.soulToCoin.reward;$("#admSoulCoinEnabled").checked=d.soulToCoin.enabled;
+   $("#admCoinSoulCost").value=d.coinToSoul.cost;$("#admCoinSoulReward").value=d.coinToSoul.reward;$("#admCoinSoulEnabled").checked=d.coinToSoul.enabled;
+ }catch(e){$("#exchangeAdminMsg").textContent="❌ "+e.message}
+}
+$("#saveExchangeConfig").onclick=async()=>{
+ try{
+   const payload={
+     yangToSoul:{cost:+$("#admYangSoulCost").value,reward:+$("#admYangSoulReward").value,enabled:$("#admYangSoulEnabled").checked},
+     soulToCoin:{cost:+$("#admSoulCoinCost").value,reward:+$("#admSoulCoinReward").value,enabled:$("#admSoulCoinEnabled").checked},
+     coinToSoul:{cost:+$("#admCoinSoulCost").value,reward:+$("#admCoinSoulReward").value,enabled:$("#admCoinSoulEnabled").checked}
+   };
+   await api("/api/admin/exchange-config",{method:"POST",body:JSON.stringify(payload)});
+   $("#exchangeAdminMsg").textContent="✅ Átváltási beállítások elmentve.";
+   await loadExchangeAdmin();
+ }catch(e){$("#exchangeAdminMsg").textContent="❌ "+e.message}
+};
+
 </script>
 <div id="playerStatsModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.82);align-items:center;justify-content:center;padding:20px">
   <div class="card" style="width:min(1050px,96vw);max-height:90vh;overflow:auto;padding:20px">

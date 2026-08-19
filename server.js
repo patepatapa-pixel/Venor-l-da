@@ -144,12 +144,21 @@ async function init(){
  soul_chest_enabled:"1",
  announcement:"Napi 5 000 Coin + 5 000 Lélek Pont minden játékosnak!",
  maintenance:"0",
- reward_config:"[{\"name\":\"100 Yang\",\"icon\":\"\ud83e\ude99\",\"type\":\"yang\",\"amount\":100,\"active\":true,\"min_qty\":1,\"max_qty\":1,\"chance\":24.9},{\"name\":\"1K Yang\",\"icon\":\"\ud83d\udcb0\",\"type\":\"yang\",\"amount\":1000,\"active\":true,\"min_qty\":1,\"max_qty\":1,\"chance\":20.0},{\"name\":\"10K Yang\",\"icon\":\"\ud83d\udcb5\",\"type\":\"yang\",\"amount\":10000,\"active\":true,\"min_qty\":1,\"max_qty\":1,\"chance\":17.0},{\"name\":\"100M Yang\",\"icon\":\"\ud83d\udc51\",\"type\":\"yang\",\"amount\":100000000,\"active\":true,\"min_qty\":1,\"max_qty\":1,\"chance\":4.0},{\"name\":\"1B Yang\",\"icon\":\"\ud83c\udfe6\",\"type\":\"yang\",\"amount\":1000000000,\"active\":true,\"min_qty\":1,\"max_qty\":1,\"chance\":2.0},{\"name\":\"10B Jackpot\",\"icon\":\"\ud83c\udfc6\",\"type\":\"yang\",\"amount\":10000000000,\"active\":true,\"min_qty\":1,\"max_qty\":1,\"chance\":0.1},{\"name\":\"Ritka PET\",\"icon\":\"\ud83d\udc3e\",\"type\":\"item\",\"amount\":1,\"active\":true,\"min_qty\":1,\"max_qty\":1,\"chance\":2.0},{\"name\":\"Semmi\",\"icon\":\"\u274c\",\"type\":\"nothing\",\"amount\":0,\"chance\":30.0,\"active\":true,\"min_qty\":1,\"max_qty\":1}]",
- reward_schema_version:"v36",
+ reward_config:"[{\"name\":\"100 Yang\",\"icon\":\"\ud83e\ude99\",\"type\":\"yang\",\"amount\":100,\"active\":true,\"min_qty\":1,\"max_qty\":1,\"chance\":16.0},{\"name\":\"1K Yang\",\"icon\":\"\ud83d\udcb0\",\"type\":\"yang\",\"amount\":1000,\"active\":true,\"min_qty\":1,\"max_qty\":1,\"chance\":15.0},{\"name\":\"10K Yang\",\"icon\":\"\ud83d\udcb5\",\"type\":\"yang\",\"amount\":10000,\"active\":true,\"min_qty\":1,\"max_qty\":1,\"chance\":14.0},{\"name\":\"1M Yang\",\"icon\":\"\ud83d\udc8e\",\"type\":\"yang\",\"amount\":1000000,\"chance\":12.0,\"active\":true,\"min_qty\":1,\"max_qty\":1},{\"name\":\"10M Yang\",\"icon\":\"\ud83d\udd37\",\"type\":\"yang\",\"amount\":10000000,\"chance\":10.0,\"active\":true,\"min_qty\":1,\"max_qty\":1},{\"name\":\"100M Yang\",\"icon\":\"\ud83d\udc51\",\"type\":\"yang\",\"amount\":100000000,\"active\":true,\"min_qty\":1,\"max_qty\":1,\"chance\":7.0},{\"name\":\"1B Yang\",\"icon\":\"\ud83c\udfe6\",\"type\":\"yang\",\"amount\":1000000000,\"active\":true,\"min_qty\":1,\"max_qty\":1,\"chance\":3.0},{\"name\":\"10B Jackpot\",\"icon\":\"\ud83c\udfc6\",\"type\":\"yang\",\"amount\":10000000000,\"active\":true,\"min_qty\":1,\"max_qty\":1,\"chance\":0.1},{\"name\":\"Ritka PET\",\"icon\":\"\ud83d\udc3e\",\"type\":\"item\",\"amount\":1,\"active\":true,\"min_qty\":1,\"max_qty\":1,\"chance\":2.0},{\"name\":\"Semmi\",\"icon\":\"\u274c\",\"type\":\"nothing\",\"amount\":0,\"chance\":20.9,\"active\":true,\"min_qty\":1,\"max_qty\":1}]",
+ reward_schema_version:"v39",
  redemption_enabled:"1",
  redemption_config:"[{\"id\":\"pet_rare\",\"name\":\"Ritka PET\",\"type\":\"pet\",\"amount\":1,\"coin_cost\":10000,\"active\":true},{\"id\":\"yang_100m\",\"name\":\"100M Yang\",\"type\":\"yang\",\"amount\":100000000,\"coin_cost\":5000,\"active\":true},{\"id\":\"yang_1b\",\"name\":\"1 Milli\u00e1rd Yang\",\"type\":\"yang\",\"amount\":1000000000,\"coin_cost\":25000,\"active\":true}]",
  slot_win_chance:"60",
- stats_backfill_version:"0"};
+ stats_backfill_version:"0",
+ yang_soul_enabled:"true",
+ yang_soul_yang:"100000000",
+ yang_soul_soul:"1000",
+ soul_coin_enabled:"true",
+ soul_coin_soul:"1000",
+ soul_coin_coin:"500",
+ coin_soul_enabled:"true",
+ coin_soul_coin:"1000",
+ coin_soul_soul:"500"};
  for(const [k,v] of Object.entries(defaults)) await q("INSERT INTO settings(key,value) VALUES($1,$2) ON CONFLICT(key) DO NOTHING",[k,v]);
  if((await setting("stats_backfill_version"))!=="v29"){
   await q(`INSERT INTO user_game_stats(user_id,chest_opens,soul_spent,chest_yang_won,slot_spins,slot_wagered,slot_won,slot_lost)
@@ -158,9 +167,9 @@ async function init(){
   await q("UPDATE settings SET value='v29' WHERE key='stats_backfill_version'");
  }
  const rewardSchema=await setting("reward_schema_version");
- if(rewardSchema!=="v36"){
+ if(rewardSchema!=="v39"){
    await q("UPDATE settings SET value=$1 WHERE key='reward_config'",[JSON.stringify(baseRewards)]);
-   await q("UPDATE settings SET value='v36' WHERE key='reward_schema_version'");
+   await q("UPDATE settings SET value='v39' WHERE key='reward_schema_version'");
  }
 
  const au=(process.env.ADMIN_USERNAME||"VenoriAdmin").trim();
@@ -297,7 +306,7 @@ app.post("/api/daily-soul",auth,async(req,res)=>{
  res.json({user:await userView(req.user.id),bonus});
 });
 
-const baseRewards=[{"name":"100 Yang","icon":"🪙","type":"yang","amount":100,"active":true,"min_qty":1,"max_qty":1,"chance":24.9},{"name":"1K Yang","icon":"💰","type":"yang","amount":1000,"active":true,"min_qty":1,"max_qty":1,"chance":20.0},{"name":"10K Yang","icon":"💵","type":"yang","amount":10000,"active":true,"min_qty":1,"max_qty":1,"chance":17.0},{"name":"100M Yang","icon":"👑","type":"yang","amount":100000000,"active":true,"min_qty":1,"max_qty":1,"chance":4.0},{"name":"1B Yang","icon":"🏦","type":"yang","amount":1000000000,"active":true,"min_qty":1,"max_qty":1,"chance":2.0},{"name":"10B Jackpot","icon":"🏆","type":"yang","amount":10000000000,"active":true,"min_qty":1,"max_qty":1,"chance":0.1},{"name":"Ritka PET","icon":"🐾","type":"item","amount":1,"active":true,"min_qty":1,"max_qty":1,"chance":2.0},{"name":"Semmi","icon":"❌","type":"nothing","amount":0,"chance":30.0,"active":true,"min_qty":1,"max_qty":1}];
+const baseRewards=[{"name":"100 Yang","icon":"🪙","type":"yang","amount":100,"active":true,"min_qty":1,"max_qty":1,"chance":16.0},{"name":"1K Yang","icon":"💰","type":"yang","amount":1000,"active":true,"min_qty":1,"max_qty":1,"chance":15.0},{"name":"10K Yang","icon":"💵","type":"yang","amount":10000,"active":true,"min_qty":1,"max_qty":1,"chance":14.0},{"name":"1M Yang","icon":"💎","type":"yang","amount":1000000,"chance":12.0,"active":true,"min_qty":1,"max_qty":1},{"name":"10M Yang","icon":"🔷","type":"yang","amount":10000000,"chance":10.0,"active":true,"min_qty":1,"max_qty":1},{"name":"100M Yang","icon":"👑","type":"yang","amount":100000000,"active":true,"min_qty":1,"max_qty":1,"chance":7.0},{"name":"1B Yang","icon":"🏦","type":"yang","amount":1000000000,"active":true,"min_qty":1,"max_qty":1,"chance":3.0},{"name":"10B Jackpot","icon":"🏆","type":"yang","amount":10000000000,"active":true,"min_qty":1,"max_qty":1,"chance":0.1},{"name":"Ritka PET","icon":"🐾","type":"item","amount":1,"active":true,"min_qty":1,"max_qty":1,"chance":2.0},{"name":"Semmi","icon":"❌","type":"nothing","amount":0,"chance":20.9,"active":true,"min_qty":1,"max_qty":1}];
 
 async function getRewardConfig(){
  try{
@@ -491,18 +500,159 @@ app.get("/api/my-reward-totals",auth,async(req,res)=>{
  });
 });
 
-app.get("/api/inventory",auth,async(req,res)=>res.json({rows:(await q("SELECT item_name,quantity FROM inventory WHERE user_id=$1 ORDER BY item_name",[req.user.id])).rows}));
-app.get("/api/leaderboard",async(req,res)=>res.json({rows:(await q("SELECT username,total_yang_won,total_coin_won,played_coins,total_opened FROM users WHERE role='user' AND banned=FALSE ORDER BY total_yang_won DESC,total_coin_won DESC LIMIT 20")).rows}));
-app.get("/api/activity",async(req,res)=>res.json({rows:(await q("SELECT u.username,h.quantity,h.reward_text,h.created_at FROM history h JOIN users u ON u.id=h.user_id WHERE u.banned=FALSE ORDER BY h.id DESC LIMIT 8")).rows}));
 
-app.get("/api/drops",async(req,res)=>{
- const drops=await getRewardConfig();
- res.json({drops:drops.filter(r=>r.active!==false)});
+// ===== V40 ÁTVÁLTÁSI RENDSZER =====
+app.get("/api/exchange-config",auth,async(req,res)=>{
+ try{
+   res.json({
+     yangToSoul:{
+       enabled:(await setting("yang_soul_enabled"))==="true",
+       cost:Math.max(1,Number(await setting("yang_soul_yang")||100000000)),
+       reward:Math.max(1,Number(await setting("yang_soul_soul")||1000))
+     },
+     soulToCoin:{
+       enabled:(await setting("soul_coin_enabled"))==="true",
+       cost:Math.max(1,Number(await setting("soul_coin_soul")||1000)),
+       reward:Math.max(1,Number(await setting("soul_coin_coin")||500))
+     },
+     coinToSoul:{
+       enabled:(await setting("coin_soul_enabled"))==="true",
+       cost:Math.max(1,Number(await setting("coin_soul_coin")||1000)),
+       reward:Math.max(1,Number(await setting("coin_soul_soul")||500))
+     }
+   });
+ }catch(e){
+   console.error("EXCHANGE CONFIG ERROR:",e);
+   res.status(500).json({error:"Az átváltási beállítások nem tölthetők be."});
+ }
+});
+
+app.post("/api/exchange/yang-to-soul",auth,async(req,res)=>{
+ const client=await pool.connect();
+ try{
+   await client.query("BEGIN");
+   if((await setting("yang_soul_enabled"))!=="true")throw new Error("A Yang → Lélekpont átváltás ki van kapcsolva.");
+   const cost=Math.max(1,Number(await setting("yang_soul_yang")||100000000));
+   const reward=Math.max(1,Number(await setting("yang_soul_soul")||1000));
+   const u=(await client.query("SELECT total_yang_won,soul_points FROM users WHERE id=$1 FOR UPDATE",[req.user.id])).rows[0];
+   if(Number(u.total_yang_won||0)<cost)throw new Error(`Nincs elég Yangod. Szükséges: ${cost.toLocaleString("hu-HU")} Yang.`);
+   await client.query("UPDATE users SET total_yang_won=total_yang_won-$1,soul_points=soul_points+$2 WHERE id=$3",[cost,reward,req.user.id]);
+   await client.query("COMMIT");
+   res.json({ok:true,user:await userView(req.user.id),message:`${cost.toLocaleString("hu-HU")} Yang → ${reward.toLocaleString("hu-HU")} Lélekpont`});
+ }catch(e){
+   await client.query("ROLLBACK");
+   res.status(400).json({error:e.message});
+ }finally{client.release()}
+});
+
+app.post("/api/exchange/soul-to-coin",auth,async(req,res)=>{
+ const client=await pool.connect();
+ try{
+   await client.query("BEGIN");
+   if((await setting("soul_coin_enabled"))!=="true")throw new Error("A Lélekpont → Coin átváltás ki van kapcsolva.");
+   const cost=Math.max(1,Number(await setting("soul_coin_soul")||1000));
+   const reward=Math.max(1,Number(await setting("soul_coin_coin")||500));
+   const u=(await client.query("SELECT soul_points,coins FROM users WHERE id=$1 FOR UPDATE",[req.user.id])).rows[0];
+   if(Number(u.soul_points||0)<cost)throw new Error(`Nincs elég Lélekpontod. Szükséges: ${cost.toLocaleString("hu-HU")}.`);
+   await client.query("UPDATE users SET soul_points=soul_points-$1,coins=coins+$2 WHERE id=$3",[cost,reward,req.user.id]);
+   await client.query("COMMIT");
+   res.json({ok:true,user:await userView(req.user.id),message:`${cost.toLocaleString("hu-HU")} Lélekpont → ${reward.toLocaleString("hu-HU")} Coin`});
+ }catch(e){
+   await client.query("ROLLBACK");
+   res.status(400).json({error:e.message});
+ }finally{client.release()}
+});
+
+app.post("/api/exchange/coin-to-soul",auth,async(req,res)=>{
+ const client=await pool.connect();
+ try{
+   await client.query("BEGIN");
+   if((await setting("coin_soul_enabled"))!=="true")throw new Error("A Coin → Lélekpont átváltás ki van kapcsolva.");
+   const cost=Math.max(1,Number(await setting("coin_soul_coin")||1000));
+   const reward=Math.max(1,Number(await setting("coin_soul_soul")||500));
+   const u=(await client.query("SELECT soul_points,coins FROM users WHERE id=$1 FOR UPDATE",[req.user.id])).rows[0];
+   if(Number(u.coins||0)<cost)throw new Error(`Nincs elég Coinod. Szükséges: ${cost.toLocaleString("hu-HU")}.`);
+   await client.query("UPDATE users SET coins=coins-$1,soul_points=soul_points+$2 WHERE id=$3",[cost,reward,req.user.id]);
+   await client.query("COMMIT");
+   res.json({ok:true,user:await userView(req.user.id),message:`${cost.toLocaleString("hu-HU")} Coin → ${reward.toLocaleString("hu-HU")} Lélekpont`});
+ }catch(e){
+   await client.query("ROLLBACK");
+   res.status(400).json({error:e.message});
+ }finally{client.release()}
+});
+
+app.get("/api/inventory",auth,async(req,res)=>res.json({rows:(await q("SELECT item_name,quantity FROM inventory WHERE user_id=$1 ORDER BY item_name",[req.user.id])).rows}));
+app.get("/api/leaderboard",async(req,res)=>{
+ try{
+   const rows=(await q(`
+     SELECT
+       id,
+       username,
+       COALESCE(coins,0)::BIGINT AS coins,
+       COALESCE(soul_points,0)::BIGINT AS soul_points,
+       (COALESCE(coins,0) + COALESCE(soul_points,0))::BIGINT AS combined_score
+     FROM users
+     WHERE role<>'admin' AND COALESCE(banned,false)=false
+     ORDER BY combined_score DESC, coins DESC, soul_points DESC, username ASC
+     LIMIT 100
+   `)).rows;
+
+   res.json({
+     rows:rows.map((r,i)=>({
+       rank:i+1,
+       id:r.id,
+       username:r.username,
+       coins:Number(r.coins||0),
+       soulPoints:Number(r.soul_points||0),
+       combinedScore:Number(r.combined_score||0)
+     }))
+   });
+ }catch(e){
+   console.error("LEADERBOARD ERROR:",e);
+   res.status(500).json({error:"A ranglista nem tölthető be."});
+ }
 });
 
 app.get("/api/admin/drops",auth,admin,async(req,res)=>{
  const drops=await getRewardConfig();
  res.json({drops});
+});
+
+
+app.get("/api/admin/exchange-config",auth,admin,async(req,res)=>{
+ try{
+   res.json({
+     yangToSoul:{enabled:(await setting("yang_soul_enabled"))==="true",cost:Number(await setting("yang_soul_yang")||100000000),reward:Number(await setting("yang_soul_soul")||1000)},
+     soulToCoin:{enabled:(await setting("soul_coin_enabled"))==="true",cost:Number(await setting("soul_coin_soul")||1000),reward:Number(await setting("soul_coin_coin")||500)},
+     coinToSoul:{enabled:(await setting("coin_soul_enabled"))==="true",cost:Number(await setting("coin_soul_coin")||1000),reward:Number(await setting("coin_soul_soul")||500)}
+   });
+ }catch(e){res.status(500).json({error:"Az átváltási beállítások nem tölthetők be."})}
+});
+
+app.post("/api/admin/exchange-config",auth,admin,async(req,res)=>{
+ try{
+   const configs=[
+     ["yang_soul",req.body.yangToSoul],
+     ["soul_coin",req.body.soulToCoin],
+     ["coin_soul",req.body.coinToSoul]
+   ];
+   for(const [prefix,cfg] of configs){
+     if(!cfg)continue;
+     const cost=Math.floor(Number(cfg.cost)),reward=Math.floor(Number(cfg.reward));
+     if(!Number.isFinite(cost)||cost<1||!Number.isFinite(reward)||reward<1){
+       return res.status(400).json({error:"Minden átváltási érték pozitív egész szám legyen."});
+     }
+     await q("UPDATE settings SET value=$1 WHERE key=$2",[String(cfg.enabled!==false),`${prefix}_enabled`]);
+     const costKey=prefix==="yang_soul"?"yang_soul_yang":prefix==="soul_coin"?"soul_coin_soul":"coin_soul_coin";
+     const rewardKey=prefix==="yang_soul"?"yang_soul_soul":prefix==="soul_coin"?"soul_coin_coin":"coin_soul_soul";
+     await q("UPDATE settings SET value=$1 WHERE key=$2",[String(cost),costKey]);
+     await q("UPDATE settings SET value=$1 WHERE key=$2",[String(reward),rewardKey]);
+   }
+   res.json({ok:true});
+ }catch(e){
+   console.error("ADMIN EXCHANGE SAVE ERROR:",e);
+   res.status(500).json({error:"Az átváltási beállítások mentése nem sikerült."});
+ }
 });
 
 app.post("/api/admin/drops",auth,admin,async(req,res)=>{
