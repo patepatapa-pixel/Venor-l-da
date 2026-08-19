@@ -30,6 +30,11 @@ Az átvételhez írj a <b style="color:#fff">Hox</b> nevű játékosnak.
 <b>🎮 Főnyeremény átvétele</b><br>
 A 10 milliárd Yang főnyereményt nem automatikusan írjuk jóvá. Ha megnyerted, keress meg játékban és írj a <b>Hox</b> nevű játékosnak, aki átadja neked a nyereményt.
 </div><h3 style="margin:18px 0 8px">⚡ Legutóbbi nyerések</h3><div class="list" id="activity"></div><button class="btn primary" id="daily" style="width:100%;margin-top:14px">🎁 Napi <span id="dailyAmount">5 000</span> Coin · csak 1×/nap</button></aside></section>
+<section class="card section" id="teljesDropLista">
+<h3>🎁 A láda teljes tartalma</h3>
+<p class="small">Az admin által jelenleg engedélyezett nyeremények. A lista automatikusan frissül.</p>
+<div id="allDrops" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px"></div>
+</section>
 <section class="card section" id="profil"><h3>👤 Saját profil és nyeremények</h3><div class="profile"><div class="metric"><small>Felhasználó</small><b id="name">Vendég</b></div><div class="metric"><small>Coin egyenleg</small><b id="coins2">—</b></div><div class="metric"><small>Eljátszott Coin</small><b id="played">—</b></div><div class="metric"><small>Összes nyitás</small><b id="opened">—</b></div><div class="metric"><small>Összes nyert Yang</small><b id="yangWon">—</b></div><div class="metric"><small>Összes nyert Coin</small><b id="coinWon">—</b></div></div></section>
 <section class="columns"><div class="card section"><h3>🏅 Ranglista</h3><div class="list" id="leader"></div></div><div class="card section"><h3>🎒 Inventory</h3><div class="list" id="inventory"><div class="small">Jelentkezz be.</div></div></div></section><section class="card section"><h3>🕘 Saját játéktörténet</h3><div class="list" id="history"><div class="small">Jelentkezz be.</div></div></section></main>
 <footer>VENORI © 2026 · Multiplayer Chest System</footer><div class="toast" id="toast"></div>
@@ -65,6 +70,16 @@ async function loadPublic(){cfg=await api("/api/public");$("#announcement").text
 async function loadMe(){try{user=(await api("/api/me")).user;render();await Promise.all([hist(),inv()])}catch{user=null;render()}}
 async function hist(){if(!user)return;const d=await api("/api/history");$("#history").innerHTML=d.rows.length?d.rows.map(x=>`<div class="list-item"><b>${x.quantity}× nyitás</b> · ${fmt(x.cost)} Coin<br><span class="small">${x.reward_text}</span></div>`).join(""):"<div class='small'>Még nincs játék.</div>"}
 async function inv(){if(!user)return;const d=await api("/api/inventory");$("#inventory").innerHTML=d.rows.length?d.rows.map(x=>`<div class="list-item"><b>${x.item_name}</b> × ${x.quantity}</div>`).join(""):"<div class='small'>Az inventory üres.</div>"}
+async function loadDropsPublic(){
+ try{
+   const d=await api("/api/drops");
+   $("#allDrops").innerHTML=(d.drops||[]).map(r=>`
+     <div class="list-item" style="display:flex;gap:9px;align-items:center">
+       <span style="font-size:22px">${r.icon||"🎁"}</span>
+       <div><b>${r.name}</b><div class="small">${r.type==="item"?`${r.min_qty||1}-${r.max_qty||1} db`:r.type==="yang"?`${fmt(r.amount)} Yang`:`${fmt(r.amount)} Coin`}</div></div>
+     </div>`).join("");
+ }catch{}
+}
 async function lists(){const [l,a]=await Promise.all([api("/api/leaderboard"),api("/api/activity")]);$("#leader").innerHTML=l.rows.map((x,i)=>`<div class="list-item leader"><span class="rank">#${i+1}</span><b>${x.username}</b><span>💰 ${fmt(x.total_yang_won)} Yang · 🪙 ${fmt(x.total_coin_won)} Coin</span></div>`).join("")||"<div class='small'>Nincs ranglista.</div>";$("#activity").innerHTML=a.rows.map(x=>`<div class="stat"><span>${x.username}</span><strong class="green">${x.reward_text.split(",")[0]}</strong></div>`).join("")||"<div class='small'>Még nincs nyerés.</div>"}
 function loadRememberedLogin(){
  const remembered=localStorage.getItem("venori_remembered_username")||"";
@@ -136,7 +151,7 @@ document.addEventListener("click", async (e)=>{
   if(el.id==="registerBtn") openModal("register");
 });
 
-(async()=>{await loadPublic();await loadMe();await lists();setInterval(lists,15000)})();
+(async()=>{await loadPublic();await loadMe();await Promise.all([lists(),loadDropsPublic()]);setInterval(lists,15000)})();
 </script>
 <div id="jackpotOverlay" style="display:none;pointer-events:none;position:fixed;inset:0;z-index:9999;background:radial-gradient(circle at center,rgba(119,55,210,.45),rgba(0,0,0,.92));align-items:center;justify-content:center;padding:20px">
   <div style="width:min(680px,100%);text-align:center;padding:40px 28px;border-radius:24px;border:2px solid #ffcf62;background:linear-gradient(180deg,#211530,#0d0912);box-shadow:0 0 80px rgba(255,207,98,.28),0 30px 100px #000">

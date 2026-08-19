@@ -71,3 +71,13 @@ V11 TOVÁBBI ITEMEK:
 - A V10-ben lévő 88 item és minden korábbi nyeremény megmaradt.
 - Ezekből is 1, 2 vagy maximum 3 db nyitható egy item-drop alkalmával.
 - Kategóriák: kulcsok/belépők, Aura, növények, anyagok, eventes tárgyak.
+
+V12 DROP ADMIN:
+- Adminpanelen külön "Láda tartalma / Drop esélyek" rész.
+- Keresés és típus szerinti szűrés.
+- Minden nyereménynél állítható a súly/esély.
+- Yang/Coin érték adminból állítható.
+- Itemek minimum és maximum darabszáma adminból állítható.
+- Egyes dropok ki/be kapcsolhatók.
+- Drop lista egy gombbal alapértékre visszaállítható.
+- A játékos oldalon megjelenik az aktuálisan aktív teljes ládatartalom.

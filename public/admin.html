@@ -1,4 +1,25 @@
-<!doctype html><html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>VENORI Admin</title><link rel="stylesheet" href="/style.css"></head><body><header class="topbar"><a class="logo" href="/">VEN<span>ORI</span></a><nav class="nav"><a href="/">Játékos oldal</a></nav><div class="wallet">🛡️ ADMIN</div></header><main class="wrap"><section class="card section"><h2>VENORI Admin Panel</h2><div class="profile" id="stats"></div></section><section class="columns"><div class="card section"><h3>👥 Játékosok</h3><input class="input" id="search" placeholder="Keresés"><div id="users"></div></div><div class="card section"><h3>🪙 Coin kezelés</h3><input class="input" id="uid" type="number" placeholder="Játékos ID"><input class="input" id="amount" type="number" placeholder="+5000 vagy -5000"><input class="input" id="reason" placeholder="Indok"><button class="btn primary" id="coinBtn">Mentés</button><h3 style="margin-top:24px">⚙️ Beállítások</h3><input class="input" id="daily" type="number"><input class="input" id="price" type="number"><input class="input" id="announcement"><label><input id="maintenance" type="checkbox"> Karbantartási mód</label><br><button class="btn primary" id="save" style="margin-top:12px">Mentés</button></div></section><section class="card section">
+<!doctype html><html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>VENORI Admin</title><link rel="stylesheet" href="/style.css"></head><body><header class="topbar"><a class="logo" href="/">VEN<span>ORI</span></a><nav class="nav"><a href="/">Játékos oldal</a></nav><div class="wallet">🛡️ ADMIN</div></header><main class="wrap"><section class="card section"><h2>VENORI Admin Panel</h2><div class="profile" id="stats"></div></section><section class="columns"><div class="card section"><h3>👥 Játékosok</h3><input class="input" id="search" placeholder="Keresés"><div id="users"></div></div><div class="card section"><h3>🪙 Coin kezelés</h3><input class="input" id="uid" type="number" placeholder="Játékos ID"><input class="input" id="amount" type="number" placeholder="+5000 vagy -5000"><input class="input" id="reason" placeholder="Indok"><button class="btn primary" id="coinBtn">Mentés</button><h3 style="margin-top:24px">⚙️ Beállítások</h3><input class="input" id="daily" type="number"><input class="input" id="price" type="number"><input class="input" id="announcement"><label><input id="maintenance" type="checkbox"> Karbantartási mód</label><br><button class="btn primary" id="save" style="margin-top:12px">Mentés</button></div></section><section class="card section" id="dropAdmin">
+<h3>🎁 Láda tartalma / Drop esélyek</h3>
+<p class="small">
+Itt állíthatod, melyik nyeremény aktív, milyen súllyal essen, és itemeknél minimum/maximum hány darab nyitható.
+A <b>Súly</b> relatív esély: minél nagyobb, annál gyakrabban esik.
+</p>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+  <input class="input" id="dropSearch" placeholder="Keresés item név alapján..." style="max-width:360px;margin:0">
+  <select class="input" id="dropFilter" style="max-width:180px;margin:0">
+    <option value="all">Minden típus</option>
+    <option value="item">Item</option>
+    <option value="yang">Yang</option>
+    <option value="coin">Coin</option>
+  </select>
+  <button class="btn primary" id="saveDrops">💾 Dropok mentése</button>
+  <button class="btn" id="resetDrops" style="border-color:#8c3c50;color:#ff8da3">↩ Alap dropok visszaállítása</button>
+</div>
+<div class="small" id="dropSummary" style="margin-bottom:10px"></div>
+<div id="dropEditor" style="display:grid;gap:8px;max-height:680px;overflow:auto;padding-right:4px"></div>
+</section>
+
+<section class="card section">
 <h3>🏆 10 MILLIÁRD YANG JACKPOT ELLENŐRZÉS</h3>
 <p class="small">Itt minden valódi 10 milliárd Yang nyerés szerveroldalon rögzítve jelenik meg. Átadás után jelöld átadottnak. A bejegyzéseket külön is törölheted, vagy az egész listát kiürítheted. Ez NEM törli a játékos fiókját, Coinját, ranglistáját vagy inventoryját.</p>
 <div style="margin-bottom:12px">
@@ -30,6 +51,85 @@ async function stats(){const d=await api("/api/admin/stats");$("#stats").innerHT
 async function users(){const d=await api("/api/admin/users?q="+encodeURIComponent($("#search").value));$("#users").innerHTML=d.rows.map(u=>`<div class="list-item"><b>#${u.id} ${u.username}</b> · ${fmt(u.coins)} Coin · ${u.banned?"TILTVA":"AKTÍV"}<br><button class="btn" onclick="pick(${u.id})">Coin</button> <button class="btn" onclick="ban(${u.id},${!u.banned})">${u.banned?"Feloldás":"Tiltás"}</button></div>`).join("")}
 async function settings(){const d=await api("/api/admin/settings");$("#daily").value=d.daily_bonus;$("#price").value=d.chest_price;$("#announcement").value=d.announcement;$("#maintenance").checked=d.maintenance}
 async function tx(){const d=await api("/api/admin/transactions");$("#tx").innerHTML=d.rows.map(x=>`<div class="stat"><span>${x.username} · ${x.reason}</span><b>${x.amount>0?"+":""}${fmt(x.amount)}</b></div>`).join("")}
+let dropCache=[];
+
+function dropChanceSummary(){
+ const active=dropCache.filter(r=>r.active!==false && Number(r.weight)>0);
+ const total=active.reduce((s,r)=>s+Number(r.weight||0),0);
+ $("#dropSummary").textContent=`${dropCache.length} nyeremény · ${active.length} aktív · összes súly: ${fmt(total)}`;
+}
+
+function renderDropEditor(){
+ const search=($("#dropSearch").value||"").toLowerCase().trim();
+ const filter=$("#dropFilter").value||"all";
+ const rows=dropCache
+   .map((r,i)=>({...r,_i:i}))
+   .filter(r=>(!search || r.name.toLowerCase().includes(search)) && (filter==="all" || r.type===filter));
+
+ $("#dropEditor").innerHTML=rows.map(r=>`
+ <div style="display:grid;grid-template-columns:38px minmax(180px,1.6fr) 90px 90px 85px 85px 72px;gap:8px;align-items:center;padding:10px;border:1px solid #2f263c;border-radius:11px;background:#0b0911">
+   <div style="font-size:22px;text-align:center">${r.icon||"🎁"}</div>
+   <div>
+     <b>${r.name}</b>
+     <div class="small">${r.type==="item"?"ITEM":r.type==="yang"?"YANG":"COIN"}</div>
+   </div>
+   <label class="small">Súly
+     <input class="input" style="margin:4px 0 0;padding:8px" type="number" min="0" data-drop="${r._i}" data-field="weight" value="${Number(r.weight||0)}">
+   </label>
+   <label class="small">Érték
+     <input class="input" style="margin:4px 0 0;padding:8px" type="number" min="1" data-drop="${r._i}" data-field="amount" value="${Number(r.amount||1)}" ${r.type==="item"?"disabled":""}>
+   </label>
+   <label class="small">Min db
+     <input class="input" style="margin:4px 0 0;padding:8px" type="number" min="1" max="999" data-drop="${r._i}" data-field="min_qty" value="${Number(r.min_qty||1)}" ${r.type!=="item"?"disabled":""}>
+   </label>
+   <label class="small">Max db
+     <input class="input" style="margin:4px 0 0;padding:8px" type="number" min="1" max="999" data-drop="${r._i}" data-field="max_qty" value="${Number(r.max_qty||1)}" ${r.type!=="item"?"disabled":""}>
+   </label>
+   <label class="small" style="text-align:center">Aktív<br>
+     <input type="checkbox" data-drop="${r._i}" data-field="active" ${r.active!==false?"checked":""}>
+   </label>
+ </div>`).join("") || "<div class='small'>Nincs találat.</div>";
+
+ document.querySelectorAll("[data-drop]").forEach(el=>{
+   el.onchange=()=>{
+     const i=Number(el.dataset.drop),field=el.dataset.field;
+     if(field==="active") dropCache[i][field]=el.checked;
+     else dropCache[i][field]=Number(el.value);
+     dropChanceSummary();
+   };
+ });
+ dropChanceSummary();
+}
+
+async function loadDrops(){
+ const d=await api("/api/admin/drops");
+ dropCache=d.drops||[];
+ renderDropEditor();
+}
+
+$("#dropSearch").oninput=renderDropEditor;
+$("#dropFilter").onchange=renderDropEditor;
+
+$("#saveDrops").onclick=async()=>{
+ try{
+   const d=await api("/api/admin/drops",{method:"POST",body:JSON.stringify({drops:dropCache})});
+   toast(d.message||"Dropok mentve.");
+   await loadDrops();
+ }catch(e){toast(e.message)}
+};
+
+$("#resetDrops").onclick=async()=>{
+ const first=confirm("Biztosan visszaállítod az összes drop esélyét és mennyiségét az alapértékekre?");
+ if(!first)return;
+ const typed=prompt('Írd be pontosan: DROP RESET');
+ if(typed!=="DROP RESET"){toast("Drop reset megszakítva.");return}
+ try{
+   const d=await api("/api/admin/drops-reset",{method:"POST",body:JSON.stringify({confirmation:"DROP RESET"})});
+   toast(d.message||"Dropok visszaállítva.");
+   await loadDrops();
+ }catch(e){toast(e.message)}
+}
+
 async function jackpots(){
  const d=await api("/api/admin/jackpots");
  $("#jackpots").innerHTML=d.rows.length?d.rows.map(x=>`
@@ -105,7 +205,7 @@ $("#fullReset").onclick=async()=>{
      body:JSON.stringify({confirmation:"TELJES RESET"})
    });
    toast(d.message||"Teljes reset kész.");
-   await Promise.all([stats(),users(),settings(),tx(),jackpots()]);
+   await Promise.all([stats(),users(),settings(),tx(),jackpots(),loadDrops()]);
  }catch(e){
    toast(e.message);
  }
@@ -127,5 +227,5 @@ $("#resetLeaderboard").onclick=async()=>{
    await Promise.all([stats(),users()]);
  }catch(e){toast(e.message)}
 };
-(async()=>{try{const me=await api("/api/me");if(me.user.role!=="admin")throw Error();await Promise.all([stats(),users(),settings(),tx(),jackpots()])}catch{location.href="/"}})();
+(async()=>{try{const me=await api("/api/me");if(me.user.role!=="admin")throw Error();await Promise.all([stats(),users(),settings(),tx(),jackpots(),loadDrops()])}catch{location.href="/"}})();
 </script></body></html>
