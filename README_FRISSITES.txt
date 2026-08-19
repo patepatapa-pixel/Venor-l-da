@@ -81,3 +81,9 @@ V12 DROP ADMIN:
 - Egyes dropok ki/be kapcsolhatók.
 - Drop lista egy gombbal alapértékre visszaállítható.
 - A játékos oldalon megjelenik az aktuálisan aktív teljes ládatartalom.
+
+V13:
+- 500K Yang teljesen kikerült a ládából.
+- 1M Yang teljesen kikerült a ládából.
+- A régi adatbázisban esetleg elmentett drop configból is automatikusan kiszűri ezt a két nyereményt.
+- Az admin drop-listában sem jelennek meg többé.
