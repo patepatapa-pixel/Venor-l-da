@@ -163,7 +163,7 @@ A 10 milliárd Yang főnyereményt nem automatikusan írjuk jóvá. Ha megnyerte
       <div class="yang-shop-wallet">💰 <b id="shopYangBalance">0</b> Yang</div>
     </div>
 
-    <div class="shop-grid" id="shopItems"></div>
+    <div class="shop-grid" id="shopItems"></div><h3 style="margin-top:22px">🎒 Saját inventory</h3><div class="inventory-grid" id="ownedInventory"></div>
     <div class="small" id="shopMsg" style="margin-top:10px"></div>
   </div>
 </section>
@@ -672,16 +672,16 @@ async function loadShop(){
    $("#shopItems").innerHTML=(d.items||[]).map(x=>{
      const cosmetic=["chime","background","cursor"].includes(x.type);
      const has=owned.has(x.id)||Number(x.price||0)===0;
-     const icon=x.type==="chime"?"🔔":x.type==="background"?"🎨":x.type==="cursor"?"🖱️":x.type==="coin"?"🪙":"👻";
+     const icon=x.type==="chime"?"🔔":x.type==="background"?"🎨":x.type==="cursor"?"🖱️":x.type==="inventory"?"⚔️":x.type==="coin"?"🪙":"👻";
      const desc=x.type==="soul"?fmt(x.value)+" Lélek Pont":
                 x.type==="coin"?fmt(x.value)+" Coin":
                 x.type==="chime"?"Nyereményhang":
-                x.type==="background"?"Háttér téma":"Kurzor / egéreffekt";
+                x.type==="background"?"Háttér téma":x.type==="inventory"?"Gyűjthető inventory tárgy":"Kurzor / egéreffekt";
      const preview=x.type==="chime"?`<button class="btn" data-preview-chime="${x.value}">▶ Meghallgatás</button>`:
                    x.type==="background"?`<button class="btn" data-preview-bg="${x.value}">👁 Előnézet</button>`:
                    x.type==="cursor"?`<button class="btn" data-preview-cursor="${x.value}">👁 Kipróbálás</button>`:"";
-     const action=cosmetic&&has
-       ? `<button class="btn primary" data-shop-select="${x.id}">✓ Kiválasztás</button>`
+     const action=(cosmetic||x.type==="inventory")&&has
+       ? (x.type==="inventory"?`<button class="btn" disabled>✓ Inventoryban</button>`:`<button class="btn primary" data-shop-select="${x.id}">✓ Kiválasztás</button>`)
        : `<button class="btn primary" data-shop-buy="${x.id}">${x.price==0?"Feloldás":"Vásárlás"}</button>`;
      return `<div class="shop-card">
        <div class="shop-icon">${icon}</div>
@@ -691,6 +691,7 @@ async function loadShop(){
        <div class="shop-actions">${preview}${action}</div>
      </div>`;
    }).join("")||"<div class='small'>Nincs aktív shop tétel.</div>";
+   if($("#ownedInventory"))$("#ownedInventory").innerHTML=(d.inventory||[]).length?(d.inventory||[]).map(x=>`<div class="inventory-item"><div class="inventory-icon">⚔️</div><b>${x.name}</b><span>Megvásárolva</span></div>`).join(""):"<div class='small'>Még nincs megvásárolt gyűjthető tárgyad.</div>";
    applyPurchasedBackground(user.selected_background);
    applyPurchasedCursor(user.selected_cursor);
  }catch(e){$("#shopMsg").textContent="❌ "+e.message}

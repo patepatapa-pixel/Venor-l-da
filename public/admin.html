@@ -3,7 +3,7 @@
   <button class="admin-tab" id="adminTabTransactions" type="button">📜 Coin tranzakciók</button>
 </div>
 
-<div class="omi-disclaimer">⚠️ GAMB csak saját felelősségre</div><header class="topbar"><a class="logo" href="/">VEN<span>ORI</span></a><nav class="nav"><a href="/">Játékos oldal</a></nav><div class="wallet">🛡️ ADMIN</div></header><main class="wrap"><section class="card section"><h2>OMI Gamba Admin Panel</h2>
+<div class="omi-disclaimer">⚠️ GAMB csak saját felelősségre</div><header class="topbar"><a class="logo" href="/">VEN<span>ORI</span></a><nav class="nav"><a href="/">Játékos oldal</a></nav><div class="wallet">🛡️ ADMIN</div></header><main class="wrap" id="adminMainView"><section class="card section"><h2>OMI Gamba Admin Panel</h2>
 <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0 12px">
   <span class="small">🛡️ Admin munkamenet aktív</span>
   <button class="btn" id="reloadAdmin" type="button">↻ Admin adatok újratöltése</button>
@@ -120,7 +120,18 @@ A játékosfiókok, jelenlegi Coin egyenlegek, inventoryk, játéktörténet és
   </div>
   <div class="small" id="shopAdminMsg" style="margin-top:8px"></div>
 </section>
-</main><div class="toast" id="toast"></div><script>
+</main><div class="toast" id="toast"></div>
+<section class="card section admin-transactions-view" id="adminTransactionsView" style="display:none">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+    <div>
+      <h2 style="margin:0">📜 Coin tranzakciók</h2>
+      <div class="small">Ez a fül kizárólag az admin Coin tranzakciós naplója.</div>
+    </div>
+    <button class="btn" id="refreshTransactions" type="button">↻ Frissítés</button>
+  </div>
+  <div id="tx" style="margin-top:14px"></div>
+</section>
+<script>
 const $=s=>document.querySelector(s),fmt=n=>Number(n||0).toLocaleString("hu-HU");async function api(u,o={}){const r=await fetch(u,{...o,headers:{"Content-Type":"application/json"}});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||"Hiba");return d}function toast(x){const t=$("#toast");t.textContent=x;t.style.display="block";setTimeout(()=>t.style.display="none",2500)}
 async function stats(){const d=await api("/api/admin/stats");$("#stats").innerHTML=[["Játékosok",d.users],["Aktív",d.active],["Tiltva",d.banned],["Eljátszott",d.played],["Nyitások",d.opened],["Coin",d.coins],["Nyert Yang",d.yangWon],["Nyert Coin",d.coinWon],["Slot elpörgetett",d.slotSpent],["Slot pörgetések",d.slotSpins],["Slot nyeremény",d.slotWon]].map(x=>`<div class="metric"><small>${x[0]}</small><b>${fmt(x[1])}</b></div>`).join("")}
 async function users(){const d=await api("/api/admin/users?q="+encodeURIComponent($("#search").value));$("#users").innerHTML=d.rows.map(u=>`<div class="list-item"><b>#${u.id} ${u.username}</b> · ${fmt(u.coins)} Coin · ${u.banned?"TILTVA":"AKTÍV"}<br><button class="btn" onclick="pick(${u.id})">Coin</button> <button class="btn" onclick="ban(${u.id},${!u.banned})">${u.banned?"Feloldás":"Tiltás"}</button><button class="btn" data-player-stats="${u.id}">📊 Statisztika</button></div>`).join("")}
@@ -417,23 +428,9 @@ document.addEventListener("click",(e)=>{
 });
 
 function setAdminTab(tab){
- const txView=$("#adminTransactionsView");
- document.querySelectorAll("body > .card, body > section.card, main, .wrap").forEach(el=>{
-   if(el.id==="adminTransactionsView" || el.closest?.("#playerStatsModal"))return;
- });
- const allSections=[...document.querySelectorAll("body > section.card, body > .card.section")];
- if(tab==="transactions"){
-   allSections.forEach(el=>{if(el.id!=="adminTransactionsView")el.style.display="none"});
-   txView.style.display="block";
-   $("#adminTabMain").classList.remove("active");
-   $("#adminTabTransactions").classList.add("active");
-   tx();
- }else{
-   allSections.forEach(el=>{if(el.id!=="adminTransactionsView")el.style.display=""});
-   txView.style.display="none";
-   $("#adminTabTransactions").classList.remove("active");
-   $("#adminTabMain").classList.add("active");
- }
+ const main=$("#adminMainView"), txView=$("#adminTransactionsView");
+ if(tab==="transactions"){main.style.display="none";txView.style.display="block";$("#adminTabMain").classList.remove("active");$("#adminTabTransactions").classList.add("active");tx().catch(e=>toast(e.message));}
+ else{txView.style.display="none";main.style.display="";$("#adminTabTransactions").classList.remove("active");$("#adminTabMain").classList.add("active");}
 }
 $("#adminTabMain").onclick=()=>setAdminTab("main");
 $("#adminTabTransactions").onclick=()=>setAdminTab("transactions");
@@ -473,7 +470,7 @@ async function bootAdmin(){
     }
   }
 }
-bootAdmin();
+bootAdmin().then(()=>setAdminTab("main"));
 
 async function loadExchangeAdmin(){
  try{
@@ -514,7 +511,7 @@ function renderShopAdmin(){
        <option value="chime" ${x.type==="chime"?"selected":""}>Csengőhang</option>
        <option value="soul" ${x.type==="soul"?"selected":""}>Lélek Pont</option>
        <option value="coin" ${x.type==="coin"?"selected":""}>Coin</option>
-       <option value="background" ${x.type==="background"?"selected":""}>Háttér</option><option value="cursor" ${x.type==="cursor"?"selected":""}>Kurzor</option>
+       <option value="background" ${x.type==="background"?"selected":""}>Háttér</option><option value="cursor" ${x.type==="cursor"?"selected":""}>Kurzor</option><option value="inventory" ${x.type==="inventory"?"selected":""}>Inventory tárgy</option>
      </select>
      <input class="input" data-shop-i="${i}" data-shop-f="value" value="${x.value}" placeholder="Érték / azonosító">
      <input class="input" type="number" min="0" data-shop-i="${i}" data-shop-f="price" value="${x.price}" placeholder="Yang ár">
@@ -534,16 +531,6 @@ $("#saveShopConfig").onclick=async()=>{try{
 }catch(e){$("#shopAdminMsg").textContent="❌ "+e.message}};
 
 </script>
-<section class="card section admin-transactions-view" id="adminTransactionsView" style="display:none">
-  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
-    <div>
-      <h2 style="margin:0">📜 Coin tranzakciók</h2>
-      <div class="small">Ez a fül kizárólag az admin Coin tranzakciós naplója.</div>
-    </div>
-    <button class="btn" id="refreshTransactions" type="button">↻ Frissítés</button>
-  </div>
-  <div id="tx" style="margin-top:14px"></div>
-</section>
 <div id="playerStatsModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.82);align-items:center;justify-content:center;padding:20px">
   <div class="card" style="width:min(1050px,96vw);max-height:90vh;overflow:auto;padding:20px">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">

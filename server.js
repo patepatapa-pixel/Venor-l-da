@@ -177,6 +177,15 @@ async function init(){
  yang_balance_backfill_version:"0",
  shop_schema_version:"v43"};
  for(const [k,v] of Object.entries(defaults)) await q("INSERT INTO settings(key,value) VALUES($1,$2) ON CONFLICT(key) DO NOTHING",[k,v]);
+ if((await setting("v44_catalog_done"))!=="1"){
+   let arr=[];try{arr=JSON.parse(await setting("shop_config")||"[]")}catch{}
+   const extras=[{"id":"cursor_karambit_gold","name":"Karambit stílusú arany késkurzor","type":"cursor","value":"karambit_gold","price":35000000,"active":true},{"id":"cursor_karambit_neon","name":"Karambit stílusú neon késkurzor","type":"cursor","value":"karambit_neon","price":45000000,"active":true},{"id":"inv_dragon_sword","name":"Sárkányél fantasy kard","type":"inventory","value":"dragon_sword","price":25000000,"active":true},{"id":"inv_moon_blade","name":"Holdpenge fantasy fegyver","type":"inventory","value":"moon_blade","price":30000000,"active":true},{"id":"inv_demon_spear","name":"Démoni lándzsa","type":"inventory","value":"demon_spear","price":40000000,"active":true},{"id":"inv_arcane_bow","name":"Misztikus íj","type":"inventory","value":"arcane_bow","price":28000000,"active":true},{"id":"inv_royal_fan","name":"Királyi legyező","type":"inventory","value":"royal_fan","price":22000000,"active":true},{"id":"inv_shadow_dagger","name":"Árnyéktőr","type":"inventory","value":"shadow_dagger","price":32000000,"active":true}];
+   const ids=new Set(arr.map(x=>String(x.id)));
+   for(const x of extras)if(!ids.has(String(x.id)))arr.push(x);
+   await q("INSERT INTO settings(key,value) VALUES('v44_catalog_done','1') ON CONFLICT(key) DO UPDATE SET value='1'");
+   await q("UPDATE settings SET value=$1 WHERE key='shop_config'",[JSON.stringify(arr)]);
+ }
+
  if((await setting("shop_schema_version"))!=="v43"){
    await q("UPDATE settings SET value=$1 WHERE key='shop_config'",[defaults.shop_config]);
    await q("UPDATE settings SET value='v43' WHERE key='shop_schema_version'");
@@ -542,6 +551,7 @@ app.get("/api/shop",auth,async(req,res)=>{
    enabled:(await setting("shop_enabled"))==="true",
    items,
    owned,
+   inventory:items.filter(x=>x.type==="inventory" && owned.includes(String(x.id))),
    user:await userView(req.user.id)
  });
 });
@@ -561,7 +571,7 @@ app.post("/api/shop/buy",auth,async(req,res)=>{
    if(Number(u.yang_balance||0)<price)throw new Error("Nincs elég összegyűjtött Yangod.");
 
    const type=String(item.type||"");
-   const oneTime=["chime","background","cursor"].includes(type);
+   const oneTime=["chime","background","cursor","inventory"].includes(type);
    if(oneTime){
      const owned=(await client.query("SELECT 1 FROM user_shop_unlocks WHERE user_id=$1 AND item_id=$2",[req.user.id,itemId])).rows[0];
      if(owned)throw new Error("Ezt a kozmetikai elemet már megvetted.");
@@ -573,7 +583,7 @@ app.post("/api/shop/buy",auth,async(req,res)=>{
      await client.query("UPDATE users SET soul_points=soul_points+$1 WHERE id=$2",[Math.max(1,Math.floor(Number(item.value||1))),req.user.id]);
    }else if(type==="coin"){
      await client.query("UPDATE users SET coins=coins+$1 WHERE id=$2",[Math.max(1,Math.floor(Number(item.value||1))),req.user.id]);
-   }else if(type==="chime" || type==="background" || type==="cursor"){
+   }else if(type==="chime" || type==="background" || type==="cursor" || type==="inventory"){
      await client.query("INSERT INTO user_shop_unlocks(user_id,item_id) VALUES($1,$2) ON CONFLICT DO NOTHING",[req.user.id,itemId]);
    }else{
      throw new Error("Ismeretlen shop típus.");
@@ -735,8 +745,8 @@ app.post("/api/admin/shop-config",auth,admin,async(req,res)=>{
  const cleaned=items.map((x,i)=>({
    id:String(x.id||`shop_${i+1}`).replace(/[^a-zA-Z0-9_-]/g,"_").slice(0,60),
    name:String(x.name||"Shop tétel").slice(0,100),
-   type:["chime","soul","coin","background","cursor"].includes(x.type)?x.type:"soul",
-   value:["chime","background","cursor"].includes(x.type)?String(x.value||""):Math.max(1,Math.floor(Number(x.value||1))),
+   type:["chime","soul","coin","background","cursor","inventory"].includes(x.type)?x.type:"soul",
+   value:["chime","background","cursor","inventory"].includes(x.type)?String(x.value||""):Math.max(1,Math.floor(Number(x.value||1))),
    price:Math.max(0,Math.floor(Number(x.price||0))),
    active:x.active!==false
  }));

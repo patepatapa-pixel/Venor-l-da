@@ -307,3 +307,5 @@ V43:
 - Kurzorok vásárlás előtt 5 másodpercig kipróbálhatók.
 - Minden kozmetikai tétel Yang ára adminból állítható.
 - Coin tranzakciók az adminpanelen teljesen külön 'Coin tranzakciók' fülre kerültek.
+
+V44: adminpanel javítva; Coin tranzakció külön fül; késkurzorok; Yangért vehető fantasy fegyver inventory; adminból állítható árak.
