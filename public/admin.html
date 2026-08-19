@@ -26,8 +26,7 @@
 <button class="btn primary" id="save" style="margin-top:12px">Mentés</button></div></section><section class="card section" id="dropAdmin">
 <h3>🎁 Láda tartalma / Drop esélyek</h3>
 <p class="small">
-Itt állíthatod, melyik nyeremény aktív, milyen súllyal essen, és itemeknél minimum/maximum hány darab nyitható.
-A <b>Súly</b> relatív esély: minél nagyobb, annál gyakrabban esik.
+Itt pontos százalékban állíthatod a nyerési esélyeket. Például a 10B Jackpot lehet <b>0,10%</b>. Az aktív dropok összege pontosan <b>100%</b> legyen.
 </p>
 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
   <input class="input" id="dropSearch" placeholder="Keresés item név alapján..." style="max-width:360px;margin:0">
@@ -40,7 +39,7 @@ A <b>Súly</b> relatív esély: minél nagyobb, annál gyakrabban esik.
   <button class="btn primary" id="saveDrops">💾 Dropok mentése</button>
   <button class="btn" id="resetDrops" style="border-color:#8c3c50;color:#ff8da3">↩ Alap dropok visszaállítása</button>
 </div>
-<div class="small" id="dropSummary" style="margin-bottom:10px"></div>
+<div class="small" id="dropSummary" style="margin-bottom:6px"></div><div class="small" id="dropChanceWarning" style="margin-bottom:10px"></div>
 <div id="dropEditor" style="display:grid;gap:8px;max-height:680px;overflow:auto;padding-right:4px"></div>
 </section>
 
@@ -95,9 +94,13 @@ async function tx(){const d=await api("/api/admin/transactions");$("#tx").innerH
 let dropCache=[];
 
 function dropChanceSummary(){
- const active=dropCache.filter(r=>r.active!==false && Number(r.weight)>0);
- const total=active.reduce((s,r)=>s+Number(r.weight||0),0);
- $("#dropSummary").textContent=`${dropCache.length} nyeremény · ${active.length} aktív · összes súly: ${fmt(total)}`;
+ const active=dropCache.filter(r=>r.active!==false && Number(r.chance)>0);
+ const total=active.reduce((s,r)=>s+Number(r.chance||0),0);
+ $("#dropSummary").textContent=`${dropCache.length} nyeremény · ${active.length} aktív · összes esély: ${total.toFixed(2)}% / 100%`;
+ const ok=Math.abs(total-100)<0.0001;
+ $("#dropChanceWarning").innerHTML=ok
+   ? `<span style="color:#75efb8">✅ Az esélyek összege pontosan 100%.</span>`
+   : `<span style="color:#ff8397">⚠️ Az esélyek összege ${total.toFixed(2)}%. Mentéshez pontosan 100% szükséges.</span>`;
 }
 
 function renderDropEditor(){
@@ -114,8 +117,8 @@ function renderDropEditor(){
      <b>${r.name}</b>
      <div class="small">${r.type==="item"?"ITEM":r.type==="yang"?"YANG":"COIN"}</div>
    </div>
-   <label class="small">Súly
-     <input class="input" style="margin:4px 0 0;padding:8px" type="number" min="0" data-drop="${r._i}" data-field="weight" value="${Number(r.weight||0)}">
+   <label class="small">Esély %
+     <input class="input" style="margin:4px 0 0;padding:8px" type="number" min="0" max="100" step="0.01" data-drop="${r._i}" data-field="chance" value="${Number(r.chance||0)}">
    </label>
    <label class="small">Érték
      <input class="input" style="margin:4px 0 0;padding:8px" type="number" min="1" data-drop="${r._i}" data-field="amount" value="${Number(r.amount||1)}" ${r.type==="item"?"disabled":""}>
@@ -135,7 +138,7 @@ function renderDropEditor(){
    el.onchange=()=>{
      const i=Number(el.dataset.drop),field=el.dataset.field;
      if(field==="active") dropCache[i][field]=el.checked;
-     else dropCache[i][field]=Number(el.value);
+     else dropCache[i][field]=Number(String(el.value).replace(",","."));
      dropChanceSummary();
    };
  });

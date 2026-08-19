@@ -7,6 +7,7 @@ const rateLimit=require("express-rate-limit");
 const {Pool}=require("pg");
 
 const app=express();
+app.set("trust proxy",1);
 let databaseReady=false;
 const PORT = Number(process.env.PORT || 3000);
 const JWT_SECRET=process.env.JWT_SECRET||"CHANGE_ME";
@@ -113,6 +114,7 @@ async function init(){
  await q("ALTER TABLE users ADD COLUMN IF NOT EXISTS last_daily_soul_at DATE");
  await q("ALTER TABLE users ADD COLUMN IF NOT EXISTS slot_lost_coins BIGINT NOT NULL DEFAULT 0");
  await q("ALTER TABLE users ADD COLUMN IF NOT EXISTS chest_soul_spent BIGINT NOT NULL DEFAULT 0");
+ await q("ALTER TABLE users ADD COLUMN IF NOT EXISTS registration_ip TEXT");
  await q(`CREATE TABLE IF NOT EXISTS user_game_stats(
   user_id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
   chest_opens BIGINT NOT NULL DEFAULT 0,soul_spent BIGINT NOT NULL DEFAULT 0,chest_yang_won BIGINT NOT NULL DEFAULT 0,
@@ -142,8 +144,8 @@ async function init(){
  soul_chest_enabled:"1",
  announcement:"Napi 5 000 Coin + 5 000 Lélek Pont minden játékosnak!",
  maintenance:"0",
- reward_config:"[{\"name\":\"100 Yang\",\"icon\":\"🪙\",\"type\":\"yang\",\"amount\":100,\"weight\":20,\"active\":true,\"min_qty\":1,\"max_qty\":1},{\"name\":\"1K Yang\",\"icon\":\"💰\",\"type\":\"yang\",\"amount\":1000,\"weight\":18,\"active\":true,\"min_qty\":1,\"max_qty\":1},{\"name\":\"10K Yang\",\"icon\":\"💵\",\"type\":\"yang\",\"amount\":10000,\"weight\":16,\"active\":true,\"min_qty\":1,\"max_qty\":1},{\"name\":\"100K Yang\",\"icon\":\"💸\",\"type\":\"yang\",\"amount\":100000,\"weight\":14,\"active\":true,\"min_qty\":1,\"max_qty\":1},{\"name\":\"1M Yang\",\"icon\":\"💎\",\"type\":\"yang\",\"amount\":1000000,\"weight\":11,\"active\":true,\"min_qty\":1,\"max_qty\":1},{\"name\":\"10M Yang\",\"icon\":\"🔷\",\"type\":\"yang\",\"amount\":10000000,\"weight\":8,\"active\":true,\"min_qty\":1,\"max_qty\":1},{\"name\":\"100M Yang\",\"icon\":\"👑\",\"type\":\"yang\",\"amount\":100000000,\"weight\":5,\"active\":true,\"min_qty\":1,\"max_qty\":1},{\"name\":\"1B Yang\",\"icon\":\"🏦\",\"type\":\"yang\",\"amount\":1000000000,\"weight\":3,\"active\":true,\"min_qty\":1,\"max_qty\":1},{\"name\":\"10B Jackpot\",\"icon\":\"🏆\",\"type\":\"yang\",\"amount\":10000000000,\"weight\":1,\"active\":true,\"min_qty\":1,\"max_qty\":1},{\"name\":\"Ritka PET\",\"icon\":\"🐾\",\"type\":\"item\",\"amount\":1,\"weight\":4,\"active\":true,\"min_qty\":1,\"max_qty\":1}]",
- reward_schema_version:"v23",
+ reward_config:"[{\"name\":\"100 Yang\",\"icon\":\"\ud83e\ude99\",\"type\":\"yang\",\"amount\":100,\"active\":true,\"min_qty\":1,\"max_qty\":1,\"chance\":24.9},{\"name\":\"1K Yang\",\"icon\":\"\ud83d\udcb0\",\"type\":\"yang\",\"amount\":1000,\"active\":true,\"min_qty\":1,\"max_qty\":1,\"chance\":20.0},{\"name\":\"10K Yang\",\"icon\":\"\ud83d\udcb5\",\"type\":\"yang\",\"amount\":10000,\"active\":true,\"min_qty\":1,\"max_qty\":1,\"chance\":17.0},{\"name\":\"100M Yang\",\"icon\":\"\ud83d\udc51\",\"type\":\"yang\",\"amount\":100000000,\"active\":true,\"min_qty\":1,\"max_qty\":1,\"chance\":4.0},{\"name\":\"1B Yang\",\"icon\":\"\ud83c\udfe6\",\"type\":\"yang\",\"amount\":1000000000,\"active\":true,\"min_qty\":1,\"max_qty\":1,\"chance\":2.0},{\"name\":\"10B Jackpot\",\"icon\":\"\ud83c\udfc6\",\"type\":\"yang\",\"amount\":10000000000,\"active\":true,\"min_qty\":1,\"max_qty\":1,\"chance\":0.1},{\"name\":\"Ritka PET\",\"icon\":\"\ud83d\udc3e\",\"type\":\"item\",\"amount\":1,\"active\":true,\"min_qty\":1,\"max_qty\":1,\"chance\":2.0},{\"name\":\"Semmi\",\"icon\":\"\u274c\",\"type\":\"nothing\",\"amount\":0,\"chance\":30.0,\"active\":true,\"min_qty\":1,\"max_qty\":1}]",
+ reward_schema_version:"v36",
  redemption_enabled:"1",
  redemption_config:"[{\"id\":\"pet_rare\",\"name\":\"Ritka PET\",\"type\":\"pet\",\"amount\":1,\"coin_cost\":10000,\"active\":true},{\"id\":\"yang_100m\",\"name\":\"100M Yang\",\"type\":\"yang\",\"amount\":100000000,\"coin_cost\":5000,\"active\":true},{\"id\":\"yang_1b\",\"name\":\"1 Milli\u00e1rd Yang\",\"type\":\"yang\",\"amount\":1000000000,\"coin_cost\":25000,\"active\":true}]",
  slot_win_chance:"60",
@@ -156,9 +158,9 @@ async function init(){
   await q("UPDATE settings SET value='v29' WHERE key='stats_backfill_version'");
  }
  const rewardSchema=await setting("reward_schema_version");
- if(rewardSchema!=="v23"){
+ if(rewardSchema!=="v36"){
    await q("UPDATE settings SET value=$1 WHERE key='reward_config'",[JSON.stringify(baseRewards)]);
-   await q("UPDATE settings SET value='v23' WHERE key='reward_schema_version'");
+   await q("UPDATE settings SET value='v36' WHERE key='reward_schema_version'");
  }
 
  const au=(process.env.ADMIN_USERNAME||"VenoriAdmin").trim();
@@ -176,6 +178,10 @@ async function setting(k){return (await q("SELECT value FROM settings WHERE key=
 async function intSetting(k){return Number(await setting(k)||0)}
 function today(){return new Date().toISOString().slice(0,10)}
 function cleanName(s){return String(s||"").trim().replace(/\s+/g,"")}
+function clientIp(req){
+ const raw=String(req.headers["cf-connecting-ip"]||req.headers["x-forwarded-for"]||req.ip||req.socket?.remoteAddress||"");
+ return raw.split(",")[0].trim().replace(/^::ffff:/,"").slice(0,100);
+}
 async function userView(id){return (await q("SELECT id,username,role,coins,played_coins,total_opened,total_yang_won,total_coin_won,banned,last_daily_at,created_at,slot_spent,slot_spins,slot_coin_won,soul_points,last_daily_soul_at,slot_lost_coins,chest_soul_spent FROM users WHERE id=$1",[id])).rows[0]}
 function setAuth(res,u,remember=false){
  const expiresIn=remember?"30d":"12h";
@@ -213,15 +219,38 @@ app.get("/api/public",async(req,res)=>res.json({
 
 app.post("/api/register",loginLimiter,async(req,res)=>{
  try{
-  const username=cleanName(req.body.username),password=String(req.body.password||"");
-  if(!/^[A-Za-z0-9_]{3,20}$/.test(username))return res.status(400).json({error:"A felhasználónév 3-20 karakter legyen."});
-  if(password.length<8||password.length>72)return res.status(400).json({error:"A jelszó legalább 8 karakter legyen."});
-  if((await q("SELECT id FROM users WHERE LOWER(username)=LOWER($1)",[username])).rows[0])return res.status(409).json({error:"Ez a név már foglalt."});
-  const bonus=await intSetting("daily_bonus"),hash=await bcrypt.hash(password,12);
-  const r=(await q("INSERT INTO users(username,password_hash,coins,soul_points) VALUES($1,$2,5000,5000) RETURNING id",[username,hash])).rows[0];
-  await q("INSERT INTO transactions(user_id,amount,reason) VALUES($1,$2,$3)",[r.id,5000,"Kezdő Coin"]);
-  const u=await userView(r.id);setAuth(res,u,!!req.body.remember);res.json({user:u});
- }catch(e){console.error(e);res.status(500).json({error:"Szerverhiba."})}
+   const username=cleanName(req.body.username),password=String(req.body.password||"");
+   if(username.length<3||username.length>20||password.length<6)return res.status(400).json({error:"Felhasználónév: 3-20 karakter, jelszó: minimum 6 karakter."});
+   if(!/^[a-zA-Z0-9_]+$/.test(username))return res.status(400).json({error:"A felhasználónév csak betűt, számot és _ jelet tartalmazhat."});
+
+   const ip=clientIp(req);
+
+   // Adminon kívül ugyanarról az IP-ről csak egy játékosfiók regisztrálható.
+   if(ip){
+     const existingIp=(await q("SELECT id,username FROM users WHERE role<>'admin' AND registration_ip=$1 LIMIT 1",[ip])).rows[0];
+     if(existingIp){
+       return res.status(409).json({error:"Erről az IP-címről már regisztráltak egy játékosfiókot. IP-címenként csak 1 regisztráció engedélyezett."});
+     }
+   }
+
+   const exists=(await q("SELECT id FROM users WHERE LOWER(username)=LOWER($1)",[username])).rows[0];
+   if(exists)return res.status(409).json({error:"Ez a felhasználónév már foglalt."});
+
+   const hash=await bcrypt.hash(password,12);
+   const r=(await q(
+     "INSERT INTO users(username,password_hash,coins,soul_points,registration_ip) VALUES($1,$2,5000,5000,$3) RETURNING id",
+     [username,hash,ip||null]
+   )).rows[0];
+
+   await q("INSERT INTO transactions(user_id,amount,reason) VALUES($1,$2,$3)",[r.id,5000,"Kezdő Coin"]);
+   const u=await userView(r.id);
+   setAuth(res,u,!!req.body.remember);
+   res.json({user:u});
+ }catch(e){
+   console.error("REGISTER ERROR:",e);
+   if(e.code==="23505")return res.status(409).json({error:"Ez a felhasználónév már foglalt."});
+   res.status(500).json({error:"Regisztrációs szerverhiba."});
+ }
 });
 app.post("/api/login",loginLimiter,async(req,res)=>{
  try{
@@ -268,7 +297,7 @@ app.post("/api/daily-soul",auth,async(req,res)=>{
  res.json({user:await userView(req.user.id),bonus});
 });
 
-const baseRewards=[{"name":"100 Yang","icon":"🪙","type":"yang","amount":100,"weight":20,"active":true,"min_qty":1,"max_qty":1},{"name":"1K Yang","icon":"💰","type":"yang","amount":1000,"weight":18,"active":true,"min_qty":1,"max_qty":1},{"name":"10K Yang","icon":"💵","type":"yang","amount":10000,"weight":16,"active":true,"min_qty":1,"max_qty":1},{"name":"100K Yang","icon":"💸","type":"yang","amount":100000,"weight":14,"active":true,"min_qty":1,"max_qty":1},{"name":"1M Yang","icon":"💎","type":"yang","amount":1000000,"weight":11,"active":true,"min_qty":1,"max_qty":1},{"name":"10M Yang","icon":"🔷","type":"yang","amount":10000000,"weight":8,"active":true,"min_qty":1,"max_qty":1},{"name":"100M Yang","icon":"👑","type":"yang","amount":100000000,"weight":5,"active":true,"min_qty":1,"max_qty":1},{"name":"1B Yang","icon":"🏦","type":"yang","amount":1000000000,"weight":3,"active":true,"min_qty":1,"max_qty":1},{"name":"10B Jackpot","icon":"🏆","type":"yang","amount":10000000000,"weight":1,"active":true,"min_qty":1,"max_qty":1},{"name":"Ritka PET","icon":"🐾","type":"item","amount":1,"weight":4,"active":true,"min_qty":1,"max_qty":1}];
+const baseRewards=[{"name":"100 Yang","icon":"🪙","type":"yang","amount":100,"active":true,"min_qty":1,"max_qty":1,"chance":24.9},{"name":"1K Yang","icon":"💰","type":"yang","amount":1000,"active":true,"min_qty":1,"max_qty":1,"chance":20.0},{"name":"10K Yang","icon":"💵","type":"yang","amount":10000,"active":true,"min_qty":1,"max_qty":1,"chance":17.0},{"name":"100M Yang","icon":"👑","type":"yang","amount":100000000,"active":true,"min_qty":1,"max_qty":1,"chance":4.0},{"name":"1B Yang","icon":"🏦","type":"yang","amount":1000000000,"active":true,"min_qty":1,"max_qty":1,"chance":2.0},{"name":"10B Jackpot","icon":"🏆","type":"yang","amount":10000000000,"active":true,"min_qty":1,"max_qty":1,"chance":0.1},{"name":"Ritka PET","icon":"🐾","type":"item","amount":1,"active":true,"min_qty":1,"max_qty":1,"chance":2.0},{"name":"Semmi","icon":"❌","type":"nothing","amount":0,"chance":30.0,"active":true,"min_qty":1,"max_qty":1}];
 
 async function getRewardConfig(){
  try{
@@ -277,20 +306,27 @@ async function getRewardConfig(){
    const allowed=new Set(baseRewards.map(r=>r.name));
    if(Array.isArray(parsed)){
      const filtered=parsed.filter(r=>allowed.has(r.name));
-     if(filtered.length===baseRewards.length)return filtered;
+     const hasPercentFormat=filtered.length===baseRewards.length && filtered.every(r=>Number.isFinite(Number(r.chance)));
+     if(hasPercentFormat)return filtered;
    }
  }catch(e){console.error("reward_config parse error:",e)}
  return baseRewards;
 }
 
 function pickFrom(pool){
- const active=(pool||[]).filter(r=>r.active!==false && Number(r.weight)>0);
- const total=active.reduce((sum,r)=>sum+Number(r.weight||0),0);
- if(!active.length || total<=0)return null;
- let roll=Math.random()*total;
+ const active=(pool||[]).filter(r=>r.active!==false && Number(r.chance)>0);
+ if(!active.length)return null;
+
+ const total=active.reduce((sum,r)=>sum+Number(r.chance||0),0);
+ if(total<=0)return null;
+
+ // Ha a teljes esély 100%, akkor ezek valódi százalékok.
+ // Ha kevesebb/több, az admin mentés ezt nem engedi.
+ let roll=Math.random()*100;
+ let cumulative=0;
  for(const r of active){
-   roll-=Number(r.weight||0);
-   if(roll<=0)return r;
+   cumulative+=Number(r.chance||0);
+   if(roll<cumulative)return r;
  }
  return active[active.length-1];
 }
@@ -471,21 +507,26 @@ app.get("/api/admin/drops",auth,admin,async(req,res)=>{
 
 app.post("/api/admin/drops",auth,admin,async(req,res)=>{
  const drops=Array.isArray(req.body.drops)?req.body.drops:null;
- if(!drops || !drops.length) return res.status(400).json({error:"Üres drop lista."});
+ if(!drops || !drops.length)return res.status(400).json({error:"Üres drop lista."});
 
- const cleaned=drops.map((r,i)=>({
+ const cleaned=drops.map(r=>({
    name:String(r.name||"").slice(0,80),
    icon:String(r.icon||"🎁").slice(0,8),
-   type:["item","yang","coin"].includes(r.type)?r.type:"item",
+   type:["item","yang","coin","nothing"].includes(r.type)?r.type:"item",
    amount:Math.max(1,Math.floor(Number(r.amount||1))),
-   weight:Math.max(0,Math.floor(Number(r.weight||0))),
+   chance:Math.max(0,Math.min(100,Number(String(r.chance??0).replace(",",".")))),
    active:r.active!==false,
    min_qty:Math.max(1,Math.min(999,Math.floor(Number(r.min_qty||1)))),
    max_qty:Math.max(1,Math.min(999,Math.floor(Number(r.max_qty||1))))
  })).map(r=>({...r,max_qty:Math.max(r.min_qty,r.max_qty)}));
 
+ const total=cleaned.filter(r=>r.active!==false).reduce((s,r)=>s+Number(r.chance||0),0);
+ if(Math.abs(total-100)>0.0001){
+   return res.status(400).json({error:`Az aktív drop esélyek összege pontosan 100% legyen. Jelenleg: ${total.toFixed(2)}%`});
+ }
+
  await q("UPDATE settings SET value=$1 WHERE key='reward_config'",[JSON.stringify(cleaned)]);
- res.json({ok:true,message:"Drop beállítások elmentve.",count:cleaned.length});
+ res.json({ok:true,message:"Drop esélyek elmentve.",count:cleaned.length,totalChance:total});
 });
 
 app.post("/api/admin/drops-reset",auth,admin,async(req,res)=>{
@@ -551,7 +592,7 @@ app.post("/api/redeem",auth,async(req,res)=>{
    await client.query("BEGIN");
    const u=(await client.query("SELECT * FROM users WHERE id=$1 FOR UPDATE",[req.user.id])).rows[0];
    if(Number(u.coins)<cost)throw new Error("Nincs elég Coinod a kiváltáshoz.");
-   await client.query("UPDATE users SET coins=coins-$1 WHERE id=$2",[cost,req.user.id]);
+   await client.query("UPDATE users SET coins=0 WHERE id=$1",[req.user.id]);
    await client.query("INSERT INTO redemption_claims(user_id,reward_name,reward_type,reward_amount,coin_cost) VALUES($1,$2,$3,$4,$5)",[req.user.id,String(reward.name),String(reward.type||"other"),Number(reward.amount||1),cost]);
    await client.query("COMMIT");
    res.json({ok:true,user:await userView(req.user.id),message:"Kiváltás rögzítve. Az admin átadás után teljesítettnek jelöli."});

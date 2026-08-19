@@ -227,3 +227,30 @@ V34:
 - Minden Yang kategória külön ikont kapott:
   100=🪙, 1K=💰, 10K=💵, 100K=💸, 1M=💎, 10M=🔷, 100M=👑, 1B=🏦, 10B=🏆.
 - Ritka PET ikon: 🐾.
+
+V35:
+- Láda dropok adminból pontos százalékban állíthatók, 0.01% pontossággal.
+- Példa: 10B Jackpot = 0.10%.
+- Az aktív dropok összege kötelezően pontosan 100%.
+- IP-címenként csak 1 normál játékosfiók regisztrálható.
+- Admin fiókra az IP-korlát nem vonatkozik.
+- Render proxy mögött is a kliens IP-jét próbálja használni.
+
+V36 LÁDA DROP:
+- Kivéve: 100K Yang, 1M Yang, 10M Yang.
+- Hozzáadva: ❌ Semmi.
+- A Semmi valódi üres nyitás: nem ad Yangot/Coint/itemet.
+- A Semmi nem kerül az összesített nyeremények közé.
+- Alap Semmi esély: 30.00%.
+- 10B Jackpot alap esély továbbra is 0.10%.
+- Adminból minden százalék továbbra is szabadon állítható, összesen 100%-ra.
+
+V37 KIVÁLTÁS COIN RESET:
+- Ha egy játékos sikeresen kivált bármilyen jutalmat Coinból, a kiváltás után a teljes Coin egyenlege 0-ra áll.
+- A reset csak sikeres kiváltáskor történik.
+- A játékos Kiváltás felületén külön figyelmeztetés jelzi ezt.
+
+V38:
+- A Kiváltás fül tetején nagy, arany figyelmeztető panel jelzi:
+  "⚠️ Fontos: sikeres Coinos kiváltás után a teljes Coin egyenleged 0-ra áll."
+- Külön magyarázat is jelzi, hogy a megmaradt Coin is elveszik sikeres kiváltáskor.
