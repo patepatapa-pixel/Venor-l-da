@@ -182,3 +182,15 @@ V26 STATISZTIKA FÜL:
 - Láda: összes nyitás, ténylegesen elköltött Lélek Pont, összes nyert Yang.
 - Aktuális Coin és Lélek Pont egyenleg.
 - Az új veszteség és Lélek Pont költés statisztikák adatbázisban tartósan mentődnek.
+
+V27 JAVÍTÁS:
+- Javítva: relation "user_reward_totals" does not exist.
+- A user_reward_totals tábla explicit migrációként létrejön minden deploynál.
+- A nyereménylista API és a ládanyitás önjavító módon is létrehozza a táblát, ha egy régebbi adatbázisból hiányzik.
+- Meglévő játékosadatok nem törlődnek.
+
+V28 BELÉPÉS + ADATBÁZIS JAVÍTÁS:
+- Megtalálva és javítva az init() SQL hibája: hiányzott a pontosvessző a redemption_claims tábla után.
+- Emiatt az adatbázis inicializálás leállt, az új users oszlopok nem jöttek létre, és a login 500-as hibára futott.
+- Login részletesebb hibakezelést kapott.
+- /api/auth-health diagnosztikai végpont hozzáadva.

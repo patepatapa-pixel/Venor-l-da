@@ -23,6 +23,15 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname,"public")));
 app.get("/api/health",(req,res)=>res.status(200).send("OK"));
 app.get("/api/ready",(req,res)=>res.status(databaseReady?200:503).json({ready:databaseReady}));
+app.get("/api/auth-health",async(req,res)=>{
+ try{
+   const u=(await q("SELECT COUNT(*)::int AS c FROM users")).rows[0];
+   res.json({ok:true,databaseReady,users:u.c});
+ }catch(e){
+   console.error("AUTH HEALTH ERROR:",e);
+   res.status(500).json({ok:false,error:e.message});
+ }
+});
 const loginLimiter=rateLimit({windowMs:15*60*1000,limit:60,standardHeaders:true,legacyHeaders:false});
 
 async function q(text,params=[]){return pool.query(text,params)}
@@ -85,7 +94,7 @@ async function init(){
    delivered BOOLEAN NOT NULL DEFAULT FALSE,
    delivered_at TIMESTAMPTZ,
    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
- )
+ );
  CREATE TABLE IF NOT EXISTS user_reward_totals(
    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
    reward_name TEXT NOT NULL,
@@ -104,6 +113,18 @@ async function init(){
  await q("ALTER TABLE users ADD COLUMN IF NOT EXISTS last_daily_soul_at DATE");
  await q("ALTER TABLE users ADD COLUMN IF NOT EXISTS slot_lost_coins BIGINT NOT NULL DEFAULT 0");
  await q("ALTER TABLE users ADD COLUMN IF NOT EXISTS chest_soul_spent BIGINT NOT NULL DEFAULT 0");
+ await q(`
+   CREATE TABLE IF NOT EXISTS user_reward_totals(
+     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+     reward_name TEXT NOT NULL,
+     reward_type TEXT NOT NULL,
+     total_quantity BIGINT NOT NULL DEFAULT 0,
+     total_value BIGINT NOT NULL DEFAULT 0,
+     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+     PRIMARY KEY(user_id,reward_name)
+   )
+ `);
+
 
  const defaults={
  slot_bets:"100,500,1000,5000",
@@ -190,10 +211,23 @@ app.post("/api/register",loginLimiter,async(req,res)=>{
  }catch(e){console.error(e);res.status(500).json({error:"Szerverhiba."})}
 });
 app.post("/api/login",loginLimiter,async(req,res)=>{
- const username=cleanName(req.body.username),password=String(req.body.password||"");
- const row=(await q("SELECT * FROM users WHERE LOWER(username)=LOWER($1)",[username])).rows[0];
- if(!row||!(await bcrypt.compare(password,row.password_hash))||row.banned)return res.status(401).json({error:"Hibás adatok vagy tiltott fiók."});
- setAuth(res,row,!!req.body.remember);res.json({user:await userView(row.id)});
+ try{
+   const username=cleanName(req.body.username),password=String(req.body.password||"");
+   if(!username||!password)return res.status(400).json({error:"Add meg a felhasználónevet és a jelszót."});
+
+   const row=(await q("SELECT * FROM users WHERE LOWER(username)=LOWER($1)",[username])).rows[0];
+   if(!row)return res.status(401).json({error:"Hibás felhasználónév vagy jelszó."});
+   if(row.banned)return res.status(403).json({error:"Ez a fiók tiltva van."});
+
+   const ok=await bcrypt.compare(password,row.password_hash);
+   if(!ok)return res.status(401).json({error:"Hibás felhasználónév vagy jelszó."});
+
+   setAuth(res,row,!!req.body.remember);
+   res.json({user:await userView(row.id)});
+ }catch(e){
+   console.error("LOGIN ERROR:",e);
+   res.status(500).json({error:"Belépési szerverhiba. Ellenőrizd a Render logot."});
+ }
 });
 app.post("/api/logout",(req,res)=>{res.clearCookie("venori_token");res.json({ok:true})});
 app.get("/api/me",auth,async(req,res)=>res.json({user:await userView(req.user.id)}));
@@ -281,6 +315,17 @@ app.post("/api/open",auth,async(req,res)=>{
    for(const [name,n] of Object.entries(items))await client.query("INSERT INTO inventory(user_id,item_name,quantity) VALUES($1,$2,$3) ON CONFLICT(user_id,item_name) DO UPDATE SET quantity=inventory.quantity+EXCLUDED.quantity",[req.user.id,name,n]);
    const summary=results.map(r=>`${r.icon} ${r.name}`).join(", ");
    await client.query("INSERT INTO history(user_id,quantity,cost,reward_text) VALUES($1,$2,$3,$4)",[req.user.id,qty,cost,summary]);
+   await client.query(`
+     CREATE TABLE IF NOT EXISTS user_reward_totals(
+       user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+       reward_name TEXT NOT NULL,
+       reward_type TEXT NOT NULL,
+       total_quantity BIGINT NOT NULL DEFAULT 0,
+       total_value BIGINT NOT NULL DEFAULT 0,
+       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+       PRIMARY KEY(user_id,reward_name)
+     )
+   `);
    const rewardTotals={};
    for(const r of results){
      const q=Number(r.qty||1);
@@ -353,6 +398,17 @@ app.get("/api/my-stats",auth,async(req,res)=>{
 });
 
 app.get("/api/my-reward-totals",auth,async(req,res)=>{
+ await q(`
+   CREATE TABLE IF NOT EXISTS user_reward_totals(
+     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+     reward_name TEXT NOT NULL,
+     reward_type TEXT NOT NULL,
+     total_quantity BIGINT NOT NULL DEFAULT 0,
+     total_value BIGINT NOT NULL DEFAULT 0,
+     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+     PRIMARY KEY(user_id,reward_name)
+   )
+ `);
  const rows=(await q(`
    SELECT reward_name,reward_type,total_quantity,total_value,updated_at
    FROM user_reward_totals
