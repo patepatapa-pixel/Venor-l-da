@@ -107,8 +107,8 @@ async function init(){
  reward_config:"[{\"name\":\"100 Yang\",\"icon\":\"\ud83d\udcb0\",\"type\":\"yang\",\"amount\":100,\"weight\":20,\"active\":true,\"min_qty\":1,\"max_qty\":1},{\"name\":\"1K Yang\",\"icon\":\"\ud83d\udcb0\",\"type\":\"yang\",\"amount\":1000,\"weight\":18,\"active\":true,\"min_qty\":1,\"max_qty\":1},{\"name\":\"10K Yang\",\"icon\":\"\ud83d\udcb0\",\"type\":\"yang\",\"amount\":10000,\"weight\":16,\"active\":true,\"min_qty\":1,\"max_qty\":1},{\"name\":\"100K Yang\",\"icon\":\"\ud83d\udcb0\",\"type\":\"yang\",\"amount\":100000,\"weight\":14,\"active\":true,\"min_qty\":1,\"max_qty\":1},{\"name\":\"1M Yang\",\"icon\":\"\ud83d\udc8e\",\"type\":\"yang\",\"amount\":1000000,\"weight\":11,\"active\":true,\"min_qty\":1,\"max_qty\":1},{\"name\":\"10M Yang\",\"icon\":\"\ud83d\udc8e\",\"type\":\"yang\",\"amount\":10000000,\"weight\":8,\"active\":true,\"min_qty\":1,\"max_qty\":1},{\"name\":\"100M Yang\",\"icon\":\"\ud83d\udc51\",\"type\":\"yang\",\"amount\":100000000,\"weight\":5,\"active\":true,\"min_qty\":1,\"max_qty\":1},{\"name\":\"1B Yang\",\"icon\":\"\ud83d\udc51\",\"type\":\"yang\",\"amount\":1000000000,\"weight\":3,\"active\":true,\"min_qty\":1,\"max_qty\":1},{\"name\":\"10B Jackpot\",\"icon\":\"\ud83c\udfc6\",\"type\":\"yang\",\"amount\":10000000000,\"weight\":1,\"active\":true,\"min_qty\":1,\"max_qty\":1},{\"name\":\"Ritka PET\",\"icon\":\"\ud83d\udc3e\",\"type\":\"item\",\"amount\":1,\"weight\":4,\"active\":true,\"min_qty\":1,\"max_qty\":1}]",
  reward_schema_version:"v23",
  redemption_enabled:"1",
- redemption_config:"[{\"id\":\"pet_rare\",\"name\":\"Ritka PET\",\"type\":\"pet\",\"amount\":1,\"coin_cost\":10000,\"active\":true},{\"id\":\"yang_100m\",\"name\":\"100M Yang\",\"type\":\"yang\",\"amount\":100000000,\"coin_cost\":5000,\"active\":true},{\"id\":\"yang_1b\",\"name\":\"1 Milli\u00e1rd Yang\",\"type\":\"yang\",\"amount\":1000000000,\"coin_cost\":25000,\"active\":true}]"
-};
+ redemption_config:"[{\"id\":\"pet_rare\",\"name\":\"Ritka PET\",\"type\":\"pet\",\"amount\":1,\"coin_cost\":10000,\"active\":true},{\"id\":\"yang_100m\",\"name\":\"100M Yang\",\"type\":\"yang\",\"amount\":100000000,\"coin_cost\":5000,\"active\":true},{\"id\":\"yang_1b\",\"name\":\"1 Milli\u00e1rd Yang\",\"type\":\"yang\",\"amount\":1000000000,\"coin_cost\":25000,\"active\":true}]",
+ slot_win_chance:"60"};
  for(const [k,v] of Object.entries(defaults)) await q("INSERT INTO settings(key,value) VALUES($1,$2) ON CONFLICT(key) DO NOTHING",[k,v]);
  const rewardSchema=await setting("reward_schema_version");
  if(rewardSchema!=="v23"){
@@ -335,7 +335,8 @@ app.post("/api/admin/drops-reset",auth,admin,async(req,res)=>{
 app.get("/api/slot-config",async(req,res)=>{
  const bets=String(await setting("slot_bets")||"").split(",").map(Number).filter(n=>Number.isInteger(n)&&n>0);
  const payouts=String(await setting("slot_payouts")||"").split(",").map(Number);
- res.json({enabled:Boolean(await intSetting("slot_enabled")),bets:bets.map((bet,i)=>({bet,payout:Number(payouts[i]||0)})),skullChance:40,winChance:60});
+ const winChance=Math.max(0,Math.min(100,Number(await intSetting("slot_win_chance")||60)));
+ res.json({enabled:Boolean(await intSetting("slot_enabled")),bets:bets.map((bet,i)=>({bet,payout:Number(payouts[i]||0)})),skullChance:100-winChance,winChance});
 });
 
 app.post("/api/slot-spin",auth,async(req,res)=>{
@@ -350,7 +351,7 @@ app.post("/api/slot-spin",auth,async(req,res)=>{
    await client.query("BEGIN");
    const u=(await client.query("SELECT * FROM users WHERE id=$1 FOR UPDATE",[req.user.id])).rows[0];
    if(Number(u.coins)<bet)throw new Error("Nincs elég Coinod ehhez a téthez.");
-   const won=Math.random()<0.60,reward=won?payout:0;
+   const winChance=Math.max(0,Math.min(100,Number(await intSetting("slot_win_chance")||60)));const won=Math.random()<(winChance/100),reward=won?payout:0;
    await client.query("UPDATE users SET coins=coins-$1+$2,played_coins=played_coins+$1,slot_spent=slot_spent+$1,slot_spins=slot_spins+1,slot_coin_won=slot_coin_won+$2,total_coin_won=total_coin_won+$2 WHERE id=$3",[bet,reward,req.user.id]);
    await client.query("INSERT INTO transactions(user_id,amount,reason) VALUES($1,$2,$3)",[req.user.id,reward-bet,won?`Slot nyerés (${bet} tét)`:`Slot veszteség (${bet} tét)`]);
    await client.query("COMMIT");
@@ -491,11 +492,11 @@ app.get("/api/admin/settings",auth,admin,async(req,res)=>res.json({
  maintenance:Boolean(await intSetting("maintenance")),
  slot_enabled:Boolean(await intSetting("slot_enabled")),
  slot_bets:String(await setting("slot_bets")||""),
- slot_payouts:String(await setting("slot_payouts")||"")
+ slot_payouts:String(await setting("slot_payouts")||""),slot_win_chance:Math.max(0,Math.min(100,Number(await intSetting("slot_win_chance")||60)))
 }));
 app.post("/api/admin/settings",auth,admin,async(req,res)=>{
- const daily=Number(req.body.daily_bonus),dailySoul=Number(req.body.daily_soul_bonus),soulPrice=Number(req.body.soul_chest_price);
- if(!Number.isInteger(daily)||daily<0||!Number.isInteger(dailySoul)||dailySoul<0||!Number.isInteger(soulPrice)||soulPrice<1)return res.status(400).json({error:"Hibás beállítás."});
+ const daily=Number(req.body.daily_bonus),dailySoul=Number(req.body.daily_soul_bonus),soulPrice=Number(req.body.soul_chest_price),slotWinChance=Number(req.body.slot_win_chance);
+ if(!Number.isInteger(daily)||daily<0||!Number.isInteger(dailySoul)||dailySoul<0||!Number.isInteger(soulPrice)||soulPrice<1||!Number.isFinite(slotWinChance)||slotWinChance<0||slotWinChance>100)return res.status(400).json({error:"Hibás beállítás. A Slot NYERTES esély 0 és 100% között legyen."});
  const bets=String(req.body.slot_bets||"").split(",").map(x=>Number(x.trim())).filter(n=>Number.isInteger(n)&&n>0);
  const payouts=String(req.body.slot_payouts||"").split(",").map(x=>Number(x.trim()));
  if(!bets.length||bets.length!==payouts.length||payouts.some(n=>!Number.isInteger(n)||n<0))return res.status(400).json({error:"A slot tétek és nyeremények száma egyezzen."});
@@ -508,7 +509,7 @@ app.post("/api/admin/settings",auth,admin,async(req,res)=>{
    maintenance:String(req.body.maintenance?1:0),
    slot_enabled:String(req.body.slot_enabled?1:0),
    slot_bets:bets.join(","),
-   slot_payouts:payouts.join(",")
+   slot_payouts:payouts.join(","),slot_win_chance:String(slotWinChance)
  };
  for(const [k,v] of Object.entries(vals))await q("UPDATE settings SET value=$1 WHERE key=$2",[v,k]);
  res.json({ok:true});

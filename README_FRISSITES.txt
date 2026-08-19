@@ -160,3 +160,10 @@ V23:
 - Láda drop: 100, 1K, 10K, 100K, 1M, 10M, 100M, 1B, 10B Yang + Ritka PET.
 - Admin állítja a láda drop súlyokat, a Lélek Pont ládaárat, Slot téteket/nyereményeket és kiváltható jutalmakat.
 - Kiváltás admin átadási listára kerül.
+
+V24 SLOT ESÉLY:
+- Adminpanelen 0-100% között állítható a Slot NYERTES esélye.
+- Koponya esély = 100 - NYERTES esély.
+- Játékos oldalon a tényleges aktuális százalék jelenik meg.
+- Alapérték 60% NYERTES / 40% Koponya.
+- Admin beállítás panel egyúttal rendezve és kiegészítve a napi Lélek Pont, ládaár és Slot mezőkkel.
