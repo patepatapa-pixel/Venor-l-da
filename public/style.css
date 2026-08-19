@@ -629,3 +629,18 @@ body[data-shop-cursor="rainbow"],body[data-shop-cursor="rainbow"] *{cursor:grab!
 body[data-shop-cursor="karambit_gold"],body[data-shop-cursor="karambit_gold"] *{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cpath d='M7 39c7-3 13-9 17-16 3-5 6-9 14-12-1 8-5 15-11 21-5 5-11 8-17 10z' fill='%23f2c14e' stroke='%23000' stroke-width='2'/%3E%3Ccircle cx='10' cy='39' r='5' fill='none' stroke='%23f2c14e' stroke-width='3'/%3E%3C/svg%3E") 8 39,auto!important}
 body[data-shop-cursor="karambit_neon"],body[data-shop-cursor="karambit_neon"] *{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cpath d='M7 39c7-3 13-9 17-16 3-5 6-9 14-12-1 8-5 15-11 21-5 5-11 8-17 10z' fill='%238d5cff' stroke='%2300eaff' stroke-width='2'/%3E%3Ccircle cx='10' cy='39' r='5' fill='none' stroke='%2300eaff' stroke-width='3'/%3E%3C/svg%3E") 8 39,auto!important}
 .inventory-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:10px}.inventory-item{padding:14px;border:1px solid #3b2d10;border-radius:13px;background:#0b0a07;display:flex;flex-direction:column;align-items:center;text-align:center}.inventory-icon{font-size:32px;margin-bottom:7px}@media(max-width:800px){.inventory-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* V45 Inventory tab + weapon rolls */
+.weapon-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}
+.weapon-card{padding:16px;border:1px solid #3b2d10;border-radius:14px;background:linear-gradient(180deg,#11100b,#080807)}
+.weapon-card.equipped{border-color:#f2c14e;box-shadow:0 0 0 1px rgba(242,193,78,.12),0 0 24px rgba(242,193,78,.08)}
+.weapon-top{display:flex;gap:10px;align-items:center}.weapon-icon{font-size:32px}
+.weapon-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:13px 0}
+.weapon-stats>div{padding:9px;border:1px solid #2e2819;border-radius:9px;background:#070706}
+.weapon-stats span,.weapon-stats b{display:block}.weapon-stats span{font-size:9px;color:#8f8878}.weapon-stats b{font-size:13px;margin-top:3px}
+.weapon-max{margin-bottom:10px;color:#b4a987}.weapon-actions{display:flex;gap:8px;flex-wrap:wrap}.weapon-actions .btn{flex:1}
+.inventory-bonus-info{margin:14px 0;padding:12px;border:1px solid #6d5318;border-radius:11px;background:rgba(80,55,8,.22);color:#d9cfb5}
+.btn.danger{border-color:#71313a!important;color:#ff9aa8!important}
+.weapon-admin-extra{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:10px;border:1px dashed #5d4820;border-radius:10px}
+@media(max-width:850px){.weapon-grid{grid-template-columns:1fr}.weapon-stats,.weapon-admin-extra{grid-template-columns:1fr 1fr}}
+@media(max-width:500px){.weapon-stats,.weapon-admin-extra{grid-template-columns:1fr}}

@@ -118,6 +118,20 @@ async function init(){
  await q("ALTER TABLE users ADD COLUMN IF NOT EXISTS selected_chime TEXT NOT NULL DEFAULT 'classic'");
  await q("ALTER TABLE users ADD COLUMN IF NOT EXISTS selected_background TEXT NOT NULL DEFAULT 'black_gold'");
  await q("ALTER TABLE users ADD COLUMN IF NOT EXISTS selected_cursor TEXT NOT NULL DEFAULT 'gold_small'");
+ await q("ALTER TABLE users ADD COLUMN IF NOT EXISTS equipped_weapon TEXT");
+ await q(`
+   CREATE TABLE IF NOT EXISTS user_inventory_stats(
+     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+     item_id TEXT NOT NULL,
+     value_score BIGINT NOT NULL DEFAULT 0,
+     slot_multiplier NUMERIC(8,3) NOT NULL DEFAULT 1.000,
+     luck_bonus NUMERIC(8,3) NOT NULL DEFAULT 0.000,
+     roll_count BIGINT NOT NULL DEFAULT 0,
+     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+     PRIMARY KEY(user_id,item_id)
+   )
+ `);
+
  await q(`
    CREATE TABLE IF NOT EXISTS user_shop_unlocks(
      user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -177,6 +191,23 @@ async function init(){
  yang_balance_backfill_version:"0",
  shop_schema_version:"v43"};
  for(const [k,v] of Object.entries(defaults)) await q("INSERT INTO settings(key,value) VALUES($1,$2) ON CONFLICT(key) DO NOTHING",[k,v]);
+ if((await setting("v45_weapon_stats_done"))!=="1"){
+   let arr=[];try{arr=JSON.parse(await setting("shop_config")||"[]")}catch{}
+   const defs={"inv_dragon_sword":{"base_value":100,"roll_cost":5000000,"max_multiplier":1.35,"max_luck":4.0},"inv_moon_blade":{"base_value":125,"roll_cost":7000000,"max_multiplier":1.45,"max_luck":5.0},"inv_demon_spear":{"base_value":160,"roll_cost":10000000,"max_multiplier":1.6,"max_luck":6.5},"inv_arcane_bow":{"base_value":140,"roll_cost":8000000,"max_multiplier":1.5,"max_luck":6.0},"inv_royal_fan":{"base_value":110,"roll_cost":6000000,"max_multiplier":1.4,"max_luck":5.0},"inv_shadow_dagger":{"base_value":150,"roll_cost":9000000,"max_multiplier":1.55,"max_luck":7.0}};
+   arr=arr.map(x=>{
+     if(x.type!=="inventory")return x;
+     const d=defs[x.id]||{base_value:100,roll_cost:5000000,max_multiplier:1.35,max_luck:4};
+     return {...x,
+       base_value:Math.max(1,Number(x.base_value||d.base_value)),
+       roll_cost:Math.max(1,Number(x.roll_cost||d.roll_cost)),
+       max_multiplier:Math.max(1,Number(x.max_multiplier||d.max_multiplier)),
+       max_luck:Math.max(0,Number(x.max_luck??d.max_luck))
+     };
+   });
+   await q("UPDATE settings SET value=$1 WHERE key='shop_config'",[JSON.stringify(arr)]);
+   await q("INSERT INTO settings(key,value) VALUES('v45_weapon_stats_done','1') ON CONFLICT(key) DO UPDATE SET value='1'");
+ }
+
  if((await setting("v44_catalog_done"))!=="1"){
    let arr=[];try{arr=JSON.parse(await setting("shop_config")||"[]")}catch{}
    const extras=[{"id":"cursor_karambit_gold","name":"Karambit stílusú arany késkurzor","type":"cursor","value":"karambit_gold","price":35000000,"active":true},{"id":"cursor_karambit_neon","name":"Karambit stílusú neon késkurzor","type":"cursor","value":"karambit_neon","price":45000000,"active":true},{"id":"inv_dragon_sword","name":"Sárkányél fantasy kard","type":"inventory","value":"dragon_sword","price":25000000,"active":true},{"id":"inv_moon_blade","name":"Holdpenge fantasy fegyver","type":"inventory","value":"moon_blade","price":30000000,"active":true},{"id":"inv_demon_spear","name":"Démoni lándzsa","type":"inventory","value":"demon_spear","price":40000000,"active":true},{"id":"inv_arcane_bow","name":"Misztikus íj","type":"inventory","value":"arcane_bow","price":28000000,"active":true},{"id":"inv_royal_fan","name":"Királyi legyező","type":"inventory","value":"royal_fan","price":22000000,"active":true},{"id":"inv_shadow_dagger","name":"Árnyéktőr","type":"inventory","value":"shadow_dagger","price":32000000,"active":true}];
@@ -225,7 +256,7 @@ function clientIp(req){
  const raw=String(req.headers["cf-connecting-ip"]||req.headers["x-forwarded-for"]||req.ip||req.socket?.remoteAddress||"");
  return raw.split(",")[0].trim().replace(/^::ffff:/,"").slice(0,100);
 }
-async function userView(id){return (await q("SELECT id,username,role,coins,played_coins,total_opened,total_yang_won,total_coin_won,banned,last_daily_at,created_at,slot_spent,slot_spins,slot_coin_won,soul_points,last_daily_soul_at,slot_lost_coins,chest_soul_spent,yang_balance,selected_chime,selected_background,selected_cursor FROM users WHERE id=$1",[id])).rows[0]}
+async function userView(id){return (await q("SELECT id,username,role,coins,played_coins,total_opened,total_yang_won,total_coin_won,banned,last_daily_at,created_at,slot_spent,slot_spins,slot_coin_won,soul_points,last_daily_soul_at,slot_lost_coins,chest_soul_spent,yang_balance,selected_chime,selected_background,selected_cursor,equipped_weapon FROM users WHERE id=$1",[id])).rows[0]}
 function setAuth(res,u,remember=false){
  const expiresIn=remember?"30d":"12h";
  const token=jwt.sign({id:u.id,role:u.role},JWT_SECRET,{expiresIn});
@@ -585,6 +616,13 @@ app.post("/api/shop/buy",auth,async(req,res)=>{
      await client.query("UPDATE users SET coins=coins+$1 WHERE id=$2",[Math.max(1,Math.floor(Number(item.value||1))),req.user.id]);
    }else if(type==="chime" || type==="background" || type==="cursor" || type==="inventory"){
      await client.query("INSERT INTO user_shop_unlocks(user_id,item_id) VALUES($1,$2) ON CONFLICT DO NOTHING",[req.user.id,itemId]);
+     if(type==="inventory"){
+       await client.query(`
+         INSERT INTO user_inventory_stats(user_id,item_id,value_score,slot_multiplier,luck_bonus)
+         VALUES($1,$2,$3,1.000,0.000)
+         ON CONFLICT(user_id,item_id) DO NOTHING
+       `,[req.user.id,itemId,Math.max(1,Math.floor(Number(item.base_value||100)))]);
+     }
    }else{
      throw new Error("Ismeretlen shop típus.");
    }
@@ -616,6 +654,100 @@ app.post("/api/shop/select",auth,async(req,res)=>{
    await q("UPDATE users SET selected_cursor=$1 WHERE id=$2",[String(item.value||"gold_small"),req.user.id]);
  }
  res.json({ok:true,user:await userView(req.user.id)});
+});
+
+
+app.get("/api/my-full-inventory",auth,async(req,res)=>{
+ const items=(await getShopConfig()).filter(x=>x.type==="inventory" && x.active!==false);
+ const ownedIds=(await q("SELECT item_id FROM user_shop_unlocks WHERE user_id=$1",[req.user.id])).rows.map(x=>String(x.item_id));
+ const stats=(await q("SELECT item_id,value_score,slot_multiplier,luck_bonus,roll_count FROM user_inventory_stats WHERE user_id=$1",[req.user.id])).rows;
+ const statMap=new Map(stats.map(x=>[String(x.item_id),x]));
+ const weapons=items.filter(x=>ownedIds.includes(String(x.id))).map(x=>{
+   const st=statMap.get(String(x.id))||{};
+   return {
+     ...x,
+     value_score:Number(st.value_score||x.base_value||100),
+     slot_multiplier:Number(st.slot_multiplier||1),
+     luck_bonus:Number(st.luck_bonus||0),
+     roll_count:Number(st.roll_count||0)
+   };
+ });
+ const chestItems=(await q("SELECT item_name,quantity FROM inventory WHERE user_id=$1 ORDER BY item_name",[req.user.id])).rows;
+ const u=await userView(req.user.id);
+ res.json({weapons,chestItems,equippedWeapon:u.equipped_weapon,user:u});
+});
+
+app.post("/api/inventory/equip",auth,async(req,res)=>{
+ const itemId=String(req.body.itemId||"");
+ const owned=(await q("SELECT 1 FROM user_shop_unlocks WHERE user_id=$1 AND item_id=$2",[req.user.id,itemId])).rows[0];
+ if(!owned)return res.status(403).json({error:"Ez a fegyver nincs az inventorydban."});
+ const item=(await getShopConfig()).find(x=>String(x.id)===itemId && x.type==="inventory");
+ if(!item)return res.status(404).json({error:"Fegyver nem található."});
+ await q("UPDATE users SET equipped_weapon=$1 WHERE id=$2",[itemId,req.user.id]);
+ res.json({ok:true,user:await userView(req.user.id),message:`Felszerelve: ${item.name}`});
+});
+
+app.post("/api/inventory/roll",auth,async(req,res)=>{
+ const itemId=String(req.body.itemId||"");
+ const items=await getShopConfig();
+ const item=items.find(x=>String(x.id)===itemId && x.type==="inventory" && x.active!==false);
+ if(!item)return res.status(404).json({error:"Fegyver nem található."});
+ const client=await pool.connect();
+ try{
+   await client.query("BEGIN");
+   const owned=(await client.query("SELECT 1 FROM user_shop_unlocks WHERE user_id=$1 AND item_id=$2",[req.user.id,itemId])).rows[0];
+   if(!owned)throw new Error("Ez a fegyver nincs az inventorydban.");
+   const u=(await client.query("SELECT yang_balance FROM users WHERE id=$1 FOR UPDATE",[req.user.id])).rows[0];
+   const cost=Math.max(1,Math.floor(Number(item.roll_cost||5000000)));
+   if(Number(u.yang_balance||0)<cost)throw new Error(`Nincs elég Yangod a húzáshoz. Ár: ${cost.toLocaleString("hu-HU")} Yang.`);
+
+   const base=Math.max(1,Math.floor(Number(item.base_value||100)));
+   const maxMult=Math.max(1,Number(item.max_multiplier||1.35));
+   const maxLuck=Math.max(0,Number(item.max_luck||4));
+   const valueScore=Math.floor(base + Math.random()*(base+1));
+   const mult=Number((1 + Math.random()*(maxMult-1)).toFixed(3));
+   const luck=Number((Math.random()*maxLuck).toFixed(3));
+
+   await client.query("UPDATE users SET yang_balance=yang_balance-$1 WHERE id=$2",[cost,req.user.id]);
+   await client.query(`
+     INSERT INTO user_inventory_stats(user_id,item_id,value_score,slot_multiplier,luck_bonus,roll_count)
+     VALUES($1,$2,$3,$4,$5,1)
+     ON CONFLICT(user_id,item_id) DO UPDATE SET
+       value_score=EXCLUDED.value_score,
+       slot_multiplier=EXCLUDED.slot_multiplier,
+       luck_bonus=EXCLUDED.luck_bonus,
+       roll_count=user_inventory_stats.roll_count+1,
+       updated_at=NOW()
+   `,[req.user.id,itemId,valueScore,mult,luck]);
+   await client.query("COMMIT");
+   res.json({ok:true,user:await userView(req.user.id),result:{valueScore,slotMultiplier:mult,luckBonus:luck},message:`Húzás kész: érték ${valueScore}, x${mult.toFixed(3)}, +${luck.toFixed(3)}% szerencse.`});
+ }catch(e){
+   await client.query("ROLLBACK");
+   res.status(400).json({error:e.message});
+ }finally{client.release()}
+});
+
+app.post("/api/me/reset-history",auth,async(req,res)=>{
+ await q("DELETE FROM history WHERE user_id=$1",[req.user.id]);
+ res.json({ok:true,message:"A saját ládanyitási történeted törölve."});
+});
+
+app.post("/api/me/reset-inventory",auth,async(req,res)=>{
+ const items=await getShopConfig();
+ const ids=items.filter(x=>x.type==="inventory").map(x=>String(x.id));
+ const client=await pool.connect();
+ try{
+   await client.query("BEGIN");
+   await client.query("DELETE FROM inventory WHERE user_id=$1",[req.user.id]);
+   await client.query("DELETE FROM user_inventory_stats WHERE user_id=$1",[req.user.id]);
+   if(ids.length)await client.query("DELETE FROM user_shop_unlocks WHERE user_id=$1 AND item_id = ANY($2::text[])",[req.user.id,ids]);
+   await client.query("UPDATE users SET equipped_weapon=NULL WHERE id=$1",[req.user.id]);
+   await client.query("COMMIT");
+   res.json({ok:true,user:await userView(req.user.id),message:"Az inventoryd teljesen resetelve. Yang visszatérítés nincs."});
+ }catch(e){
+   await client.query("ROLLBACK");
+   res.status(500).json({error:"Az inventory reset nem sikerült."});
+ }finally{client.release()}
 });
 
 app.get("/api/exchange-config",auth,async(req,res)=>{
@@ -748,6 +880,10 @@ app.post("/api/admin/shop-config",auth,admin,async(req,res)=>{
    type:["chime","soul","coin","background","cursor","inventory"].includes(x.type)?x.type:"soul",
    value:["chime","background","cursor","inventory"].includes(x.type)?String(x.value||""):Math.max(1,Math.floor(Number(x.value||1))),
    price:Math.max(0,Math.floor(Number(x.price||0))),
+   base_value:x.type==="inventory"?Math.max(1,Math.floor(Number(x.base_value||100))):0,
+   roll_cost:x.type==="inventory"?Math.max(1,Math.floor(Number(x.roll_cost||5000000))):0,
+   max_multiplier:x.type==="inventory"?Math.max(1,Math.min(10,Number(x.max_multiplier||1.35))):1,
+   max_luck:x.type==="inventory"?Math.max(0,Math.min(50,Number(x.max_luck||4))):0,
    active:x.active!==false
  }));
 
@@ -843,7 +979,16 @@ app.post("/api/slot-spin",auth,async(req,res)=>{
    await client.query("BEGIN");
    const u=(await client.query("SELECT * FROM users WHERE id=$1 FOR UPDATE",[req.user.id])).rows[0];
    if(Number(u.coins)<bet)throw new Error("Nincs elég Coinod ehhez a téthez.");
-   const winChance=Math.max(0,Math.min(100,Number(await intSetting("slot_win_chance")||60)));const won=Math.random()<(winChance/100),reward=won?payout:0;
+   const baseWinChance=Math.max(0,Math.min(100,Number(await intSetting("slot_win_chance")||60)));
+   let weaponBonus={itemId:null,luck:0,multiplier:1,value:0};
+   if(u.equipped_weapon){
+     const ws=(await client.query("SELECT value_score,slot_multiplier,luck_bonus FROM user_inventory_stats WHERE user_id=$1 AND item_id=$2",[req.user.id,u.equipped_weapon])).rows[0];
+     if(ws)weaponBonus={itemId:u.equipped_weapon,luck:Number(ws.luck_bonus||0),multiplier:Number(ws.slot_multiplier||1),value:Number(ws.value_score||0)};
+   }
+   const winChance=Math.max(0,Math.min(95,baseWinChance+weaponBonus.luck));
+   const won=Math.random()<(winChance/100);
+   const boostedPayout=Math.floor(payout*weaponBonus.multiplier);
+   const reward=won?boostedPayout:0;
    await client.query("UPDATE users SET coins=coins-$1+$2,played_coins=played_coins+$1,slot_spent=slot_spent+$1,slot_spins=slot_spins+1,slot_coin_won=slot_coin_won+$2,total_coin_won=total_coin_won+$2,slot_lost_coins=slot_lost_coins+$3 WHERE id=$4",[bet,reward,won?0:bet,req.user.id]);
    await client.query(`INSERT INTO user_game_stats(user_id,slot_spins,slot_wagered,slot_won,slot_lost) VALUES($1,1,$2,$3,$4)
     ON CONFLICT(user_id) DO UPDATE SET slot_spins=user_game_stats.slot_spins+1,slot_wagered=user_game_stats.slot_wagered+EXCLUDED.slot_wagered,
@@ -851,7 +996,7 @@ app.post("/api/slot-spin",auth,async(req,res)=>{
     [req.user.id,bet,reward,won?0:bet]);
    await client.query("INSERT INTO transactions(user_id,amount,reason) VALUES($1,$2,$3)",[req.user.id,reward-bet,won?`Slot nyerés (${bet} tét)`:`Slot veszteség (${bet} tét)`]);
    await client.query("COMMIT");
-   res.json({user:await userView(req.user.id),result:won?"WIN":"SKULL",bet,payout:reward,net:reward-bet});
+   res.json({user:await userView(req.user.id),result:won?"WIN":"SKULL",bet,payout:reward,net:reward-bet,effectiveWinChance:winChance,weaponBonus});
  }catch(e){await client.query("ROLLBACK");res.status(400).json({error:e.message})}finally{client.release()}
 });
 

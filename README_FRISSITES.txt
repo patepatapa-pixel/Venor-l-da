@@ -309,3 +309,14 @@ V43:
 - Coin tranzakciók az adminpanelen teljesen külön 'Coin tranzakciók' fülre kerültek.
 
 V44: adminpanel javítva; Coin tranzakció külön fül; késkurzorok; Yangért vehető fantasy fegyver inventory; adminból állítható árak.
+
+V45:
+- Inventory külön felső fül.
+- Saját történet reset gomb.
+- Teljes saját inventory reset gomb (Yang visszatérítés nélkül).
+- Yang Shop fegyverek alap értékkel.
+- Fegyverek Yangért újrahúzhatók.
+- Húzáskor új érték, Slot-szorzó és plusz szerencse kerül a fegyverre.
+- Egy fegyver felszerelhető, és a Slotban a nyerési esélyhez +luck%, a nyereményhez x multiplier bónuszt ad.
+- Adminból állítható fegyverenként: alap érték, húzás Yang ára, max szorzó, max szerencse.
+- Jackpot/admin audit nem törlődik a játékos történet resetjével.

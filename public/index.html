@@ -1,7 +1,7 @@
 <!doctype html><html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>O M I G A M B A – GAMB csak saját felelősségre</title><link rel="stylesheet" href="/style.css"></head><body>
 <div class="omi-disclaimer">⚠️ GAMB csak saját felelősségre</div>
 <header class="topbar"><a class="logo" href="/">VEN<span>ORI</span></a><nav class="nav"><a href="#ladak">Ládák</a><a href="#nyeremenyek">Nyeremények</a><a href="#jackpot">Jackpot</a><a href="#profil">Profil</a><a id="adminLink" href="/admin" style="display:none">Admin</a></nav><div class="top-actions"><div class="wallet">🪙 <b id="coins">—</b> Coin &nbsp;•&nbsp; 👻 <b id="soulPoints">—</b> Lélek Pont &nbsp;•&nbsp; 💰 <b id="yangBalance">—</b> Yang</div><button class="btn ghost" id="authBtn">Belépés</button><button class="btn primary" id="registerBtn">Regisztráció</button><button class="btn ghost" id="logout" style="display:none">Kilépés</button></div></header>
-<main class="wrap"><section class="hero"><span class="badge">OMI Gamba CHEST SYSTEM</span><h1>Nyisd ki. <span>Nyerj.</span> Ismételd.</h1><p>Online ládanyitó rendszer regisztrációval, napi Coinnal, jackpotokkal, ranglistával és külön adminpanellel.</p></section><div class="notice">📢 <span id="announcement">Betöltés...</span></div><div class="game-switch"><button class="game-mode active" id="modeChest">🎁 Ládázás</button><button class="game-mode" id="modeSlot">🎰 Slot</button><button class="game-mode" id="modeRedeem">🎟️ Kiváltás</button><button class="game-mode" id="modeStats">📊 Statisztika</button><button class="game-mode" id="modeShop">🛒 Yang Shop</button></div>
+<main class="wrap"><section class="hero"><span class="badge">OMI Gamba CHEST SYSTEM</span><h1>Nyisd ki. <span>Nyerj.</span> Ismételd.</h1><p>Online ládanyitó rendszer regisztrációval, napi Coinnal, jackpotokkal, ranglistával és külön adminpanellel.</p></section><div class="notice">📢 <span id="announcement">Betöltés...</span></div><div class="game-switch"><button class="game-mode active" id="modeChest">🎁 Ládázás</button><button class="game-mode" id="modeSlot">🎰 Slot</button><button class="game-mode" id="modeRedeem">🎟️ Kiváltás</button><button class="game-mode" id="modeStats">📊 Statisztika</button><button class="game-mode" id="modeInventory">🎒 Inventory</button><button class="game-mode" id="modeShop">🛒 Yang Shop</button></div>
 <div id="chestMode"><div class="tabs" id="ladak"><button class="tab active" data-q="1">1× Nyitás</button><button class="tab" data-q="10">10× Nyitás</button><button class="tab" data-q="100">100× Nyitás</button><button class="tab" disabled>1000× Nyitás 🔒</button></div>
 <section class="layout"><div class="card case"><div class="casehead"><h2>🧪 OMI Gamba Láda</h2><span class="small">Ár: <b id="price">1 000</b> Lélek Pont</span></div><div class="reward-grid" id="nyeremenyek">
 <div class="reward"><div class="icon">💰</div><div class="rarity">Yang</div><b>100 → 100M Yang</b><small>Több Yang szint</small></div>
@@ -153,6 +153,30 @@ A 10 milliárd Yang főnyereményt nem automatikusan írjuk jóvá. Ha megnyerte
 <div id="leaderboard"></div>
 </section>
 
+
+<section id="inventoryMode" style="display:none">
+  <div class="card section">
+    <div class="stats-title-row">
+      <div>
+        <h2 style="margin:0">🎒 Saját Inventory</h2>
+        <div class="small">Fegyverek húzása Yangért · felszerelt fegyver bónuszt ad a Slothoz.</div>
+      </div>
+      <button class="btn danger" id="resetInventoryBtn" type="button">🗑 Inventory reset</button>
+    </div>
+
+    <div class="inventory-bonus-info">
+      ⚔️ A felszerelt fegyver <b>szorzót</b> ad a Slot nyereményre és <b>plusz nyerési esélyt</b> ad.
+      A fegyvert Yangért újrahúzhatod.
+    </div>
+
+    <h3>⚔️ Yang Shop fegyvereim</h3>
+    <div id="weaponInventory" class="weapon-grid"></div>
+
+    <h3 style="margin-top:22px">🎁 Ládából szerzett tárgyak</h3>
+    <div id="chestInventoryTop" class="inventory-grid"></div>
+    <div class="small" id="inventoryModeMsg" style="margin-top:10px"></div>
+  </div>
+</section>
 <section id="shopMode" style="display:none">
   <div class="card section">
     <div class="stats-title-row">
@@ -163,12 +187,12 @@ A 10 milliárd Yang főnyereményt nem automatikusan írjuk jóvá. Ha megnyerte
       <div class="yang-shop-wallet">💰 <b id="shopYangBalance">0</b> Yang</div>
     </div>
 
-    <div class="shop-grid" id="shopItems"></div><h3 style="margin-top:22px">🎒 Saját inventory</h3><div class="inventory-grid" id="ownedInventory"></div>
+    <div class="shop-grid" id="shopItems"></div>
     <div class="small" id="shopMsg" style="margin-top:10px"></div>
   </div>
 </section>
 <section class="card section" id="profil"><h3>👤 Saját profil és nyeremények</h3><div class="profile"><div class="metric"><small>Felhasználó</small><b id="name">Vendég</b></div><div class="metric"><small>Coin egyenleg</small><b id="coins2">—</b></div><div class="metric"><small>Lélek Pont</small><b id="soulPoints2">—</b></div><div class="metric"><small>Eljátszott Coin</small><b id="played">—</b></div><div class="metric"><small>Összes nyitás</small><b id="opened">—</b></div><div class="metric"><small>Összes nyert Yang</small><b id="yangWon">—</b></div><div class="metric"><small>Összes nyert Coin</small><b id="coinWon">—</b></div></div></section>
-<section class="columns"><div class="card section"><h3>🏅 Ranglista</h3><div class="small">A sorrend a Coin + Lélek Pont + Yang együttes értéke alapján frissül.</div><div class="list" id="leader"></div></div><div class="card section"><h3>🎒 Inventory</h3><div class="list" id="inventory"><div class="small">Jelentkezz be.</div></div></div></section><section class="card section"><h3>🕘 Saját játéktörténet</h3><div class="list" id="history"><div class="small">Jelentkezz be.</div></div></section></main>
+<section class="columns"><div class="card section"><h3>🏅 Ranglista</h3><div class="small">A sorrend a Coin + Lélek Pont + Yang együttes értéke alapján frissül.</div><div class="list" id="leader"></div></div><div class="card section"><h3>🎒 Inventory</h3><div class="list" id="inventory"><div class="small">Jelentkezz be.</div></div></div></section><section class="card section"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h3>🕘 Saját játéktörténet</h3><button class="btn danger" id="resetHistoryBtn">🗑 Történet reset</button></div><div class="list" id="history"><div class="small">Jelentkezz be.</div></div></section></main>
 <footer>OMI Gamba © 2026 · Multiplayer Chest System</footer><div class="toast" id="toast"></div>
 <div class="modal" id="modal" style="pointer-events:none"><div class="card modal-card"><h2 id="modalTitle">Belépés</h2><input class="input" id="username" placeholder="Felhasználónév"><input class="input" id="password" type="password" placeholder="Jelszó">
 <label style="display:flex;align-items:center;gap:8px;margin:9px 0 4px;color:#bdb3c8;font-size:13px;cursor:pointer">
@@ -508,15 +532,15 @@ document.addEventListener("input",(e)=>{
 
 let slotConfig=null,selectedSlotBet=null,slotBusy=false;
 async function loadSlotConfig(){try{slotConfig=await api("/api/slot-config");if($("#slotWinChance"))$("#slotWinChance").textContent=slotConfig.winChance;if($("#slotSkullChance"))$("#slotSkullChance").textContent=slotConfig.skullChance;const bets=slotConfig.bets||[];$("#slotBets").innerHTML=bets.map((x,i)=>`<button class="slot-bet ${i===0?"active":""}" data-bet="${x.bet}"><b>${fmt(x.bet)} Coin</b><small>NYERTES: ${fmt(x.payout)} Coin</small></button>`).join("");selectedSlotBet=bets[0]?.bet||null}catch(e){}}
-$("#modeChest").onclick=()=>{$("#shopMode").style.display="none";$("#modeShop")?.classList.remove("active");$("#chestMode").style.display="block";$("#slotMode").style.display="none";$("#redeemMode").style.display="none";$("#statsMode").style.display="none";$("#modeChest").classList.add("active");$("#modeSlot").classList.remove("active");$("#modeStats").classList.remove("active");$("#modeRedeem").classList.remove("active");$("#modeStats").classList.remove("active")};
-$("#modeSlot").onclick=()=>{$("#shopMode").style.display="none";$("#modeShop")?.classList.remove("active");$("#chestMode").style.display="none";$("#slotMode").style.display="block";$("#redeemMode").style.display="none";$("#statsMode").style.display="none";$("#modeSlot").classList.add("active");$("#modeChest").classList.remove("active");$("#modeStats").classList.remove("active");$("#modeRedeem").classList.remove("active");$("#modeStats").classList.remove("active")};
-$("#modeRedeem").onclick=()=>{$("#shopMode").style.display="none";$("#modeShop")?.classList.remove("active");
+$("#modeChest").onclick=()=>{$("#inventoryMode").style.display="none";$("#modeInventory")?.classList.remove("active");$("#shopMode").style.display="none";$("#modeShop")?.classList.remove("active");$("#chestMode").style.display="block";$("#slotMode").style.display="none";$("#redeemMode").style.display="none";$("#statsMode").style.display="none";$("#modeChest").classList.add("active");$("#modeSlot").classList.remove("active");$("#modeStats").classList.remove("active");$("#modeRedeem").classList.remove("active");$("#modeStats").classList.remove("active")};
+$("#modeSlot").onclick=()=>{$("#inventoryMode").style.display="none";$("#modeInventory")?.classList.remove("active");$("#shopMode").style.display="none";$("#modeShop")?.classList.remove("active");$("#chestMode").style.display="none";$("#slotMode").style.display="block";$("#redeemMode").style.display="none";$("#statsMode").style.display="none";$("#modeSlot").classList.add("active");$("#modeChest").classList.remove("active");$("#modeStats").classList.remove("active");$("#modeRedeem").classList.remove("active");$("#modeStats").classList.remove("active")};
+$("#modeRedeem").onclick=()=>{$("#inventoryMode").style.display="none";$("#modeInventory")?.classList.remove("active");$("#shopMode").style.display="none";$("#modeShop")?.classList.remove("active");
  $("#chestMode").style.display="none";$("#slotMode").style.display="none";$("#redeemMode").style.display="block";$("#statsMode").style.display="none";
  $("#modeRedeem").classList.add("active");$("#modeChest").classList.remove("active");$("#modeStats").classList.remove("active");$("#modeSlot").classList.remove("active");$("#modeStats").classList.remove("active");
  loadRedemptions();loadMyRedemptions();loadExchangeConfig();
 };
 
-$("#modeStats").onclick=()=>{$("#shopMode").style.display="none";$("#modeShop")?.classList.remove("active");
+$("#modeStats").onclick=()=>{$("#inventoryMode").style.display="none";$("#modeInventory")?.classList.remove("active");$("#shopMode").style.display="none";$("#modeShop")?.classList.remove("active");
  $("#chestMode").style.display="none";
  $("#slotMode").style.display="none";
  $("#redeemMode").style.display="none";
@@ -715,7 +739,7 @@ document.addEventListener("click",async e=>{
  }
 });
 
-$("#modeShop").onclick=()=>{
+$("#modeShop").onclick=()=>{$("#inventoryMode").style.display="none";$("#modeInventory")?.classList.remove("active");
  ["chestMode","slotMode","redeemMode","statsMode","shopMode"].forEach(id=>{const el=$("#"+id);if(el)el.style.display="none"});
  ["modeChest","modeSlot","modeRedeem","modeStats","modeShop"].forEach(id=>$("#"+id)?.classList.remove("active"));
  $("#shopMode").style.display="block";$("#modeShop").classList.add("active");loadShop();
@@ -736,6 +760,72 @@ document.addEventListener("mousemove",e=>{
  document.body.appendChild(dot);
  setTimeout(()=>dot.remove(),650);
 });
+
+
+async function loadFullInventory(){
+ if(!user)return;
+ try{
+   const d=await api("/api/my-full-inventory");
+   user=d.user;render();
+   $("#weaponInventory").innerHTML=(d.weapons||[]).length?(d.weapons||[]).map(w=>{
+     const equipped=String(d.equippedWeapon||"")===String(w.id);
+     return `<div class="weapon-card ${equipped?"equipped":""}">
+       <div class="weapon-top"><span class="weapon-icon">⚔️</span><div><b>${w.name}</b><div class="small">Alap érték: ${fmt(w.base_value||100)}</div></div></div>
+       <div class="weapon-stats">
+         <div><span>Aktuális érték</span><b>${fmt(w.value_score)}</b></div>
+         <div><span>Slot szorzó</span><b>x${Number(w.slot_multiplier).toFixed(3)}</b></div>
+         <div><span>Szerencse</span><b>+${Number(w.luck_bonus).toFixed(3)}%</b></div>
+         <div><span>Húzások</span><b>${fmt(w.roll_count)}</b></div>
+       </div>
+       <div class="small weapon-max">Max: x${Number(w.max_multiplier||1.35).toFixed(2)} szorzó · +${Number(w.max_luck||4).toFixed(2)}% szerencse</div>
+       <div class="weapon-actions">
+         <button class="btn primary" data-weapon-roll="${w.id}">🎲 Húzás · ${fmt(w.roll_cost||5000000)} Yang</button>
+         <button class="btn ${equipped?"active":""}" data-weapon-equip="${w.id}">${equipped?"✓ Felszerelve":"⚔️ Felszerelés"}</button>
+       </div>
+     </div>`;
+   }).join(""):"<div class='small'>Még nincs Yangért vásárolt fegyvered.</div>";
+
+   $("#chestInventoryTop").innerHTML=(d.chestItems||[]).length?(d.chestItems||[]).map(x=>`<div class="inventory-item"><div class="inventory-icon">🎁</div><b>${x.item_name}</b><span>${fmt(x.quantity)} db</span></div>`).join(""):"<div class='small'>Nincs ládából szerzett tárgyad.</div>";
+ }catch(e){$("#inventoryModeMsg").textContent="❌ "+e.message}
+}
+
+$("#modeInventory").onclick=()=>{
+ ["chestMode","slotMode","redeemMode","statsMode","inventoryMode","shopMode"].forEach(id=>{const el=$("#"+id);if(el)el.style.display="none"});
+ ["modeChest","modeSlot","modeRedeem","modeStats","modeInventory","modeShop"].forEach(id=>$("#"+id)?.classList.remove("active"));
+ $("#inventoryMode").style.display="block";$("#modeInventory").classList.add("active");loadFullInventory();
+};
+
+document.addEventListener("click",async e=>{
+ const roll=e.target.closest("[data-weapon-roll]");
+ if(roll){
+   if(!confirm("Biztosan Yangért újrahúzod ezt a fegyvert? Az előző bónuszok lecserélődnek."))return;
+   try{
+     const d=await api("/api/inventory/roll",{method:"POST",body:JSON.stringify({itemId:roll.dataset.weaponRoll})});
+     user=d.user;render();$("#inventoryModeMsg").textContent="✅ "+d.message;await loadFullInventory();
+   }catch(err){$("#inventoryModeMsg").textContent="❌ "+err.message}
+   return;
+ }
+ const eq=e.target.closest("[data-weapon-equip]");
+ if(eq){
+   try{
+     const d=await api("/api/inventory/equip",{method:"POST",body:JSON.stringify({itemId:eq.dataset.weaponEquip})});
+     user=d.user;render();$("#inventoryModeMsg").textContent="✅ "+d.message;await loadFullInventory();
+   }catch(err){$("#inventoryModeMsg").textContent="❌ "+err.message}
+ }
+});
+
+$("#resetHistoryBtn").onclick=async()=>{
+ if(!confirm("Biztosan törlöd a saját játéktörténeted? A jackpot/admin ellenőrzési adatok nem törlődnek."))return;
+ try{const d=await api("/api/me/reset-history",{method:"POST",body:"{}"});toast(d.message);await hist()}catch(e){toast(e.message)}
+};
+
+$("#resetInventoryBtn").onclick=async()=>{
+ if(!confirm("Biztosan teljesen reseteled az inventorydat? A fegyverek és húzásaik törlődnek, Yang visszatérítés nincs."))return;
+ try{
+   const d=await api("/api/me/reset-inventory",{method:"POST",body:"{}"});
+   user=d.user;render();$("#inventoryModeMsg").textContent="✅ "+d.message;await loadFullInventory();
+ }catch(e){$("#inventoryModeMsg").textContent="❌ "+e.message}
+};
 
 </script>
 
