@@ -574,3 +574,16 @@ hr{
   .rank-dual-row{grid-template-columns:44px 1fr}
   .rank-values{grid-column:1/-1}
 }
+
+/* V42 Yang Shop */
+.yang-shop-wallet{padding:10px 14px;border:1px solid #6d5318;border-radius:12px;background:#0b0904;color:#f2c14e;font-weight:900}
+.shop-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:16px}
+.shop-card{padding:16px;border:1px solid #302812;border-radius:14px;background:linear-gradient(180deg,#11100b,#090909)}
+.shop-icon{font-size:30px}.shop-name{font-weight:900;margin:7px 0}.shop-price{color:#f2c14e;font-weight:900;margin:10px 0}
+.shop-admin-row{display:grid;grid-template-columns:1.3fr .8fr 1fr .8fr 80px 80px;gap:8px;align-items:center}
+body[data-shop-bg="midnight"]{background:linear-gradient(180deg,#020308,#090b18 55%,#020308)!important}
+body[data-shop-bg="crimson"]{background:radial-gradient(circle at 50% 0,#361018,#090505 45%,#030303)!important}
+body[data-shop-bg="emerald"]{background:radial-gradient(circle at 50% 0,#0c3324,#050907 45%,#020302)!important}
+body[data-shop-bg="black_gold"]{background:radial-gradient(circle at 50% -10%,rgba(242,193,78,.08),transparent 36%),linear-gradient(180deg,#050505,#030303)!important}
+@media(max-width:900px){.shop-grid{grid-template-columns:1fr 1fr}.shop-admin-row{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.shop-grid,.shop-admin-row{grid-template-columns:1fr}}

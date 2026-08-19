@@ -1,7 +1,7 @@
 <!doctype html><html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>O M I G A M B A – GAMB csak saját felelősségre</title><link rel="stylesheet" href="/style.css"></head><body>
 <div class="omi-disclaimer">⚠️ GAMB csak saját felelősségre</div>
-<header class="topbar"><a class="logo" href="/">VEN<span>ORI</span></a><nav class="nav"><a href="#ladak">Ládák</a><a href="#nyeremenyek">Nyeremények</a><a href="#jackpot">Jackpot</a><a href="#profil">Profil</a><a id="adminLink" href="/admin" style="display:none">Admin</a></nav><div class="top-actions"><div class="wallet">🪙 <b id="coins">—</b> Coin &nbsp;•&nbsp; 👻 <b id="soulPoints">—</b> Lélek Pont</div><button class="btn ghost" id="authBtn">Belépés</button><button class="btn primary" id="registerBtn">Regisztráció</button><button class="btn ghost" id="logout" style="display:none">Kilépés</button></div></header>
-<main class="wrap"><section class="hero"><span class="badge">OMI Gamba CHEST SYSTEM</span><h1>Nyisd ki. <span>Nyerj.</span> Ismételd.</h1><p>Online ládanyitó rendszer regisztrációval, napi Coinnal, jackpotokkal, ranglistával és külön adminpanellel.</p></section><div class="notice">📢 <span id="announcement">Betöltés...</span></div><div class="game-switch"><button class="game-mode active" id="modeChest">🎁 Ládázás</button><button class="game-mode" id="modeSlot">🎰 Slot</button><button class="game-mode" id="modeRedeem">🎟️ Kiváltás</button><button class="game-mode" id="modeStats">📊 Statisztika</button></div>
+<header class="topbar"><a class="logo" href="/">VEN<span>ORI</span></a><nav class="nav"><a href="#ladak">Ládák</a><a href="#nyeremenyek">Nyeremények</a><a href="#jackpot">Jackpot</a><a href="#profil">Profil</a><a id="adminLink" href="/admin" style="display:none">Admin</a></nav><div class="top-actions"><div class="wallet">🪙 <b id="coins">—</b> Coin &nbsp;•&nbsp; 👻 <b id="soulPoints">—</b> Lélek Pont &nbsp;•&nbsp; 💰 <b id="yangBalance">—</b> Yang</div><button class="btn ghost" id="authBtn">Belépés</button><button class="btn primary" id="registerBtn">Regisztráció</button><button class="btn ghost" id="logout" style="display:none">Kilépés</button></div></header>
+<main class="wrap"><section class="hero"><span class="badge">OMI Gamba CHEST SYSTEM</span><h1>Nyisd ki. <span>Nyerj.</span> Ismételd.</h1><p>Online ládanyitó rendszer regisztrációval, napi Coinnal, jackpotokkal, ranglistával és külön adminpanellel.</p></section><div class="notice">📢 <span id="announcement">Betöltés...</span></div><div class="game-switch"><button class="game-mode active" id="modeChest">🎁 Ládázás</button><button class="game-mode" id="modeSlot">🎰 Slot</button><button class="game-mode" id="modeRedeem">🎟️ Kiváltás</button><button class="game-mode" id="modeStats">📊 Statisztika</button><button class="game-mode" id="modeShop">🛒 Yang Shop</button></div>
 <div id="chestMode"><div class="tabs" id="ladak"><button class="tab active" data-q="1">1× Nyitás</button><button class="tab" data-q="10">10× Nyitás</button><button class="tab" data-q="100">100× Nyitás</button><button class="tab" disabled>1000× Nyitás 🔒</button></div>
 <section class="layout"><div class="card case"><div class="casehead"><h2>🧪 OMI Gamba Láda</h2><span class="small">Ár: <b id="price">1 000</b> Lélek Pont</span></div><div class="reward-grid" id="nyeremenyek">
 <div class="reward"><div class="icon">💰</div><div class="rarity">Yang</div><b>100 → 100M Yang</b><small>Több Yang szint</small></div>
@@ -149,11 +149,26 @@ A 10 milliárd Yang főnyereményt nem automatikusan írjuk jóvá. Ha megnyerte
 </section>
 <section class="card section">
 <h3>🏆 Ranglista</h3>
-<div class="small" style="margin-bottom:10px">Coin + Lélek Pont együttes rangsor.</div>
+<div class="small" style="margin-bottom:10px">Coin + Lélek Pont + Yang együttes rangsor.</div>
 <div id="leaderboard"></div>
 </section>
+
+<section id="shopMode" style="display:none">
+  <div class="card section">
+    <div class="stats-title-row">
+      <div>
+        <h2 style="margin:0">🛒 Yang Shop</h2>
+        <div class="small">A ládából nyert Yang külön egyenlegként gyűlik, és itt költheted el.</div>
+      </div>
+      <div class="yang-shop-wallet">💰 <b id="shopYangBalance">0</b> Yang</div>
+    </div>
+
+    <div class="shop-grid" id="shopItems"></div>
+    <div class="small" id="shopMsg" style="margin-top:10px"></div>
+  </div>
+</section>
 <section class="card section" id="profil"><h3>👤 Saját profil és nyeremények</h3><div class="profile"><div class="metric"><small>Felhasználó</small><b id="name">Vendég</b></div><div class="metric"><small>Coin egyenleg</small><b id="coins2">—</b></div><div class="metric"><small>Lélek Pont</small><b id="soulPoints2">—</b></div><div class="metric"><small>Eljátszott Coin</small><b id="played">—</b></div><div class="metric"><small>Összes nyitás</small><b id="opened">—</b></div><div class="metric"><small>Összes nyert Yang</small><b id="yangWon">—</b></div><div class="metric"><small>Összes nyert Coin</small><b id="coinWon">—</b></div></div></section>
-<section class="columns"><div class="card section"><h3>🏅 Ranglista</h3><div class="small">A sorrend a Coin + Lélek Pont együttes értéke alapján frissül.</div><div class="list" id="leader"></div></div><div class="card section"><h3>🎒 Inventory</h3><div class="list" id="inventory"><div class="small">Jelentkezz be.</div></div></div></section><section class="card section"><h3>🕘 Saját játéktörténet</h3><div class="list" id="history"><div class="small">Jelentkezz be.</div></div></section></main>
+<section class="columns"><div class="card section"><h3>🏅 Ranglista</h3><div class="small">A sorrend a Coin + Lélek Pont + Yang együttes értéke alapján frissül.</div><div class="list" id="leader"></div></div><div class="card section"><h3>🎒 Inventory</h3><div class="list" id="inventory"><div class="small">Jelentkezz be.</div></div></div></section><section class="card section"><h3>🕘 Saját játéktörténet</h3><div class="list" id="history"><div class="small">Jelentkezz be.</div></div></section></main>
 <footer>OMI Gamba © 2026 · Multiplayer Chest System</footer><div class="toast" id="toast"></div>
 <div class="modal" id="modal" style="pointer-events:none"><div class="card modal-card"><h2 id="modalTitle">Belépés</h2><input class="input" id="username" placeholder="Felhasználónév"><input class="input" id="password" type="password" placeholder="Jelszó">
 <label style="display:flex;align-items:center;gap:8px;margin:9px 0 4px;color:#bdb3c8;font-size:13px;cursor:pointer">
@@ -195,6 +210,8 @@ function rewardChime(kind){
    });
    setTimeout(()=>ctx.close().catch(()=>{}),1500);
  }catch(e){}
+
+ if(user?.selected_chime)playPurchasedChime(user.selected_chime);
 }
 
 function showPetEffect(){
@@ -254,7 +271,7 @@ async function loadCumulativeRewards(){
 function renderOpenResults(d){
  loadCumulativeRewards();
 }
-function render(){const ok=!!user;$("#coins").textContent=ok?fmt(user.coins):"—";$("#coins2").textContent=ok?fmt(user.coins):"—";$("#soulPoints").textContent=ok?fmt(user.soul_points):"—";$("#soulPoints2").textContent=ok?fmt(user.soul_points):"—";$("#played").textContent=ok?fmt(user.played_coins):"—";$("#opened").textContent=ok?fmt(user.total_opened):"—";$("#yangWon").textContent=ok?fmt(user.total_yang_won):"—";$("#coinWon").textContent=ok?fmt(user.total_coin_won):"—";$("#name").textContent=ok?user.username:"Vendég";$("#authBtn").style.display=ok?"none":"inline-block";$("#registerBtn").style.display=ok?"none":"inline-block";$("#logout").style.display=ok?"inline-block":"none";$("#adminLink").style.display=ok&&user.role==="admin"?"inline":"none"}
+function render(){const ok=!!user;$("#coins").textContent=ok?fmt(user.coins):"—";$("#coins2").textContent=ok?fmt(user.coins):"—";$("#soulPoints").textContent=ok?fmt(user.soul_points):"—";if($("#yangBalance"))$("#yangBalance").textContent=ok?fmt(user.yang_balance):"—";$("#soulPoints2").textContent=ok?fmt(user.soul_points):"—";$("#played").textContent=ok?fmt(user.played_coins):"—";$("#opened").textContent=ok?fmt(user.total_opened):"—";$("#yangWon").textContent=ok?fmt(user.total_yang_won):"—";$("#coinWon").textContent=ok?fmt(user.total_coin_won):"—";$("#name").textContent=ok?user.username:"Vendég";$("#authBtn").style.display=ok?"none":"inline-block";$("#registerBtn").style.display=ok?"none":"inline-block";$("#logout").style.display=ok?"inline-block":"none";$("#adminLink").style.display=ok&&user.role==="admin"?"inline":"none"}
 async function loadPublic(){cfg=await api("/api/public");$("#announcement").textContent=cfg.announcement;$("#dailyAmount").textContent=fmt(cfg.dailyBonus);if($("#dailySoulAmount"))$("#dailySoulAmount").textContent=fmt(cfg.dailySoulBonus);document.querySelectorAll(".tab:not([disabled])").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));b.classList.add("active");q=+b.dataset.q;$("#qty").textContent=q+"×";$("#price").textContent=fmt(cfg.soulChestPrice*q);$("#open").textContent="✦ "+q+"× LÁDA NYITÁSA"})}
 let adminActivityCache=[];
 
@@ -491,15 +508,15 @@ document.addEventListener("input",(e)=>{
 
 let slotConfig=null,selectedSlotBet=null,slotBusy=false;
 async function loadSlotConfig(){try{slotConfig=await api("/api/slot-config");if($("#slotWinChance"))$("#slotWinChance").textContent=slotConfig.winChance;if($("#slotSkullChance"))$("#slotSkullChance").textContent=slotConfig.skullChance;const bets=slotConfig.bets||[];$("#slotBets").innerHTML=bets.map((x,i)=>`<button class="slot-bet ${i===0?"active":""}" data-bet="${x.bet}"><b>${fmt(x.bet)} Coin</b><small>NYERTES: ${fmt(x.payout)} Coin</small></button>`).join("");selectedSlotBet=bets[0]?.bet||null}catch(e){}}
-$("#modeChest").onclick=()=>{$("#chestMode").style.display="block";$("#slotMode").style.display="none";$("#redeemMode").style.display="none";$("#statsMode").style.display="none";$("#modeChest").classList.add("active");$("#modeSlot").classList.remove("active");$("#modeStats").classList.remove("active");$("#modeRedeem").classList.remove("active");$("#modeStats").classList.remove("active")};
-$("#modeSlot").onclick=()=>{$("#chestMode").style.display="none";$("#slotMode").style.display="block";$("#redeemMode").style.display="none";$("#statsMode").style.display="none";$("#modeSlot").classList.add("active");$("#modeChest").classList.remove("active");$("#modeStats").classList.remove("active");$("#modeRedeem").classList.remove("active");$("#modeStats").classList.remove("active")};
-$("#modeRedeem").onclick=()=>{
+$("#modeChest").onclick=()=>{$("#shopMode").style.display="none";$("#modeShop")?.classList.remove("active");$("#chestMode").style.display="block";$("#slotMode").style.display="none";$("#redeemMode").style.display="none";$("#statsMode").style.display="none";$("#modeChest").classList.add("active");$("#modeSlot").classList.remove("active");$("#modeStats").classList.remove("active");$("#modeRedeem").classList.remove("active");$("#modeStats").classList.remove("active")};
+$("#modeSlot").onclick=()=>{$("#shopMode").style.display="none";$("#modeShop")?.classList.remove("active");$("#chestMode").style.display="none";$("#slotMode").style.display="block";$("#redeemMode").style.display="none";$("#statsMode").style.display="none";$("#modeSlot").classList.add("active");$("#modeChest").classList.remove("active");$("#modeStats").classList.remove("active");$("#modeRedeem").classList.remove("active");$("#modeStats").classList.remove("active")};
+$("#modeRedeem").onclick=()=>{$("#shopMode").style.display="none";$("#modeShop")?.classList.remove("active");
  $("#chestMode").style.display="none";$("#slotMode").style.display="none";$("#redeemMode").style.display="block";$("#statsMode").style.display="none";
  $("#modeRedeem").classList.add("active");$("#modeChest").classList.remove("active");$("#modeStats").classList.remove("active");$("#modeSlot").classList.remove("active");$("#modeStats").classList.remove("active");
  loadRedemptions();loadMyRedemptions();loadExchangeConfig();
 };
 
-$("#modeStats").onclick=()=>{
+$("#modeStats").onclick=()=>{$("#shopMode").style.display="none";$("#modeShop")?.classList.remove("active");
  $("#chestMode").style.display="none";
  $("#slotMode").style.display="none";
  $("#redeemMode").style.display="none";
@@ -553,7 +570,7 @@ async function loadLeaderboard(){
        <div class="rank-user"><b>${r.username}</b><span>Összpont: ${fmt(r.combinedScore)}</span></div>
        <div class="rank-values">
          <div><span>🪙 Coin</span><b>${fmt(r.coins)}</b></div>
-         <div><span>👻 Lélek Pont</span><b>${fmt(r.soulPoints)}</b></div>
+         <div><span>👻 Lélek Pont</span><b>${fmt(r.soulPoints)}</b></div><div><span>💰 Yang</span><b>${fmt(r.yang)}</b></div>
        </div>
      </div>`).join(""):"<div class='small'>Még nincs ranglista adat.</div>";
    containers.forEach(c=>c.innerHTML=html);
@@ -596,6 +613,78 @@ document.addEventListener("click",async e=>{
  }catch(err){msg.textContent="❌ "+err.message}
  finally{b.disabled=false}
 });
+
+
+function applyPurchasedBackground(name){
+ document.body.dataset.shopBg=name||"black_gold";
+}
+function playPurchasedChime(name){
+ try{
+   const ctx=new (window.AudioContext||window.webkitAudioContext)();
+   const now=ctx.currentTime;
+   const presets={
+     classic:[880,1174],
+     crystal:[1046,1318,1568],
+     royal:[523,659,784,1046]
+   };
+   const seq=presets[name]||presets.classic;
+   seq.forEach((freq,i)=>{
+     const o=ctx.createOscillator(),g=ctx.createGain();
+     o.frequency.value=freq;o.type="sine";
+     g.gain.setValueAtTime(.0001,now+i*.11);
+     g.gain.exponentialRampToValueAtTime(.16,now+i*.11+.02);
+     g.gain.exponentialRampToValueAtTime(.0001,now+i*.11+.18);
+     o.connect(g);g.connect(ctx.destination);o.start(now+i*.11);o.stop(now+i*.11+.2);
+   });
+ }catch{}
+}
+
+async function loadShop(){
+ if(!user)return;
+ try{
+   const d=await api("/api/shop");
+   user=d.user;render();
+   $("#shopYangBalance").textContent=fmt(user.yang_balance||0);
+   const owned=new Set(d.owned||[]);
+   $("#shopItems").innerHTML=(d.items||[]).map(x=>{
+     const cosmetic=["chime","background"].includes(x.type);
+     const has=owned.has(x.id)||Number(x.price||0)===0;
+     const icon=x.type==="chime"?"🔔":x.type==="background"?"🎨":x.type==="coin"?"🪙":"👻";
+     return `<div class="shop-card">
+       <div class="shop-icon">${icon}</div>
+       <div class="shop-name">${x.name}</div>
+       <div class="small">${x.type==="soul"?fmt(x.value)+" Lélek Pont":x.type==="coin"?fmt(x.value)+" Coin":x.type==="chime"?"Nyereményhang":"Háttér téma"}</div>
+       <div class="shop-price">💰 ${fmt(x.price)} Yang</div>
+       ${cosmetic&&has?`<button class="btn" data-shop-select="${x.id}">Kiválasztás</button>`:`<button class="btn primary" data-shop-buy="${x.id}">${x.price==0?"Feloldva":"Vásárlás"}</button>`}
+     </div>`;
+   }).join("")||"<div class='small'>Nincs aktív shop tétel.</div>";
+   applyPurchasedBackground(user.selected_background);
+ }catch(e){$("#shopMsg").textContent="❌ "+e.message}
+}
+
+document.addEventListener("click",async e=>{
+ const buy=e.target.closest("[data-shop-buy]");
+ if(buy){
+   try{
+     const d=await api("/api/shop/buy",{method:"POST",body:JSON.stringify({itemId:buy.dataset.shopBuy})});
+     user=d.user;render();$("#shopMsg").textContent="✅ "+d.message;await loadShop();
+   }catch(err){$("#shopMsg").textContent="❌ "+err.message}
+   return;
+ }
+ const sel=e.target.closest("[data-shop-select]");
+ if(sel){
+   try{
+     const d=await api("/api/shop/select",{method:"POST",body:JSON.stringify({itemId:sel.dataset.shopSelect})});
+     user=d.user;render();applyPurchasedBackground(user.selected_background);$("#shopMsg").textContent="✅ Kiválasztva.";await loadShop();
+   }catch(err){$("#shopMsg").textContent="❌ "+err.message}
+ }
+});
+
+$("#modeShop").onclick=()=>{
+ ["chestMode","slotMode","redeemMode","statsMode","shopMode"].forEach(id=>{const el=$("#"+id);if(el)el.style.display="none"});
+ ["modeChest","modeSlot","modeRedeem","modeStats","modeShop"].forEach(id=>$("#"+id)?.classList.remove("active"));
+ $("#shopMode").style.display="block";$("#modeShop").classList.add("active");loadShop();
+};
 
 </script>
 

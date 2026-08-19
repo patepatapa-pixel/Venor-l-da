@@ -104,6 +104,18 @@ A játékosfiókok, jelenlegi Coin egyenlegek, inventoryk, játéktörténet és
   <button class="btn primary" id="saveExchangeConfig" style="margin-top:12px">💾 Átváltások mentése</button>
   <div class="small" id="exchangeAdminMsg" style="margin-top:8px"></div>
 </section>
+
+<section class="card section">
+  <h3>🛒 Yang Shop kezelése</h3>
+  <div class="small">Itt állíthatod a Yangból vásárolható csilingeléseket, Lélek Pontot, Coint és háttér témákat.</div>
+  <label style="display:block;margin:10px 0"><input id="shopEnabledAdmin" type="checkbox"> Yang Shop engedélyezve</label>
+  <div id="shopAdminRows" style="display:grid;gap:8px;margin-top:10px"></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+    <button class="btn" id="addShopItem">+ Új shop tétel</button>
+    <button class="btn primary" id="saveShopConfig">💾 Shop mentése</button>
+  </div>
+  <div class="small" id="shopAdminMsg" style="margin-top:8px"></div>
+</section>
 </main><div class="toast" id="toast"></div><script>
 const $=s=>document.querySelector(s),fmt=n=>Number(n||0).toLocaleString("hu-HU");async function api(u,o={}){const r=await fetch(u,{...o,headers:{"Content-Type":"application/json"}});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||"Hiba");return d}function toast(x){const t=$("#toast");t.textContent=x;t.style.display="block";setTimeout(()=>t.style.display="none",2500)}
 async function stats(){const d=await api("/api/admin/stats");$("#stats").innerHTML=[["Játékosok",d.users],["Aktív",d.active],["Tiltva",d.banned],["Eljátszott",d.played],["Nyitások",d.opened],["Coin",d.coins],["Nyert Yang",d.yangWon],["Nyert Coin",d.coinWon],["Slot elpörgetett",d.slotSpent],["Slot pörgetések",d.slotSpins],["Slot nyeremény",d.slotWon]].map(x=>`<div class="metric"><small>${x[0]}</small><b>${fmt(x[1])}</b></div>`).join("")}
@@ -422,7 +434,7 @@ async function bootAdmin(){
     ["Beállítások",settings],
     ["Tranzakciók",tx],
     ["Jackpot lista",jackpots],
-    ["Drop lista",loadDrops],["Kiváltási jutalmak",loadRedemptionConfig],["Kiváltások",loadAdminRedemptions],["Átváltási rendszer",loadExchangeAdmin]
+    ["Drop lista",loadDrops],["Kiváltási jutalmak",loadRedemptionConfig],["Kiváltások",loadAdminRedemptions],["Átváltási rendszer",loadExchangeAdmin],["Yang Shop",loadShopAdmin]
   ];
 
   for(const [name,fn] of loaders){
@@ -456,6 +468,43 @@ $("#saveExchangeConfig").onclick=async()=>{
    await loadExchangeAdmin();
  }catch(e){$("#exchangeAdminMsg").textContent="❌ "+e.message}
 };
+
+
+let shopAdminCache=[];
+async function loadShopAdmin(){
+ try{
+   const d=await api("/api/admin/shop-config");
+   $("#shopEnabledAdmin").checked=d.enabled;
+   shopAdminCache=d.items||[];
+   renderShopAdmin();
+ }catch(e){$("#shopAdminMsg").textContent="❌ "+e.message}
+}
+function renderShopAdmin(){
+ $("#shopAdminRows").innerHTML=shopAdminCache.map((x,i)=>`
+   <div class="shop-admin-row">
+     <input class="input" data-shop-i="${i}" data-shop-f="name" value="${x.name}">
+     <select class="input" data-shop-i="${i}" data-shop-f="type">
+       <option value="chime" ${x.type==="chime"?"selected":""}>Csengőhang</option>
+       <option value="soul" ${x.type==="soul"?"selected":""}>Lélek Pont</option>
+       <option value="coin" ${x.type==="coin"?"selected":""}>Coin</option>
+       <option value="background" ${x.type==="background"?"selected":""}>Háttér</option>
+     </select>
+     <input class="input" data-shop-i="${i}" data-shop-f="value" value="${x.value}" placeholder="Érték / azonosító">
+     <input class="input" type="number" min="0" data-shop-i="${i}" data-shop-f="price" value="${x.price}" placeholder="Yang ár">
+     <label class="small"><input type="checkbox" data-shop-i="${i}" data-shop-f="active" ${x.active!==false?"checked":""}> aktív</label>
+     <button class="btn" data-shop-delete="${i}">Törlés</button>
+   </div>`).join("");
+ document.querySelectorAll("[data-shop-i]").forEach(el=>el.onchange=()=>{
+   const i=+el.dataset.shopI,f=el.dataset.shopF;
+   shopAdminCache[i][f]=f==="active"?el.checked:(f==="price"?+el.value:el.value);
+ });
+}
+$("#addShopItem").onclick=()=>{shopAdminCache.push({id:"shop_"+Date.now(),name:"Új shop tétel",type:"soul",value:1000,price:1000000,active:true});renderShopAdmin()};
+document.addEventListener("click",e=>{const b=e.target.closest("[data-shop-delete]");if(b){shopAdminCache.splice(+b.dataset.shopDelete,1);renderShopAdmin()}});
+$("#saveShopConfig").onclick=async()=>{try{
+ await api("/api/admin/shop-config",{method:"POST",body:JSON.stringify({enabled:$("#shopEnabledAdmin").checked,items:shopAdminCache})});
+ $("#shopAdminMsg").textContent="✅ Yang Shop elmentve.";await loadShopAdmin();
+}catch(e){$("#shopAdminMsg").textContent="❌ "+e.message}};
 
 </script>
 <div id="playerStatsModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.82);align-items:center;justify-content:center;padding:20px">

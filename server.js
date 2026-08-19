@@ -114,6 +114,18 @@ async function init(){
  await q("ALTER TABLE users ADD COLUMN IF NOT EXISTS last_daily_soul_at DATE");
  await q("ALTER TABLE users ADD COLUMN IF NOT EXISTS slot_lost_coins BIGINT NOT NULL DEFAULT 0");
  await q("ALTER TABLE users ADD COLUMN IF NOT EXISTS chest_soul_spent BIGINT NOT NULL DEFAULT 0");
+ await q("ALTER TABLE users ADD COLUMN IF NOT EXISTS yang_balance BIGINT NOT NULL DEFAULT 0");
+ await q("ALTER TABLE users ADD COLUMN IF NOT EXISTS selected_chime TEXT NOT NULL DEFAULT 'classic'");
+ await q("ALTER TABLE users ADD COLUMN IF NOT EXISTS selected_background TEXT NOT NULL DEFAULT 'black_gold'");
+ await q(`
+   CREATE TABLE IF NOT EXISTS user_shop_unlocks(
+     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+     item_id TEXT NOT NULL,
+     purchased_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+     PRIMARY KEY(user_id,item_id)
+   )
+ `);
+
  await q("ALTER TABLE users ADD COLUMN IF NOT EXISTS registration_ip TEXT");
  await q(`CREATE TABLE IF NOT EXISTS user_game_stats(
   user_id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
@@ -158,8 +170,15 @@ async function init(){
  soul_coin_coin:"500",
  coin_soul_enabled:"true",
  coin_soul_coin:"1000",
- coin_soul_soul:"500"};
+ coin_soul_soul:"500",
+ shop_enabled:"true",
+ shop_config:"[{\"id\":\"chime_classic\",\"name\":\"Klasszikus csilingelés\",\"type\":\"chime\",\"value\":\"classic\",\"price\":0,\"active\":true},{\"id\":\"chime_crystal\",\"name\":\"Kristály csilingelés\",\"type\":\"chime\",\"value\":\"crystal\",\"price\":5000000,\"active\":true},{\"id\":\"chime_royal\",\"name\":\"Királyi fanfár\",\"type\":\"chime\",\"value\":\"royal\",\"price\":25000000,\"active\":true},{\"id\":\"soul_1000\",\"name\":\"1 000 Lélek Pont\",\"type\":\"soul\",\"value\":1000,\"price\":10000000,\"active\":true},{\"id\":\"coin_1000\",\"name\":\"1 000 Coin\",\"type\":\"coin\",\"value\":1000,\"price\":15000000,\"active\":true},{\"id\":\"bg_midnight\",\"name\":\"Éjfekete háttér\",\"type\":\"background\",\"value\":\"midnight\",\"price\":5000000,\"active\":true},{\"id\":\"bg_crimson\",\"name\":\"Bíbor háttér\",\"type\":\"background\",\"value\":\"crimson\",\"price\":12000000,\"active\":true},{\"id\":\"bg_emerald\",\"name\":\"Smaragd háttér\",\"type\":\"background\",\"value\":\"emerald\",\"price\":12000000,\"active\":true}]",
+ yang_balance_backfill_version:"0"};
  for(const [k,v] of Object.entries(defaults)) await q("INSERT INTO settings(key,value) VALUES($1,$2) ON CONFLICT(key) DO NOTHING",[k,v]);
+ if((await setting("yang_balance_backfill_version"))!=="v42"){
+   await q("UPDATE users SET yang_balance=COALESCE(total_yang_won,0) WHERE COALESCE(yang_balance,0)=0 AND COALESCE(total_yang_won,0)>0");
+   await q("UPDATE settings SET value='v42' WHERE key='yang_balance_backfill_version'");
+ }
  if((await setting("stats_backfill_version"))!=="v29"){
   await q(`INSERT INTO user_game_stats(user_id,chest_opens,soul_spent,chest_yang_won,slot_spins,slot_wagered,slot_won,slot_lost)
    SELECT id,COALESCE(total_opened,0),COALESCE(chest_soul_spent,0),COALESCE(total_yang_won,0),COALESCE(slot_spins,0),COALESCE(slot_spent,0),COALESCE(slot_coin_won,0),COALESCE(slot_lost_coins,0)
@@ -191,7 +210,7 @@ function clientIp(req){
  const raw=String(req.headers["cf-connecting-ip"]||req.headers["x-forwarded-for"]||req.ip||req.socket?.remoteAddress||"");
  return raw.split(",")[0].trim().replace(/^::ffff:/,"").slice(0,100);
 }
-async function userView(id){return (await q("SELECT id,username,role,coins,played_coins,total_opened,total_yang_won,total_coin_won,banned,last_daily_at,created_at,slot_spent,slot_spins,slot_coin_won,soul_points,last_daily_soul_at,slot_lost_coins,chest_soul_spent FROM users WHERE id=$1",[id])).rows[0]}
+async function userView(id){return (await q("SELECT id,username,role,coins,played_coins,total_opened,total_yang_won,total_coin_won,banned,last_daily_at,created_at,slot_spent,slot_spins,slot_coin_won,soul_points,last_daily_soul_at,slot_lost_coins,chest_soul_spent,yang_balance,selected_chime,selected_background FROM users WHERE id=$1",[id])).rows[0]}
 function setAuth(res,u,remember=false){
  const expiresIn=remember?"30d":"12h";
  const token=jwt.sign({id:u.id,role:u.role},JWT_SECRET,{expiresIn});
@@ -367,7 +386,7 @@ app.post("/api/open",auth,async(req,res)=>{
      if(r.type==="item") items[r.name]=(items[r.name]||0)+rolledQty;
    }
    await client.query(
-     "UPDATE users SET soul_points=soul_points-$1,chest_soul_spent=chest_soul_spent+$1,total_opened=total_opened+$2,total_yang_won=total_yang_won+$3 WHERE id=$4",
+     "UPDATE users SET soul_points=soul_points-$1,chest_soul_spent=chest_soul_spent+$1,total_opened=total_opened+$2,total_yang_won=total_yang_won+$3,yang_balance=yang_balance+$3 WHERE id=$4",
      [cost,qty,yangWin,req.user.id]
    );
    await client.query(`INSERT INTO user_game_stats(user_id,chest_opens,soul_spent,chest_yang_won) VALUES($1,$2,$3,$4)
@@ -502,6 +521,85 @@ app.get("/api/my-reward-totals",auth,async(req,res)=>{
 
 
 // ===== V40 ÁTVÁLTÁSI RENDSZER =====
+
+async function getShopConfig(){
+ try{
+   const parsed=JSON.parse(await setting("shop_config")||"[]");
+   return Array.isArray(parsed)?parsed:[];
+ }catch(e){return []}
+}
+
+app.get("/api/shop",auth,async(req,res)=>{
+ const items=(await getShopConfig()).filter(x=>x.active!==false);
+ const owned=(await q("SELECT item_id FROM user_shop_unlocks WHERE user_id=$1",[req.user.id])).rows.map(x=>x.item_id);
+ res.json({
+   enabled:(await setting("shop_enabled"))==="true",
+   items,
+   owned,
+   user:await userView(req.user.id)
+ });
+});
+
+app.post("/api/shop/buy",auth,async(req,res)=>{
+ if((await setting("shop_enabled"))!=="true")return res.status(400).json({error:"A Yang Shop ki van kapcsolva."});
+ const itemId=String(req.body.itemId||"");
+ const items=await getShopConfig();
+ const item=items.find(x=>String(x.id)===itemId && x.active!==false);
+ if(!item)return res.status(404).json({error:"Ez a shop tétel nem elérhető."});
+
+ const price=Math.max(0,Math.floor(Number(item.price||0)));
+ const client=await pool.connect();
+ try{
+   await client.query("BEGIN");
+   const u=(await client.query("SELECT * FROM users WHERE id=$1 FOR UPDATE",[req.user.id])).rows[0];
+   if(Number(u.yang_balance||0)<price)throw new Error("Nincs elég összegyűjtött Yangod.");
+
+   const type=String(item.type||"");
+   const oneTime=["chime","background"].includes(type);
+   if(oneTime){
+     const owned=(await client.query("SELECT 1 FROM user_shop_unlocks WHERE user_id=$1 AND item_id=$2",[req.user.id,itemId])).rows[0];
+     if(owned)throw new Error("Ezt a kozmetikai elemet már megvetted.");
+   }
+
+   await client.query("UPDATE users SET yang_balance=yang_balance-$1 WHERE id=$2",[price,req.user.id]);
+
+   if(type==="soul"){
+     await client.query("UPDATE users SET soul_points=soul_points+$1 WHERE id=$2",[Math.max(1,Math.floor(Number(item.value||1))),req.user.id]);
+   }else if(type==="coin"){
+     await client.query("UPDATE users SET coins=coins+$1 WHERE id=$2",[Math.max(1,Math.floor(Number(item.value||1))),req.user.id]);
+   }else if(type==="chime" || type==="background"){
+     await client.query("INSERT INTO user_shop_unlocks(user_id,item_id) VALUES($1,$2) ON CONFLICT DO NOTHING",[req.user.id,itemId]);
+   }else{
+     throw new Error("Ismeretlen shop típus.");
+   }
+
+   await client.query("COMMIT");
+   res.json({ok:true,user:await userView(req.user.id),message:`Sikeresen megvetted: ${item.name}`});
+ }catch(e){
+   await client.query("ROLLBACK");
+   res.status(400).json({error:e.message});
+ }finally{client.release()}
+});
+
+app.post("/api/shop/select",auth,async(req,res)=>{
+ const itemId=String(req.body.itemId||"");
+ const items=await getShopConfig();
+ const item=items.find(x=>String(x.id)===itemId && x.active!==false);
+ if(!item || !["chime","background"].includes(item.type))return res.status(400).json({error:"Nem választható elem."});
+
+ if(Number(item.price||0)>0){
+   const owned=(await q("SELECT 1 FROM user_shop_unlocks WHERE user_id=$1 AND item_id=$2",[req.user.id,itemId])).rows[0];
+   if(!owned)return res.status(403).json({error:"Ezt előbb meg kell vásárolnod."});
+ }
+
+ if(item.type==="chime"){
+   await q("UPDATE users SET selected_chime=$1 WHERE id=$2",[String(item.value||"classic"),req.user.id]);
+ }else{
+   await q("UPDATE users SET selected_background=$1 WHERE id=$2",[String(item.value||"black_gold"),req.user.id]);
+ }
+ res.json({ok:true,user:await userView(req.user.id)});
+});
+
 app.get("/api/exchange-config",auth,async(req,res)=>{
  try{
    res.json({
@@ -534,9 +632,9 @@ app.post("/api/exchange/yang-to-soul",auth,async(req,res)=>{
    if((await setting("yang_soul_enabled"))!=="true")throw new Error("A Yang → Lélekpont átváltás ki van kapcsolva.");
    const cost=Math.max(1,Number(await setting("yang_soul_yang")||100000000));
    const reward=Math.max(1,Number(await setting("yang_soul_soul")||1000));
-   const u=(await client.query("SELECT total_yang_won,soul_points FROM users WHERE id=$1 FOR UPDATE",[req.user.id])).rows[0];
-   if(Number(u.total_yang_won||0)<cost)throw new Error(`Nincs elég Yangod. Szükséges: ${cost.toLocaleString("hu-HU")} Yang.`);
-   await client.query("UPDATE users SET total_yang_won=total_yang_won-$1,soul_points=soul_points+$2 WHERE id=$3",[cost,reward,req.user.id]);
+   const u=(await client.query("SELECT yang_balance,soul_points FROM users WHERE id=$1 FOR UPDATE",[req.user.id])).rows[0];
+   if(Number(u.yang_balance||0)<cost)throw new Error(`Nincs elég Yangod. Szükséges: ${cost.toLocaleString("hu-HU")} Yang.`);
+   await client.query("UPDATE users SET yang_balance=yang_balance-$1,soul_points=soul_points+$2 WHERE id=$3",[cost,reward,req.user.id]);
    await client.query("COMMIT");
    res.json({ok:true,user:await userView(req.user.id),message:`${cost.toLocaleString("hu-HU")} Yang → ${reward.toLocaleString("hu-HU")} Lélekpont`});
  }catch(e){
@@ -590,23 +688,21 @@ app.get("/api/leaderboard",async(req,res)=>{
        username,
        COALESCE(coins,0)::BIGINT AS coins,
        COALESCE(soul_points,0)::BIGINT AS soul_points,
-       (COALESCE(coins,0) + COALESCE(soul_points,0))::BIGINT AS combined_score
+       COALESCE(yang_balance,0)::BIGINT AS yang_balance,
+       (COALESCE(coins,0) + COALESCE(soul_points,0) + COALESCE(yang_balance,0))::NUMERIC AS combined_score
      FROM users
      WHERE role<>'admin' AND COALESCE(banned,false)=false
-     ORDER BY combined_score DESC, coins DESC, soul_points DESC, username ASC
+     ORDER BY combined_score DESC, yang_balance DESC, coins DESC, soul_points DESC, username ASC
      LIMIT 100
    `)).rows;
 
-   res.json({
-     rows:rows.map((r,i)=>({
-       rank:i+1,
-       id:r.id,
-       username:r.username,
-       coins:Number(r.coins||0),
-       soulPoints:Number(r.soul_points||0),
-       combinedScore:Number(r.combined_score||0)
-     }))
-   });
+   res.json({rows:rows.map((r,i)=>({
+     rank:i+1,id:r.id,username:r.username,
+     coins:Number(r.coins||0),
+     soulPoints:Number(r.soul_points||0),
+     yang:Number(r.yang_balance||0),
+     combinedScore:Number(r.combined_score||0)
+   }))});
  }catch(e){
    console.error("LEADERBOARD ERROR:",e);
    res.status(500).json({error:"A ranglista nem tölthető be."});
@@ -618,6 +714,29 @@ app.get("/api/admin/drops",auth,admin,async(req,res)=>{
  res.json({drops});
 });
 
+
+
+app.get("/api/admin/shop-config",auth,admin,async(req,res)=>{
+ res.json({enabled:(await setting("shop_enabled"))==="true",items:await getShopConfig()});
+});
+
+app.post("/api/admin/shop-config",auth,admin,async(req,res)=>{
+ const items=Array.isArray(req.body.items)?req.body.items:null;
+ if(!items)return res.status(400).json({error:"Hibás shop lista."});
+
+ const cleaned=items.map((x,i)=>({
+   id:String(x.id||`shop_${i+1}`).replace(/[^a-zA-Z0-9_-]/g,"_").slice(0,60),
+   name:String(x.name||"Shop tétel").slice(0,100),
+   type:["chime","soul","coin","background"].includes(x.type)?x.type:"soul",
+   value:["chime","background"].includes(x.type)?String(x.value||""):Math.max(1,Math.floor(Number(x.value||1))),
+   price:Math.max(0,Math.floor(Number(x.price||0))),
+   active:x.active!==false
+ }));
+
+ await q("UPDATE settings SET value=$1 WHERE key='shop_config'",[JSON.stringify(cleaned)]);
+ await q("UPDATE settings SET value=$1 WHERE key='shop_enabled'",[String(req.body.enabled!==false)]);
+ res.json({ok:true,items:cleaned});
+});
 
 app.get("/api/admin/exchange-config",auth,admin,async(req,res)=>{
  try{

@@ -288,3 +288,12 @@ V41 RANGLISTA:
 - A ranglistán külön látszik a Coin és a Lélek Pont.
 - Admin fiók és tiltott fiókok nem kerülnek bele.
 - Automatikus frissítés kb. 15 másodpercenként.
+
+V42:
+- A ládából nyert Yang külön, elkölthető Yang egyenlegként is gyűlik.
+- A történelmi "összes nyert Yang" statisztika nem csökken vásárláskor.
+- A ranglista Coin + Lélek Pont + Yang értéket is mutat és figyel.
+- Új Yang Shop: vásárolható csengőhang, Lélek Pont, Coin és háttér téma.
+- Minden shop tétel Yang ára és értéke adminpanelből állítható.
+- Csengőhang és háttér megvásárlás után kiválasztható.
+- Yang -> Lélekpont átváltás most az elkölthető Yang egyenleget használja.
