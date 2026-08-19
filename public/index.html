@@ -29,12 +29,21 @@ Az átvételhez írj a <b style="color:#fff">Hox</b> nevű játékosnak.
 </div><div class="stat"><span>50M Yang</span><strong>50 000 000</strong></div><div class="stat"><span>MAX Jackpot</span><strong class="gold">10 000 000 000</strong></div><div style="margin-top:14px;padding:14px;border:1px solid rgba(255,215,0,.35);border-radius:12px;background:rgba(255,215,0,.06);line-height:1.55">
 <b>🎮 Főnyeremény átvétele</b><br>
 A 10 milliárd Yang főnyereményt nem automatikusan írjuk jóvá. Ha megnyerted, keress meg játékban és írj a <b>Hox</b> nevű játékosnak, aki átadja neked a nyereményt.
-</div><button class="btn primary" id="daily" style="width:100%;margin-top:14px">🎁 Napi <span id="dailyAmount">5 000</span> Coin · csak 1×/nap</button></aside></section>
-<section class="card section" id="teljesDropLista">
-<h3>🎁 A láda teljes tartalma</h3>
-<p class="small">Az admin által jelenleg engedélyezett nyeremények. A lista automatikusan frissül.</p>
-<div id="allDrops" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px"></div>
-</section>
+</div>
+<div class="compact-drops">
+  <div class="compact-drops-head">
+    <div>
+      <b>🎁 Láda dropjai</b>
+      <div class="small">Aktív nyeremények</div>
+    </div>
+    <span class="small" id="dropCount">0 db</span>
+  </div>
+  <input class="input compact-drop-search" id="publicDropSearch" placeholder="Drop keresése...">
+  <div id="compactDropList" class="compact-drop-list">
+    <div class="small">Dropok betöltése...</div>
+  </div>
+</div>
+<button class="btn primary" id="daily" style="width:100%;margin-top:14px">🎁 Napi <span id="dailyAmount">5 000</span> Coin · csak 1×/nap</button></aside></section>
 <section class="card section" id="profil"><h3>👤 Saját profil és nyeremények</h3><div class="profile"><div class="metric"><small>Felhasználó</small><b id="name">Vendég</b></div><div class="metric"><small>Coin egyenleg</small><b id="coins2">—</b></div><div class="metric"><small>Eljátszott Coin</small><b id="played">—</b></div><div class="metric"><small>Összes nyitás</small><b id="opened">—</b></div><div class="metric"><small>Összes nyert Yang</small><b id="yangWon">—</b></div><div class="metric"><small>Összes nyert Coin</small><b id="coinWon">—</b></div></div></section>
 <section class="columns"><div class="card section"><h3>🏅 Ranglista</h3><div class="list" id="leader"></div></div><div class="card section"><h3>🎒 Inventory</h3><div class="list" id="inventory"><div class="small">Jelentkezz be.</div></div></div></section><section class="card section"><h3>🕘 Saját játéktörténet</h3><div class="list" id="history"><div class="small">Jelentkezz be.</div></div></section></main>
 <footer>VENORI © 2026 · Multiplayer Chest System</footer><div class="toast" id="toast"></div>
@@ -72,13 +81,27 @@ async function inv(){if(!user)return;const d=await api("/api/inventory");$("#inv
 async function loadDropsPublic(){
  try{
    const d=await api("/api/drops");
-   $("#allDrops").innerHTML=(d.drops||[]).filter(r=>r.name!=="500 Coin").map(r=>`
-     <div class="list-item" style="display:flex;gap:9px;align-items:center">
-       <span style="font-size:22px">${r.icon||"🎁"}</span>
-       <div><b>${r.name}</b><div class="small">${r.type==="item"?`${r.min_qty||1}-${r.max_qty||1} db`:r.type==="yang"?`${fmt(r.amount)} Yang`:`${fmt(r.amount)} Coin`}</div></div>
-     </div>`).join("");
- }catch{}
+   window.publicDrops=(d.drops||[]).filter(r=>r.name!=="500 Coin");
+   $("#dropCount").textContent=`${window.publicDrops.length} db`;
+   renderCompactDrops();
+ }catch{
+   $("#compactDropList").innerHTML="<div class='small'>A drop lista nem tölthető be.</div>";
+ }
 }
+
+function renderCompactDrops(){
+ const q=(($("#publicDropSearch")?.value)||"").toLowerCase().trim();
+ const rows=(window.publicDrops||[]).filter(r=>!q || r.name.toLowerCase().includes(q));
+ $("#compactDropList").innerHTML=rows.map(r=>`
+   <div class="compact-drop-row">
+     <span class="compact-drop-icon">${r.icon||"🎁"}</span>
+     <div class="compact-drop-name">
+       <b>${r.name}</b>
+       <span>${r.type==="item"?`${r.min_qty||1}-${r.max_qty||1} db`:r.type==="yang"?`${fmt(r.amount)} Yang`:`${fmt(r.amount)} Coin`}</span>
+     </div>
+   </div>`).join("") || "<div class='small'>Nincs találat.</div>";
+}
+
 async function lists(){
  const l=await api("/api/leaderboard");
  $("#leader").innerHTML=l.rows.map((x,i)=>`<div class="list-item leader"><span class="rank">#${i+1}</span><b>${x.username}</b><span>💰 ${fmt(x.total_yang_won)} Yang · 🪙 ${fmt(x.total_coin_won)} Coin</span></div>`).join("")||"<div class='small'>Nincs ranglista.</div>";
@@ -148,6 +171,9 @@ document.addEventListener("click", async (e)=>{
   if(el.id==="registerBtn") openModal("register");
 });
 
+document.addEventListener("input",(e)=>{
+  if(e.target && e.target.id==="publicDropSearch") renderCompactDrops();
+});
 (async()=>{await loadPublic();await loadMe();await Promise.all([lists(),loadDropsPublic()]);setInterval(lists,15000)})();
 </script>
 <div id="jackpotOverlay" style="display:none;pointer-events:none;position:fixed;inset:0;z-index:9999;background:radial-gradient(circle at center,rgba(119,55,210,.45),rgba(0,0,0,.92));align-items:center;justify-content:center;padding:20px">

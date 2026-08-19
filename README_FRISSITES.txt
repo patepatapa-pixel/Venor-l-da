@@ -103,3 +103,10 @@ V15 FINOMHANGOLÁS:
 - A nyitási eredmény kizárólag a nyitás gomb alatt jelenik meg.
 - A nyeremények egymás alatt, rendezett sorokban jelennek meg.
 - A láda teljes tartalma nézetben a 500 Coin nincs kijelezve.
+
+V16:
+- A hatalmas "A láda teljes tartalma" rész kikerült a főoldal aljáról.
+- A láda dropjai most a jobb oldali panelen, külön kompakt blokkban jelennek meg.
+- A blokk görgethető, így nem nyújtja több képernyő hosszúra az oldalt.
+- Keresőmező került bele.
+- A nyitás tényleges eredménye továbbra is közvetlenül a Nyitás gomb alatt jelenik meg.

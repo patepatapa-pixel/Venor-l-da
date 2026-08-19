@@ -17,3 +17,67 @@ body::before { pointer-events: none !important; z-index: 0; }
 #resultRows b:last-child {
   font-variant-numeric: tabular-nums;
 }
+
+/* V16 kompakt drop panel */
+.compact-drops{
+  margin-top:16px;
+  padding:14px;
+  border:1px solid #332841;
+  border-radius:14px;
+  background:#0b0911;
+}
+.compact-drops-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  margin-bottom:10px;
+}
+.compact-drop-search{
+  margin:0 0 10px !important;
+  padding:9px 10px !important;
+  font-size:12px;
+}
+.compact-drop-list{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  max-height:270px;
+  overflow-y:auto;
+  padding-right:4px;
+}
+.compact-drop-list::-webkit-scrollbar{width:6px}
+.compact-drop-list::-webkit-scrollbar-thumb{
+  background:#4a3565;
+  border-radius:99px;
+}
+.compact-drop-row{
+  display:grid;
+  grid-template-columns:30px minmax(0,1fr);
+  align-items:center;
+  gap:8px;
+  padding:8px 9px;
+  border:1px solid #282032;
+  border-radius:9px;
+  background:#09070e;
+}
+.compact-drop-icon{
+  font-size:18px;
+  text-align:center;
+}
+.compact-drop-name{
+  min-width:0;
+}
+.compact-drop-name b{
+  display:block;
+  font-size:12px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.compact-drop-name span{
+  display:block;
+  margin-top:2px;
+  font-size:10px;
+  color:#8f859b;
+}
