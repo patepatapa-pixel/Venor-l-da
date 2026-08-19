@@ -33,7 +33,11 @@ A 10 milliárd Yang főnyereményt nem automatikusan írjuk jóvá. Ha megnyerte
 <section class="card section" id="profil"><h3>👤 Saját profil és nyeremények</h3><div class="profile"><div class="metric"><small>Felhasználó</small><b id="name">Vendég</b></div><div class="metric"><small>Coin egyenleg</small><b id="coins2">—</b></div><div class="metric"><small>Eljátszott Coin</small><b id="played">—</b></div><div class="metric"><small>Összes nyitás</small><b id="opened">—</b></div><div class="metric"><small>Összes nyert Yang</small><b id="yangWon">—</b></div><div class="metric"><small>Összes nyert Coin</small><b id="coinWon">—</b></div></div></section>
 <section class="columns"><div class="card section"><h3>🏅 Ranglista</h3><div class="list" id="leader"></div></div><div class="card section"><h3>🎒 Inventory</h3><div class="list" id="inventory"><div class="small">Jelentkezz be.</div></div></div></section><section class="card section"><h3>🕘 Saját játéktörténet</h3><div class="list" id="history"><div class="small">Jelentkezz be.</div></div></section></main>
 <footer>VENORI © 2026 · Multiplayer Chest System</footer><div class="toast" id="toast"></div>
-<div class="modal" id="modal"><div class="card modal-card"><h2 id="modalTitle">Belépés</h2><input class="input" id="username" placeholder="Felhasználónév"><input class="input" id="password" type="password" placeholder="Jelszó"><div class="form-actions"><button class="btn primary" id="submit">Belépés</button><button class="btn ghost" id="switch">Regisztráció</button></div><button class="btn ghost" id="close" style="width:100%;margin-top:8px">Mégse</button></div></div>
+<div class="modal" id="modal" style="pointer-events:none"><div class="card modal-card"><h2 id="modalTitle">Belépés</h2><input class="input" id="username" placeholder="Felhasználónév"><input class="input" id="password" type="password" placeholder="Jelszó">
+<label style="display:flex;align-items:center;gap:8px;margin:9px 0 4px;color:#bdb3c8;font-size:13px;cursor:pointer">
+  <input type="checkbox" id="rememberMe" checked>
+  <span>Belépve maradok ezen az eszközön</span>
+</label><div class="form-actions"><button class="btn primary" id="submit">Belépés</button><button class="btn ghost" id="switch">Regisztráció</button></div><button class="btn ghost" id="close" style="width:100%;margin-top:8px">Mégse</button></div></div>
 <script>
 let user=null,q=1,mode="login",cfg={};const $=s=>document.querySelector(s),fmt=n=>Number(n||0).toLocaleString("hu-HU");
 async function api(u,o={}){const r=await fetch(u,{...o,headers:{"Content-Type":"application/json",...(o.headers||{})}});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||"Hiba");return d}
@@ -62,9 +66,38 @@ async function loadMe(){try{user=(await api("/api/me")).user;render();await Prom
 async function hist(){if(!user)return;const d=await api("/api/history");$("#history").innerHTML=d.rows.length?d.rows.map(x=>`<div class="list-item"><b>${x.quantity}× nyitás</b> · ${fmt(x.cost)} Coin<br><span class="small">${x.reward_text}</span></div>`).join(""):"<div class='small'>Még nincs játék.</div>"}
 async function inv(){if(!user)return;const d=await api("/api/inventory");$("#inventory").innerHTML=d.rows.length?d.rows.map(x=>`<div class="list-item"><b>${x.item_name}</b> × ${x.quantity}</div>`).join(""):"<div class='small'>Az inventory üres.</div>"}
 async function lists(){const [l,a]=await Promise.all([api("/api/leaderboard"),api("/api/activity")]);$("#leader").innerHTML=l.rows.map((x,i)=>`<div class="list-item leader"><span class="rank">#${i+1}</span><b>${x.username}</b><span>💰 ${fmt(x.total_yang_won)} Yang · 🪙 ${fmt(x.total_coin_won)} Coin</span></div>`).join("")||"<div class='small'>Nincs ranglista.</div>";$("#activity").innerHTML=a.rows.map(x=>`<div class="stat"><span>${x.username}</span><strong class="green">${x.reward_text.split(",")[0]}</strong></div>`).join("")||"<div class='small'>Még nincs nyerés.</div>"}
-function openModal(m){mode=m;$("#modal").style.display="flex";$("#modalTitle").textContent=m==="login"?"Belépés":"Regisztráció";$("#submit").textContent=m==="login"?"Belépés":"Regisztráció";$("#switch").textContent=m==="login"?"Regisztráció":"Belépés"}
-$("#authBtn").onclick=()=>openModal("login");$("#registerBtn").onclick=()=>openModal("register");$("#close").onclick=()=>$("#modal").style.display="none";$("#switch").onclick=()=>openModal(mode==="login"?"register":"login");
-$("#submit").onclick=async()=>{try{const d=await api("/api/"+mode,{method:"POST",body:JSON.stringify({username:$("#username").value,password:$("#password").value})});user=d.user;$("#modal").style.display="none";render();toast(mode==="login"?"Sikeres belépés!":"Sikeres regisztráció!");await Promise.all([hist(),inv(),lists()])}catch(e){toast(e.message)}};
+function loadRememberedLogin(){
+ const remembered=localStorage.getItem("venori_remembered_username")||"";
+ if(remembered) $("#username").value=remembered;
+ $("#rememberMe").checked=localStorage.getItem("venori_remember_login")!=="0";
+}
+function saveRememberedLogin(){
+ const remember=$("#rememberMe").checked;
+ if(remember){
+   localStorage.setItem("venori_remember_login","1");
+   localStorage.setItem("venori_remembered_username",$("#username").value.trim());
+ }else{
+   localStorage.setItem("venori_remember_login","0");
+   localStorage.removeItem("venori_remembered_username");
+ }
+}
+function openModal(m){mode=m;$("#modal").style.display="flex";$("#modal").style.pointerEvents="auto";$("#modalTitle").textContent=m==="login"?"Belépés":"Regisztráció";$("#submit").textContent=m==="login"?"Belépés":"Regisztráció";$("#switch").textContent=m==="login"?"Regisztráció":"Belépés";loadRememberedLogin()}
+$("#authBtn").onclick=()=>openModal("login");$("#registerBtn").onclick=()=>openModal("register");$("#close").onclick=()=>$("#modal").style.display="none";$("#modal").style.pointerEvents="none";$("#switch").onclick=()=>openModal(mode==="login"?"register":"login");
+$("#submit").onclick=async()=>{try{
+ const remember=$("#rememberMe").checked;
+ const d=await api("/api/"+mode,{method:"POST",body:JSON.stringify({
+   username:$("#username").value,
+   password:$("#password").value,
+   remember
+ })});
+ saveRememberedLogin();
+ user=d.user;
+ $("#modal").style.display="none";
+ $("#modal").style.pointerEvents="none";
+ render();
+ toast(mode==="login"?"Sikeres belépés!":"Sikeres regisztráció!");
+ await Promise.all([hist(),inv(),lists()]);
+}catch(e){toast(e.message)}};
 $("#logout").onclick=async()=>{await api("/api/logout",{method:"POST"});user=null;render();toast("Kijelentkeztél.")};
 $("#daily").onclick=async()=>{if(!user){openModal("login");return}try{const d=await api("/api/daily",{method:"POST"});user=d.user;render();toast("🎁 +"+fmt(d.bonus)+" Coin")}catch(e){toast(e.message)}};
 $("#open").onclick=async()=>{if(!user){openModal("login");return}try{
@@ -74,14 +107,38 @@ $("#open").onclick=async()=>{if(!user){openModal("login");return}try{
  const all=Object.entries(grouped).map(([n,c])=>`${c}× ${n}`).join(" · ");
  toast(`🎉 ${all} | +${fmt(d.won?.yang||0)} Yang | +${fmt(d.won?.coin||0)} Coin`);
  if(d.jackpot?.won){
-   $("#jackpotOverlay").style.display="flex";
+   $("#jackpotOverlay").style.display="flex";$("#jackpotOverlay").style.pointerEvents="auto";
  }
  await Promise.all([hist(),inv(),lists()]);
 }catch(e){toast(e.message)}};
-$("#closeJackpot").onclick=()=>$("#jackpotOverlay").style.display="none";
+document.addEventListener("click",(e)=>{
+  if(e.target && e.target.id==="closeJackpot"){
+    const overlay=document.getElementById("jackpotOverlay");
+    if(overlay){overlay.style.display="none";overlay.style.pointerEvents="none";}
+  }
+});
+document.addEventListener("keydown",(e)=>{
+  if(e.key==="Escape"){
+    const overlay=document.getElementById("jackpotOverlay");
+    if(overlay && overlay.style.display!=="none"){overlay.style.display="none";overlay.style.pointerEvents="none";}
+  }
+});
+
+document.addEventListener("click", async (e)=>{
+  const el=e.target.closest("button,a");
+  if(!el) return;
+
+  if(el.id==="close"){
+    const m=document.getElementById("modal");
+    if(m){m.style.display="none";m.style.pointerEvents="none";}
+  }
+  if(el.id==="authBtn") openModal("login");
+  if(el.id==="registerBtn") openModal("register");
+});
+
 (async()=>{await loadPublic();await loadMe();await lists();setInterval(lists,15000)})();
 </script>
-<div id="jackpotOverlay" style="display:none;position:fixed;inset:0;z-index:9999;background:radial-gradient(circle at center,rgba(119,55,210,.45),rgba(0,0,0,.92));align-items:center;justify-content:center;padding:20px">
+<div id="jackpotOverlay" style="display:none;pointer-events:none;position:fixed;inset:0;z-index:9999;background:radial-gradient(circle at center,rgba(119,55,210,.45),rgba(0,0,0,.92));align-items:center;justify-content:center;padding:20px">
   <div style="width:min(680px,100%);text-align:center;padding:40px 28px;border-radius:24px;border:2px solid #ffcf62;background:linear-gradient(180deg,#211530,#0d0912);box-shadow:0 0 80px rgba(255,207,98,.28),0 30px 100px #000">
     <div id="jackpotFx" style="font-size:74px;filter:drop-shadow(0 0 20px rgba(255,207,98,.5))">🏆</div>
     <div style="color:#ffcf62;font-weight:1000;letter-spacing:2px;font-size:15px;margin-top:8px">JACKPOT!</div>

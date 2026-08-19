@@ -92,9 +92,16 @@ async function intSetting(k){return Number(await setting(k)||0)}
 function today(){return new Date().toISOString().slice(0,10)}
 function cleanName(s){return String(s||"").trim().replace(/\s+/g,"")}
 async function userView(id){return (await q("SELECT id,username,role,coins,played_coins,total_opened,total_yang_won,total_coin_won,banned,last_daily_at,created_at FROM users WHERE id=$1",[id])).rows[0]}
-function setAuth(res,u){
- const token=jwt.sign({id:u.id,role:u.role},JWT_SECRET,{expiresIn:"7d"});
- res.cookie("venori_token",token,{httpOnly:true,sameSite:"lax",secure:COOKIE_SECURE,maxAge:7*24*60*60*1000});
+function setAuth(res,u,remember=false){
+ const expiresIn=remember?"30d":"12h";
+ const token=jwt.sign({id:u.id,role:u.role},JWT_SECRET,{expiresIn});
+ const cookie={
+   httpOnly:true,
+   sameSite:"lax",
+   secure:COOKIE_SECURE
+ };
+ if(remember) cookie.maxAge=30*24*60*60*1000;
+ res.cookie("venori_token",token,cookie);
 }
 async function auth(req,res,next){
  try{
@@ -123,14 +130,14 @@ app.post("/api/register",loginLimiter,async(req,res)=>{
   const bonus=await intSetting("daily_bonus"),hash=await bcrypt.hash(password,12);
   const r=(await q("INSERT INTO users(username,password_hash,coins,last_daily_at) VALUES($1,$2,$3,$4) RETURNING id",[username,hash,bonus,today()])).rows[0];
   await q("INSERT INTO transactions(user_id,amount,reason) VALUES($1,$2,$3)",[r.id,bonus,"Regisztrációs napi Coin"]);
-  const u=await userView(r.id);setAuth(res,u);res.json({user:u});
+  const u=await userView(r.id);setAuth(res,u,!!req.body.remember);res.json({user:u});
  }catch(e){console.error(e);res.status(500).json({error:"Szerverhiba."})}
 });
 app.post("/api/login",loginLimiter,async(req,res)=>{
  const username=cleanName(req.body.username),password=String(req.body.password||"");
  const row=(await q("SELECT * FROM users WHERE LOWER(username)=LOWER($1)",[username])).rows[0];
  if(!row||!(await bcrypt.compare(password,row.password_hash))||row.banned)return res.status(401).json({error:"Hibás adatok vagy tiltott fiók."});
- setAuth(res,row);res.json({user:await userView(row.id)});
+ setAuth(res,row,!!req.body.remember);res.json({user:await userView(row.id)});
 });
 app.post("/api/logout",(req,res)=>{res.clearCookie("venori_token");res.json({ok:true})});
 app.get("/api/me",auth,async(req,res)=>res.json({user:await userView(req.user.id)}));
@@ -265,6 +272,48 @@ app.post("/api/admin/jackpots/claim",auth,admin,async(req,res)=>{
  res.json({ok:true});
 });
 
+app.post("/api/admin/full-reset",auth,admin,async(req,res)=>{
+ const confirmation=String(req.body.confirmation||"");
+ if(confirmation!=="TELJES RESET"){
+   return res.status(400).json({error:"A teljes resethez írd be pontosan: TELJES RESET"});
+ }
+
+ const client=await pool.connect();
+ try{
+   await client.query("BEGIN");
+
+   // Minden normál játékos törlése. Az admin fiók megmarad.
+   // A kapcsolódó inventory/history/transactions/jackpot rekordok FK cascade-del törlődnek.
+   await client.query("DELETE FROM users WHERE role='user'");
+
+   // Alap rendszerbeállítások visszaállítása.
+   const defaults={
+     daily_bonus:"5000",
+     chest_price:"100",
+     announcement:"Napi 5 000 Coin minden játékosnak!",
+     maintenance:"0"
+   };
+   for(const [key,value] of Object.entries(defaults)){
+     await client.query(
+       "INSERT INTO settings(key,value) VALUES($1,$2) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value",
+       [key,value]
+     );
+   }
+
+   await client.query("COMMIT");
+   res.json({
+     ok:true,
+     message:"Teljes reset kész. Minden játékos és játékadata törölve, az admin fiók megmaradt."
+   });
+ }catch(e){
+   await client.query("ROLLBACK");
+   console.error(e);
+   res.status(500).json({error:"A teljes reset nem sikerült."});
+ }finally{
+   client.release();
+ }
+});
+
 app.post("/api/admin/leaderboard-reset",auth,admin,async(req,res)=>{
  const confirmation=String(req.body.confirmation||"");
  if(confirmation!=="RESET"){
@@ -279,6 +328,29 @@ app.post("/api/admin/leaderboard-reset",auth,admin,async(req,res)=>{
  `);
 
  res.json({ok:true,message:"A ranglista sikeresen nullázva. A játékosfiókok és Coin egyenlegek megmaradtak."});
+});
+
+app.delete("/api/admin/jackpots/:id",auth,admin,async(req,res)=>{
+ const id=Number(req.params.id);
+ if(!Number.isInteger(id)) return res.status(400).json({error:"Érvénytelen jackpot ID."});
+
+ const r=await q("DELETE FROM jackpot_wins WHERE id=$1 RETURNING id",[id]);
+ if(!r.rows[0]) return res.status(404).json({error:"A jackpot bejegyzés nem található."});
+
+ res.json({ok:true,message:"A jackpot bejegyzés törölve az ellenőrző listából."});
+});
+
+app.post("/api/admin/jackpots-clear",auth,admin,async(req,res)=>{
+ const confirmation=String(req.body.confirmation||"");
+ if(confirmation!=="JACKPOT LISTA TÖRLÉS"){
+   return res.status(400).json({error:"A törléshez írd be pontosan: JACKPOT LISTA TÖRLÉS"});
+ }
+
+ await q("DELETE FROM jackpot_wins");
+ res.json({
+   ok:true,
+   message:"A 10 milliárd Yang jackpot ellenőrző lista teljesen kiürítve."
+ });
 });
 
 app.get("/api/admin/transactions",auth,admin,async(req,res)=>res.json({rows:(await q("SELECT t.created_at,u.username,t.amount,t.reason FROM transactions t JOIN users u ON u.id=t.user_id ORDER BY t.id DESC LIMIT 100")).rows}));

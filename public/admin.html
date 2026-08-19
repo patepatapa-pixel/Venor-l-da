@@ -1,8 +1,21 @@
 <!doctype html><html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>VENORI Admin</title><link rel="stylesheet" href="/style.css"></head><body><header class="topbar"><a class="logo" href="/">VEN<span>ORI</span></a><nav class="nav"><a href="/">Játékos oldal</a></nav><div class="wallet">🛡️ ADMIN</div></header><main class="wrap"><section class="card section"><h2>VENORI Admin Panel</h2><div class="profile" id="stats"></div></section><section class="columns"><div class="card section"><h3>👥 Játékosok</h3><input class="input" id="search" placeholder="Keresés"><div id="users"></div></div><div class="card section"><h3>🪙 Coin kezelés</h3><input class="input" id="uid" type="number" placeholder="Játékos ID"><input class="input" id="amount" type="number" placeholder="+5000 vagy -5000"><input class="input" id="reason" placeholder="Indok"><button class="btn primary" id="coinBtn">Mentés</button><h3 style="margin-top:24px">⚙️ Beállítások</h3><input class="input" id="daily" type="number"><input class="input" id="price" type="number"><input class="input" id="announcement"><label><input id="maintenance" type="checkbox"> Karbantartási mód</label><br><button class="btn primary" id="save" style="margin-top:12px">Mentés</button></div></section><section class="card section">
 <h3>🏆 10 MILLIÁRD YANG JACKPOT ELLENŐRZÉS</h3>
-<p class="small">Itt minden valódi 10 milliárd Yang nyerés szerveroldalon rögzítve jelenik meg. Átadás után jelöld átadottnak.</p>
+<p class="small">Itt minden valódi 10 milliárd Yang nyerés szerveroldalon rögzítve jelenik meg. Átadás után jelöld átadottnak. A bejegyzéseket külön is törölheted, vagy az egész listát kiürítheted. Ez NEM törli a játékos fiókját, Coinját, ranglistáját vagy inventoryját.</p>
+<div style="margin-bottom:12px">
+  <button class="btn" id="clearJackpotList" style="border-color:#8c3c50;color:#ff8da3">🗑️ JACKPOT LISTA KIÜRÍTÉSE</button>
+</div>
 <div id="jackpots"></div>
 </section>
+<section class="card section" style="border-color:rgba(255,55,80,.65);box-shadow:0 0 30px rgba(255,55,80,.06)">
+<h3 style="color:#ff738a">🗑️ TELJES RENDSZER RESET</h3>
+<p class="small">
+Ez törli az összes normál játékost és minden hozzájuk tartozó játékadatot:
+Coin egyenlegek, nyitások, ranglista, inventory, játéktörténet, Coin tranzakciók és jackpot nyilvántartások.
+</p>
+<p class="small"><b>Az admin fiókod megmarad.</b> A napi Coin 5 000-re, a ládaár 100 Coinra és a rendszer alapállapotra áll vissza.</p>
+<button class="btn" id="fullReset" style="border-color:#b72e48;color:#ff8da3;background:rgba(150,20,45,.12)">🗑️ TELJES RESET</button>
+</section>
+
 <section class="card section" style="border-color:rgba(255,101,130,.35)">
 <h3>🔄 Ranglista reset</h3>
 <p class="small">
@@ -24,8 +37,11 @@ async function jackpots(){
    <b>🏆 #${x.id} · ${x.username}</b><br>
    <span>10 000 000 000 Yang · ${new Date(x.created_at).toLocaleString("hu-HU")}</span><br>
    <span class="${x.claimed?'green':'gold'}">${x.claimed?'✅ ÁTADVA':'⚠️ MÉG NINCS ÁTADVA'}</span>
-   <br><button class="btn" style="margin-top:8px" onclick="markJackpot(${x.id},${!x.claimed})">${x.claimed?'Vissza nem adottra':'Megjelölés átadottnak'}</button>
- </div>`).join(""):"<div class='small'>Még nem volt 10 milliárd Yang jackpot nyerés.</div>";
+   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+     <button class="btn" onclick="markJackpot(${x.id},${!x.claimed})">${x.claimed?'Vissza nem adottra':'Megjelölés átadottnak'}</button>
+     <button class="btn" style="border-color:#8c3c50;color:#ff8da3" onclick="deleteJackpot(${x.id},'${x.username.replace(/'/g,"\'")}')">🗑️ Törlés a listából</button>
+   </div>
+ </div>`).join(""):"<div class='small'>A jackpot ellenőrző lista üres.</div>";
 }
 async function markJackpot(id,claimed){
  try{
@@ -34,8 +50,67 @@ async function markJackpot(id,claimed){
    await jackpots();
  }catch(e){toast(e.message)}
 }
+async function deleteJackpot(id,username){
+ const ok=confirm(`Biztosan törlöd ${username} 10 milliárd Yang jackpot bejegyzését az ellenőrző listából?\n\nA játékos fiókja és egyéb adatai megmaradnak.`);
+ if(!ok)return;
+ try{
+   const d=await api(`/api/admin/jackpots/${id}`,{method:"DELETE"});
+   toast(d.message||"Jackpot bejegyzés törölve.");
+   await jackpots();
+ }catch(e){toast(e.message)}
+}
+
+$("#clearJackpotList").onclick=async()=>{
+ const first=confirm("Biztosan kiüríted a TELJES 10 milliárd Yang jackpot ellenőrző listát?\n\nEz csak ezt a listát törli. A játékosok és egyéb adatok megmaradnak.");
+ if(!first)return;
+
+ const typed=prompt('A végleges törléshez írd be pontosan: JACKPOT LISTA TÖRLÉS');
+ if(typed!=="JACKPOT LISTA TÖRLÉS"){
+   toast("Jackpot lista törlése megszakítva.");
+   return;
+ }
+
+ try{
+   const d=await api("/api/admin/jackpots-clear",{
+     method:"POST",
+     body:JSON.stringify({confirmation:"JACKPOT LISTA TÖRLÉS"})
+   });
+   toast(d.message||"Jackpot lista kiürítve.");
+   await jackpots();
+ }catch(e){toast(e.message)}
+};
+
 function pick(id){$("#uid").value=id}async function ban(id,b){try{await api("/api/admin/ban",{method:"POST",body:JSON.stringify({userId:id,banned:b})});await Promise.all([users(),stats()])}catch(e){toast(e.message)}}
 $("#search").oninput=users;$("#coinBtn").onclick=async()=>{try{await api("/api/admin/coins",{method:"POST",body:JSON.stringify({userId:+$("#uid").value,amount:+$("#amount").value,reason:$("#reason").value})});toast("Coin módosítva");await Promise.all([users(),stats(),tx()])}catch(e){toast(e.message)}};$("#save").onclick=async()=>{try{await api("/api/admin/settings",{method:"POST",body:JSON.stringify({daily_bonus:+$("#daily").value,chest_price:+$("#price").value,announcement:$("#announcement").value,maintenance:$("#maintenance").checked})});toast("Mentve")}catch(e){toast(e.message)}};
+$("#fullReset").onclick=async()=>{
+ const first=confirm(
+   "FIGYELEM!\n\nEz TELJESEN törli az összes játékost és minden játékadatukat.\nAz admin fiókod megmarad.\n\nBiztosan folytatod?"
+ );
+ if(!first)return;
+
+ const second=confirm(
+   "UTOLSÓ FIGYELMEZTETÉS!\n\nA játékosok, Coinok, inventoryk, nyitások, előzmények és jackpot adatok törlődnek.\nEz nem vonható vissza.\n\nFolytatod?"
+ );
+ if(!second)return;
+
+ const typed=prompt('A végleges törléshez írd be pontosan: TELJES RESET');
+ if(typed!=="TELJES RESET"){
+   toast("Teljes reset megszakítva.");
+   return;
+ }
+
+ try{
+   const d=await api("/api/admin/full-reset",{
+     method:"POST",
+     body:JSON.stringify({confirmation:"TELJES RESET"})
+   });
+   toast(d.message||"Teljes reset kész.");
+   await Promise.all([stats(),users(),settings(),tx(),jackpots()]);
+ }catch(e){
+   toast(e.message);
+ }
+};
+
 $("#resetLeaderboard").onclick=async()=>{
  const first=confirm("Biztosan nullázod a teljes ranglistát?\n\nEz minden játékosnál 0-ra állítja az összes nyert Yang és összes nyert Coin ranglista értékét.\nA Coin egyenlegek és fiókok NEM törlődnek.");
  if(!first)return;

@@ -31,3 +31,31 @@ V5:
 - Kétlépcsős megerősítés: böngészős megerősítés + RESET szó beírása
 - Nullázza minden normál játékos total_yang_won és total_coin_won értékét
 - Nem törli a Coin egyenleget, fiókot, inventoryt, játéktörténetet vagy jackpot auditot
+
+V6 JAVÍTÁS:
+- A 10 milliárd Yang jackpot ablak ÉRTETTEM gombja most biztosan működik.
+- A hibát az okozta, hogy a gomb eseménykezelője a HTML elem betöltése előtt futott le.
+- Most eseménydelegálással működik, ezért stabil.
+- ESC billentyűvel is bezárható a jackpot ablak.
+
+V7 KATTINTÁSI JAVÍTÁS:
+- A rejtett jackpot overlay többé nem tudja blokkolni az egész oldalt.
+- A rejtett belépési modal sem fogja el a kattintásokat.
+- A fejléc, menü, regisztráció, belépés, napi Coin, ranglista és admin link újra kattintható.
+- A jackpot ablak csak akkor kap pointer-events jogosultságot, amikor ténylegesen látható.
+
+V8:
+- Adminpanelen TELJES RENDSZER RESET gomb.
+- Háromlépcsős megerősítés, TELJES RESET szöveg beírásával.
+- Törli az összes normál játékost és kapcsolódó játékadatot.
+- Az adminfiók megmarad.
+- Alap beállítások visszaállnak: napi 5000 Coin, ládaár 100 Coin.
+- Belépési ablakban "Belépve maradok ezen az eszközön" opció.
+- Bekapcsolva 30 napos munkamenetet használ.
+- A böngésző eltárolja a felhasználónevet, a jelszót NEM tárolja az oldal saját kódja.
+
+V9:
+- A 10 milliárd Yang jackpot ellenőrző listából az admin egyesével törölheti a neveket/bejegyzéseket.
+- Van külön JACKPOT LISTA KIÜRÍTÉSE gomb.
+- A lista törlése NEM törli a játékos fiókját, Coinját, ranglistáját, inventoryját vagy játéktörténetét.
+- A teljes lista törléséhez külön megerősítő szöveg szükséges.
