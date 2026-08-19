@@ -405,3 +405,5 @@ V57:
 - Tájékoztató: csak a 4B FŐNYEREMÉNY fizet játékban.
 - Átvételi szöveg: 4 milliárdos főnyeremény.
 - Felső láda összefoglaló jackpot kártya: 4B Yang.
+
+V58: a nagy üres bal oldali felületre bekerült egy jól látható türelem-figyelmeztetés arról, hogy az első forgatás/ládanyitás lassabb lehet.
