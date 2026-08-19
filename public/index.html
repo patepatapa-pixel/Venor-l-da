@@ -1,6 +1,6 @@
 <!doctype html><html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>VENORI — Láda Nyitás</title><link rel="stylesheet" href="/style.css"></head><body>
 <header class="topbar"><a class="logo" href="/">VEN<span>ORI</span></a><nav class="nav"><a href="#ladak">Ládák</a><a href="#nyeremenyek">Nyeremények</a><a href="#jackpot">Jackpot</a><a href="#profil">Profil</a><a id="adminLink" href="/admin" style="display:none">Admin</a></nav><div class="top-actions"><div class="wallet">🪙 <b id="coins">—</b> Coin &nbsp;•&nbsp; 👻 <b id="soulPoints">—</b> Lélek Pont</div><button class="btn ghost" id="authBtn">Belépés</button><button class="btn primary" id="registerBtn">Regisztráció</button><button class="btn ghost" id="logout" style="display:none">Kilépés</button></div></header>
-<main class="wrap"><section class="hero"><span class="badge">VENORI CHEST SYSTEM</span><h1>Nyisd ki. <span>Nyerj.</span> Ismételd.</h1><p>Online ládanyitó rendszer regisztrációval, napi Coinnal, jackpotokkal, ranglistával és külön adminpanellel.</p></section><div class="notice">📢 <span id="announcement">Betöltés...</span></div><div class="game-switch"><button class="game-mode active" id="modeChest">🎁 Ládázás</button><button class="game-mode" id="modeSlot">🎰 Slot</button><button class="game-mode" id="modeRedeem">🎟️ Kiváltás</button></div>
+<main class="wrap"><section class="hero"><span class="badge">VENORI CHEST SYSTEM</span><h1>Nyisd ki. <span>Nyerj.</span> Ismételd.</h1><p>Online ládanyitó rendszer regisztrációval, napi Coinnal, jackpotokkal, ranglistával és külön adminpanellel.</p></section><div class="notice">📢 <span id="announcement">Betöltés...</span></div><div class="game-switch"><button class="game-mode active" id="modeChest">🎁 Ládázás</button><button class="game-mode" id="modeSlot">🎰 Slot</button><button class="game-mode" id="modeRedeem">🎟️ Kiváltás</button><button class="game-mode" id="modeStats">📊 Statisztika</button></div>
 <div id="chestMode"><div class="tabs" id="ladak"><button class="tab active" data-q="1">1× Nyitás</button><button class="tab" data-q="10">10× Nyitás</button><button class="tab" data-q="100">100× Nyitás</button><button class="tab" disabled>1000× Nyitás 🔒</button></div>
 <section class="layout"><div class="card case"><div class="casehead"><h2>🧪 Venori Láda</h2><span class="small">Ár: <b id="price">1 000</b> Lélek Pont</span></div><div class="reward-grid" id="nyeremenyek">
 <div class="reward"><div class="icon">💰</div><div class="rarity">Yang</div><b>100 → 100M Yang</b><small>Több Yang szint</small></div>
@@ -58,6 +58,48 @@ A 10 milliárd Yang főnyereményt nem automatikusan írjuk jóvá. Ha megnyerte
   </div>
   <input class="input" id="adminActivitySearch" placeholder="Játékos keresése..." style="margin-top:12px">
   <div id="adminActivityRows" style="display:grid;gap:8px;margin-top:10px"></div>
+</section>
+
+<section id="statsMode" style="display:none">
+  <div class="stats-shell">
+    <div class="card section">
+      <div class="stats-title-row">
+        <div>
+          <h2 style="margin:0">📊 Saját statisztikám</h2>
+          <div class="small">A teljes játékod összesítve. Az adatok folyamatosan mentődnek.</div>
+        </div>
+        <button class="btn" id="refreshMyStats" type="button">↻ Frissítés</button>
+      </div>
+
+      <div class="stats-section-title">🎰 Slot</div>
+      <div class="stats-grid">
+        <div class="stat-card"><span>Összes pörgetés</span><b id="stSlotSpins">0</b></div>
+        <div class="stat-card"><span>Összes megforgatott Coin</span><b id="stSlotWagered">0</b></div>
+        <div class="stat-card"><span>Összes nyert Coin</span><b id="stSlotWon">0</b></div>
+        <div class="stat-card"><span>Összes elbukott Coin</span><b id="stSlotLost">0</b></div>
+        <div class="stat-card stat-profit"><span>Profit / eredmény</span><b id="stSlotProfit">0</b></div>
+        <div class="stat-card"><span>ROI</span><b id="stSlotRoi">0%</b></div>
+      </div>
+
+      <div class="stats-section-title">🎁 Ládázás</div>
+      <div class="stats-grid">
+        <div class="stat-card"><span>Összes ládanyitás</span><b id="stChestOpened">0</b></div>
+        <div class="stat-card"><span>Elköltött Lélek Pont</span><b id="stSoulSpent">0</b></div>
+        <div class="stat-card"><span>Összes nyert Yang</span><b id="stYangWon">0</b></div>
+      </div>
+
+      <div class="stats-section-title">💼 Jelenlegi egyenleg</div>
+      <div class="stats-grid">
+        <div class="stat-card"><span>Coin</span><b id="stCoins">0</b></div>
+        <div class="stat-card"><span>Lélek Pont</span><b id="stSoul">0</b></div>
+      </div>
+
+      <div class="stats-note">
+        <b>ℹ️ Profit értelmezése</b>
+        <p>A profit a Slotnál: összes nyert Coin mínusz összes megforgatott Coin. A láda Lélek Pontot használ, ezért azt külön mutatjuk, nem keverjük össze a Coin profittal.</p>
+      </div>
+    </div>
+  </div>
 </section>
 <section class="card section" id="profil"><h3>👤 Saját profil és nyeremények</h3><div class="profile"><div class="metric"><small>Felhasználó</small><b id="name">Vendég</b></div><div class="metric"><small>Coin egyenleg</small><b id="coins2">—</b></div><div class="metric"><small>Lélek Pont</small><b id="soulPoints2">—</b></div><div class="metric"><small>Eljátszott Coin</small><b id="played">—</b></div><div class="metric"><small>Összes nyitás</small><b id="opened">—</b></div><div class="metric"><small>Összes nyert Yang</small><b id="yangWon">—</b></div><div class="metric"><small>Összes nyert Coin</small><b id="coinWon">—</b></div></div></section>
 <section class="columns"><div class="card section"><h3>🏅 Ranglista</h3><div class="list" id="leader"></div></div><div class="card section"><h3>🎒 Inventory</h3><div class="list" id="inventory"><div class="small">Jelentkezz be.</div></div></div></section><section class="card section"><h3>🕘 Saját játéktörténet</h3><div class="list" id="history"><div class="small">Jelentkezz be.</div></div></section></main>
@@ -201,6 +243,27 @@ async function loadMyRedemptions(){
  }catch{}
 }
 
+async function loadMyStats(){
+ if(!user)return;
+ try{
+   const d=await api("/api/my-stats");
+   $("#stSlotSpins").textContent=fmt(d.slot.spins);
+   $("#stSlotWagered").textContent=fmt(d.slot.wagered);
+   $("#stSlotWon").textContent=fmt(d.slot.won);
+   $("#stSlotLost").textContent=fmt(d.slot.lost);
+   $("#stSlotProfit").textContent=(d.slot.profit>=0?"+":"")+fmt(d.slot.profit);
+   $("#stSlotProfit").className=d.slot.profit>=0?"positive":"negative";
+   $("#stSlotRoi").textContent=(d.slot.roi>=0?"+":"")+d.slot.roi+"%";
+   $("#stChestOpened").textContent=fmt(d.chest.opened);
+   $("#stSoulSpent").textContent=fmt(d.chest.soulSpent);
+   $("#stYangWon").textContent=fmt(d.chest.yangWon);
+   $("#stCoins").textContent=fmt(d.balances.coins);
+   $("#stSoul").textContent=fmt(d.balances.soulPoints);
+ }catch(e){
+   toast("Statisztika betöltési hiba: "+e.message);
+ }
+}
+
 async function loadMe(){try{user=(await api("/api/me")).user;render();await loadCumulativeRewards();if($("#redeemBalance"))$("#redeemBalance").textContent=fmt(user.coins);await Promise.all([hist(),inv(),loadMyRedemptions(),loadCumulativeRewards()]);await loadAdminPlayerActivity()}catch{user=null;render()}}
 async function hist(){if(!user)return;const d=await api("/api/history");$("#history").innerHTML=d.rows.length?d.rows.map(x=>`<div class="list-item"><b>${x.quantity}× nyitás</b> · ${fmt(x.cost)} Coin<br><span class="small">${x.reward_text}</span></div>`).join(""):"<div class='small'>Még nincs játék.</div>"}
 async function inv(){if(!user)return;const d=await api("/api/inventory");$("#inventory").innerHTML=d.rows.length?d.rows.map(x=>`<div class="list-item"><b>${x.item_name}</b> × ${x.quantity}</div>`).join(""):"<div class='small'>Az inventory üres.</div>"}
@@ -296,7 +359,7 @@ $("#open").onclick=async()=>{
    const d=await api("/api/open",{method:"POST",body:JSON.stringify({quantity:q})});
    user=d.user;
    render();
-   renderOpenResults(d);
+   renderOpenResults(d);loadMyStats().catch(()=>{});
 
    const grouped={};
    d.results.forEach(r=>grouped[r.name]=(grouped[r.name]||0)+(r.qty||1));
@@ -355,16 +418,26 @@ document.addEventListener("input",(e)=>{
 
 let slotConfig=null,selectedSlotBet=null,slotBusy=false;
 async function loadSlotConfig(){try{slotConfig=await api("/api/slot-config");if($("#slotWinChance"))$("#slotWinChance").textContent=slotConfig.winChance;if($("#slotSkullChance"))$("#slotSkullChance").textContent=slotConfig.skullChance;const bets=slotConfig.bets||[];$("#slotBets").innerHTML=bets.map((x,i)=>`<button class="slot-bet ${i===0?"active":""}" data-bet="${x.bet}"><b>${fmt(x.bet)} Coin</b><small>NYERTES: ${fmt(x.payout)} Coin</small></button>`).join("");selectedSlotBet=bets[0]?.bet||null}catch(e){}}
-$("#modeChest").onclick=()=>{$("#chestMode").style.display="block";$("#slotMode").style.display="none";$("#redeemMode").style.display="none";$("#modeChest").classList.add("active");$("#modeSlot").classList.remove("active");$("#modeRedeem").classList.remove("active")};
-$("#modeSlot").onclick=()=>{$("#chestMode").style.display="none";$("#slotMode").style.display="block";$("#redeemMode").style.display="none";$("#modeSlot").classList.add("active");$("#modeChest").classList.remove("active");$("#modeRedeem").classList.remove("active")};
+$("#modeChest").onclick=()=>{$("#chestMode").style.display="block";$("#slotMode").style.display="none";$("#redeemMode").style.display="none";$("#statsMode").style.display="none";$("#modeChest").classList.add("active");$("#modeSlot").classList.remove("active");$("#modeStats").classList.remove("active");$("#modeRedeem").classList.remove("active");$("#modeStats").classList.remove("active")};
+$("#modeSlot").onclick=()=>{$("#chestMode").style.display="none";$("#slotMode").style.display="block";$("#redeemMode").style.display="none";$("#statsMode").style.display="none";$("#modeSlot").classList.add("active");$("#modeChest").classList.remove("active");$("#modeStats").classList.remove("active");$("#modeRedeem").classList.remove("active");$("#modeStats").classList.remove("active")};
 $("#modeRedeem").onclick=()=>{
- $("#chestMode").style.display="none";$("#slotMode").style.display="none";$("#redeemMode").style.display="block";
- $("#modeRedeem").classList.add("active");$("#modeChest").classList.remove("active");$("#modeSlot").classList.remove("active");
+ $("#chestMode").style.display="none";$("#slotMode").style.display="none";$("#redeemMode").style.display="block";$("#statsMode").style.display="none";
+ $("#modeRedeem").classList.add("active");$("#modeChest").classList.remove("active");$("#modeStats").classList.remove("active");$("#modeSlot").classList.remove("active");$("#modeStats").classList.remove("active");
  loadRedemptions();loadMyRedemptions();
 };
 
+$("#modeStats").onclick=()=>{
+ $("#chestMode").style.display="none";
+ $("#slotMode").style.display="none";
+ $("#redeemMode").style.display="none";
+ $("#statsMode").style.display="block";
+ ["modeChest","modeSlot","modeRedeem","modeStats"].forEach(id=>$("#"+id).classList.remove("active"));
+ $("#modeStats").classList.add("active");
+ loadMyStats();
+};
+
 document.addEventListener("click",e=>{const b=e.target.closest(".slot-bet");if(b){document.querySelectorAll(".slot-bet").forEach(x=>x.classList.remove("active"));b.classList.add("active");selectedSlotBet=Number(b.dataset.bet)}});
-$("#slotSpin").onclick=async()=>{if(slotBusy)return;if(!user){openModal("login");return}slotBusy=true;try{const d=await api("/api/slot-spin",{method:"POST",body:JSON.stringify({bet:selectedSlotBet})});for(let i=0;i<10;i++){await new Promise(r=>setTimeout(r,70));$("#slotSymbol").textContent=i%2?"✅":"☠️";$("#slotWord").textContent=i%2?"NYERTES":"KOPONYA"}$("#slotSymbol").textContent=d.result==="WIN"?"✅":"☠️";$("#slotWord").textContent=d.result==="WIN"?"NYERTES":"KOPONYA";user=d.user;render();$("#slotResult").innerHTML=d.result==="WIN"?`<div class="slot-result-win">✅ NYERTES! +${fmt(d.payout)} Coin</div>`:`<div class="slot-result-lose">☠️ KOPONYA · -${fmt(d.bet)} Coin</div>`;if(d.result==="WIN")rewardChime("pet")}catch(e){toast(e.message)}finally{slotBusy=false}};
+$("#slotSpin").onclick=async()=>{if(slotBusy)return;if(!user){openModal("login");return}slotBusy=true;try{const d=await api("/api/slot-spin",{method:"POST",body:JSON.stringify({bet:selectedSlotBet})});for(let i=0;i<10;i++){await new Promise(r=>setTimeout(r,70));$("#slotSymbol").textContent=i%2?"✅":"☠️";$("#slotWord").textContent=i%2?"NYERTES":"KOPONYA"}$("#slotSymbol").textContent=d.result==="WIN"?"✅":"☠️";$("#slotWord").textContent=d.result==="WIN"?"NYERTES":"KOPONYA";user=d.user;render();loadMyStats().catch(()=>{});$("#slotResult").innerHTML=d.result==="WIN"?`<div class="slot-result-win">✅ NYERTES! +${fmt(d.payout)} Coin</div>`:`<div class="slot-result-lose">☠️ KOPONYA · -${fmt(d.bet)} Coin</div>`;if(d.result==="WIN")rewardChime("pet")}catch(e){toast(e.message)}finally{slotBusy=false}};
 
 document.addEventListener("input",(e)=>{
  if(e.target?.id==="adminActivitySearch") renderAdminPlayerActivity();
@@ -384,6 +457,9 @@ document.addEventListener("click",async e=>{
    user=d.user;render();if($("#redeemBalance"))$("#redeemBalance").textContent=fmt(user.coins);toast(d.message);await loadMyRedemptions();
  }catch(err){toast(err.message)}
 });
+
+
+$("#refreshMyStats").onclick=()=>loadMyStats();
 
 (async()=>{await loadPublic();await loadSlotConfig();await loadMe();await Promise.all([lists(),loadDropsPublic()]);setInterval(lists,15000)})();
 </script>

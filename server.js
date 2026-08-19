@@ -102,6 +102,8 @@ async function init(){
  await q("ALTER TABLE users ADD COLUMN IF NOT EXISTS slot_coin_won BIGINT NOT NULL DEFAULT 0");
  await q("ALTER TABLE users ADD COLUMN IF NOT EXISTS soul_points BIGINT NOT NULL DEFAULT 5000");
  await q("ALTER TABLE users ADD COLUMN IF NOT EXISTS last_daily_soul_at DATE");
+ await q("ALTER TABLE users ADD COLUMN IF NOT EXISTS slot_lost_coins BIGINT NOT NULL DEFAULT 0");
+ await q("ALTER TABLE users ADD COLUMN IF NOT EXISTS chest_soul_spent BIGINT NOT NULL DEFAULT 0");
 
  const defaults={
  slot_bets:"100,500,1000,5000",
@@ -140,7 +142,7 @@ async function setting(k){return (await q("SELECT value FROM settings WHERE key=
 async function intSetting(k){return Number(await setting(k)||0)}
 function today(){return new Date().toISOString().slice(0,10)}
 function cleanName(s){return String(s||"").trim().replace(/\s+/g,"")}
-async function userView(id){return (await q("SELECT id,username,role,coins,played_coins,total_opened,total_yang_won,total_coin_won,banned,last_daily_at,created_at,slot_spent,slot_spins,slot_coin_won,soul_points,last_daily_soul_at FROM users WHERE id=$1",[id])).rows[0]}
+async function userView(id){return (await q("SELECT id,username,role,coins,played_coins,total_opened,total_yang_won,total_coin_won,banned,last_daily_at,created_at,slot_spent,slot_spins,slot_coin_won,soul_points,last_daily_soul_at,slot_lost_coins,chest_soul_spent FROM users WHERE id=$1",[id])).rows[0]}
 function setAuth(res,u,remember=false){
  const expiresIn=remember?"30d":"12h";
  const token=jwt.sign({id:u.id,role:u.role},JWT_SECRET,{expiresIn});
@@ -273,7 +275,7 @@ app.post("/api/open",auth,async(req,res)=>{
      if(r.type==="item") items[r.name]=(items[r.name]||0)+rolledQty;
    }
    await client.query(
-     "UPDATE users SET soul_points=soul_points-$1,total_opened=total_opened+$2,total_yang_won=total_yang_won+$3 WHERE id=$4",
+     "UPDATE users SET soul_points=soul_points-$1,chest_soul_spent=chest_soul_spent+$1,total_opened=total_opened+$2,total_yang_won=total_yang_won+$3 WHERE id=$4",
      [cost,qty,yangWin,req.user.id]
    );
    for(const [name,n] of Object.entries(items))await client.query("INSERT INTO inventory(user_id,item_name,quantity) VALUES($1,$2,$3) ON CONFLICT(user_id,item_name) DO UPDATE SET quantity=inventory.quantity+EXCLUDED.quantity",[req.user.id,name,n]);
@@ -319,6 +321,37 @@ app.post("/api/open",auth,async(req,res)=>{
 });
 
 app.get("/api/history",auth,async(req,res)=>res.json({rows:(await q("SELECT quantity,cost,reward_text,created_at FROM history WHERE user_id=$1 ORDER BY id DESC LIMIT 50",[req.user.id])).rows}));
+app.get("/api/my-stats",auth,async(req,res)=>{
+ const u=await userView(req.user.id);
+ const slotSpent=Number(u.slot_spent||0);
+ const slotWon=Number(u.slot_coin_won||0);
+ const slotLost=Number(u.slot_lost_coins||0);
+ const slotProfit=slotWon-slotSpent;
+ const chestSoulSpent=Number(u.chest_soul_spent||0);
+ const totalOpened=Number(u.total_opened||0);
+ const totalYangWon=Number(u.total_yang_won||0);
+
+ res.json({
+   slot:{
+     spins:Number(u.slot_spins||0),
+     wagered:slotSpent,
+     won:slotWon,
+     lost:slotLost,
+     profit:slotProfit,
+     roi:slotSpent>0?Number(((slotProfit/slotSpent)*100).toFixed(2)):0
+   },
+   chest:{
+     opened:totalOpened,
+     soulSpent:chestSoulSpent,
+     yangWon:totalYangWon
+   },
+   balances:{
+     coins:Number(u.coins||0),
+     soulPoints:Number(u.soul_points||0)
+   }
+ });
+});
+
 app.get("/api/my-reward-totals",auth,async(req,res)=>{
  const rows=(await q(`
    SELECT reward_name,reward_type,total_quantity,total_value,updated_at
@@ -406,7 +439,7 @@ app.post("/api/slot-spin",auth,async(req,res)=>{
    const u=(await client.query("SELECT * FROM users WHERE id=$1 FOR UPDATE",[req.user.id])).rows[0];
    if(Number(u.coins)<bet)throw new Error("Nincs elég Coinod ehhez a téthez.");
    const winChance=Math.max(0,Math.min(100,Number(await intSetting("slot_win_chance")||60)));const won=Math.random()<(winChance/100),reward=won?payout:0;
-   await client.query("UPDATE users SET coins=coins-$1+$2,played_coins=played_coins+$1,slot_spent=slot_spent+$1,slot_spins=slot_spins+1,slot_coin_won=slot_coin_won+$2,total_coin_won=total_coin_won+$2 WHERE id=$3",[bet,reward,req.user.id]);
+   await client.query("UPDATE users SET coins=coins-$1+$2,played_coins=played_coins+$1,slot_spent=slot_spent+$1,slot_spins=slot_spins+1,slot_coin_won=slot_coin_won+$2,total_coin_won=total_coin_won+$2,slot_lost_coins=slot_lost_coins+$3 WHERE id=$4",[bet,reward,won?0:bet,req.user.id]);
    await client.query("INSERT INTO transactions(user_id,amount,reason) VALUES($1,$2,$3)",[req.user.id,reward-bet,won?`Slot nyerés (${bet} tét)`:`Slot veszteség (${bet} tét)`]);
    await client.query("COMMIT");
    res.json({user:await userView(req.user.id),result:won?"WIN":"SKULL",bet,payout:reward,net:reward-bet});

@@ -175,3 +175,10 @@ V25 TARTÓS NYEREMÉNYLISTA:
 - A játékos kilépés/böngészőfrissítés után is ugyanazt a mentett összesítést látja.
 - Külön user_reward_totals adatbázistábla tárolja rewardonként a darabszámot és értéket.
 - A panel mutatja az összes ládanyitást, rewardonkénti összdarabszámot és összes nyert Yangot.
+
+V26 STATISZTIKA FÜL:
+- Új külön Statisztika fül a játékos felületen.
+- Slot: összes pörgetés, megforgatott Coin, nyert Coin, elbukott Coin, profit/nettó eredmény, ROI.
+- Láda: összes nyitás, ténylegesen elköltött Lélek Pont, összes nyert Yang.
+- Aktuális Coin és Lélek Pont egyenleg.
+- Az új veszteség és Lélek Pont költés statisztikák adatbázisban tartósan mentődnek.
