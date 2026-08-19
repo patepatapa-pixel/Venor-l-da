@@ -75,8 +75,11 @@ async function init(){
  );`);
  await q("ALTER TABLE users ADD COLUMN IF NOT EXISTS total_yang_won BIGINT NOT NULL DEFAULT 0");
  await q("ALTER TABLE users ADD COLUMN IF NOT EXISTS total_coin_won BIGINT NOT NULL DEFAULT 0");
+ await q("ALTER TABLE users ADD COLUMN IF NOT EXISTS slot_spent BIGINT NOT NULL DEFAULT 0");
+ await q("ALTER TABLE users ADD COLUMN IF NOT EXISTS slot_spins BIGINT NOT NULL DEFAULT 0");
+ await q("ALTER TABLE users ADD COLUMN IF NOT EXISTS slot_coin_won BIGINT NOT NULL DEFAULT 0");
 
- const defaults={
+ const defaults={slot_bets:"100,500,1000,5000",slot_payouts:"200,1000,2500,15000",slot_enabled:"1",
  daily_bonus:"5000",
  chest_price:"100",
  announcement:"Napi 5 000 Coin minden játékosnak!",
@@ -100,7 +103,7 @@ async function setting(k){return (await q("SELECT value FROM settings WHERE key=
 async function intSetting(k){return Number(await setting(k)||0)}
 function today(){return new Date().toISOString().slice(0,10)}
 function cleanName(s){return String(s||"").trim().replace(/\s+/g,"")}
-async function userView(id){return (await q("SELECT id,username,role,coins,played_coins,total_opened,total_yang_won,total_coin_won,banned,last_daily_at,created_at FROM users WHERE id=$1",[id])).rows[0]}
+async function userView(id){return (await q("SELECT id,username,role,coins,played_coins,total_opened,total_yang_won,total_coin_won,banned,last_daily_at,created_at,slot_spent,slot_spins,slot_coin_won FROM users WHERE id=$1",[id])).rows[0]}
 function setAuth(res,u,remember=false){
  const expiresIn=remember?"30d":"12h";
  const token=jwt.sign({id:u.id,role:u.role},JWT_SECRET,{expiresIn});
@@ -290,6 +293,33 @@ app.post("/api/admin/drops-reset",auth,admin,async(req,res)=>{
  res.json({ok:true,message:"A drop lista visszaállt az alapértelmezett értékekre."});
 });
 
+
+app.get("/api/slot-config",async(req,res)=>{
+ const bets=String(await setting("slot_bets")||"").split(",").map(Number).filter(n=>Number.isInteger(n)&&n>0);
+ const payouts=String(await setting("slot_payouts")||"").split(",").map(Number);
+ res.json({enabled:Boolean(await intSetting("slot_enabled")),bets:bets.map((bet,i)=>({bet,payout:Number(payouts[i]||0)})),skullChance:40,winChance:60});
+});
+
+app.post("/api/slot-spin",auth,async(req,res)=>{
+ if(!Boolean(await intSetting("slot_enabled")))return res.status(503).json({error:"A slot jelenleg ki van kapcsolva."});
+ const bets=String(await setting("slot_bets")||"").split(",").map(Number).filter(n=>Number.isInteger(n)&&n>0);
+ const payouts=String(await setting("slot_payouts")||"").split(",").map(Number);
+ const bet=Number(req.body.bet),idx=bets.indexOf(bet);
+ if(idx<0)return res.status(400).json({error:"Ez a tét nem engedélyezett."});
+ const payout=Math.max(0,Number(payouts[idx]||0));
+ const client=await pool.connect();
+ try{
+   await client.query("BEGIN");
+   const u=(await client.query("SELECT * FROM users WHERE id=$1 FOR UPDATE",[req.user.id])).rows[0];
+   if(Number(u.coins)<bet)throw new Error("Nincs elég Coinod ehhez a téthez.");
+   const won=Math.random()<0.60,reward=won?payout:0;
+   await client.query("UPDATE users SET coins=coins-$1+$2,played_coins=played_coins+$1,slot_spent=slot_spent+$1,slot_spins=slot_spins+1,slot_coin_won=slot_coin_won+$2,total_coin_won=total_coin_won+$2 WHERE id=$3",[bet,reward,req.user.id]);
+   await client.query("INSERT INTO transactions(user_id,amount,reason) VALUES($1,$2,$3)",[req.user.id,reward-bet,won?`Slot nyerés (${bet} tét)`:`Slot veszteség (${bet} tét)`]);
+   await client.query("COMMIT");
+   res.json({user:await userView(req.user.id),result:won?"WIN":"SKULL",bet,payout:reward,net:reward-bet});
+ }catch(e){await client.query("ROLLBACK");res.status(400).json({error:e.message})}finally{client.release()}
+});
+
 app.get("/api/admin/stats",auth,admin,async(req,res)=>res.json({
  users:Number((await q("SELECT COUNT(*) c FROM users WHERE role='user'")).rows[0].c),
  active:Number((await q("SELECT COUNT(*) c FROM users WHERE role='user' AND banned=FALSE")).rows[0].c),
@@ -297,6 +327,9 @@ app.get("/api/admin/stats",auth,admin,async(req,res)=>res.json({
  played:Number((await q("SELECT COALESCE(SUM(played_coins),0) s FROM users")).rows[0].s),
  opened:Number((await q("SELECT COALESCE(SUM(total_opened),0) s FROM users")).rows[0].s),
  coins:Number((await q("SELECT COALESCE(SUM(coins),0) s FROM users")).rows[0].s),
+ slotSpent:Number((await q("SELECT COALESCE(SUM(slot_spent),0) s FROM users")).rows[0].s),
+ slotSpins:Number((await q("SELECT COALESCE(SUM(slot_spins),0) s FROM users")).rows[0].s),
+ slotWon:Number((await q("SELECT COALESCE(SUM(slot_coin_won),0) s FROM users")).rows[0].s),
  yangWon:Number((await q("SELECT COALESCE(SUM(total_yang_won),0) s FROM users")).rows[0].s),
  coinWon:Number((await q("SELECT COALESCE(SUM(total_coin_won),0) s FROM users")).rows[0].s)
 }));
@@ -316,8 +349,8 @@ app.post("/api/admin/coins",auth,admin,async(req,res)=>{
  res.json({ok:true});
 });
 app.post("/api/admin/ban",auth,admin,async(req,res)=>{const id=Number(req.body.userId);if(id===Number(req.user.id))return res.status(400).json({error:"Saját admin fiók nem tiltható."});await q("UPDATE users SET banned=$1 WHERE id=$2",[!!req.body.banned,id]);res.json({ok:true})});
-app.get("/api/admin/settings",auth,admin,async(req,res)=>res.json({daily_bonus:await intSetting("daily_bonus"),chest_price:await intSetting("chest_price"),announcement:await setting("announcement"),maintenance:Boolean(await intSetting("maintenance"))}));
-app.post("/api/admin/settings",auth,admin,async(req,res)=>{const daily=Number(req.body.daily_bonus),price=Number(req.body.chest_price);if(!Number.isInteger(daily)||daily<0||!Number.isInteger(price)||price<1)return res.status(400).json({error:"Hibás beállítás."});const vals={daily_bonus:String(daily),chest_price:String(price),announcement:String(req.body.announcement||"").slice(0,180),maintenance:String(req.body.maintenance?1:0)};for(const [k,v] of Object.entries(vals))await q("UPDATE settings SET value=$1 WHERE key=$2",[v,k]);res.json({ok:true})});
+app.get("/api/admin/settings",auth,admin,async(req,res)=>res.json({daily_bonus:await intSetting("daily_bonus"),chest_price:await intSetting("chest_price"),announcement:await setting("announcement"),maintenance:Boolean(await intSetting("maintenance")),slot_enabled:Boolean(await intSetting("slot_enabled")),slot_bets:String(await setting("slot_bets")||""),slot_payouts:String(await setting("slot_payouts")||"")}));
+app.post("/api/admin/settings",auth,admin,async(req,res)=>{const daily=Number(req.body.daily_bonus),price=Number(req.body.chest_price);if(!Number.isInteger(daily)||daily<0||!Number.isInteger(price)||price<1)return res.status(400).json({error:"Hibás beállítás."});const bets=String(req.body.slot_bets||"").split(",").map(x=>Number(x.trim())).filter(n=>Number.isInteger(n)&&n>0);const payouts=String(req.body.slot_payouts||"").split(",").map(x=>Number(x.trim()));if(!bets.length||bets.length!==payouts.length||payouts.some(n=>!Number.isInteger(n)||n<0))return res.status(400).json({error:"A slot tétek és nyeremények száma egyezzen."});const vals={daily_bonus:String(daily),chest_price:String(price),announcement:String(req.body.announcement||"").slice(0,180),maintenance:String(req.body.maintenance?1:0),slot_enabled:String(req.body.slot_enabled?1:0),slot_bets:bets.join(","),slot_payouts:payouts.join(",")};for(const [k,v] of Object.entries(vals))await q("UPDATE settings SET value=$1 WHERE key=$2",[v,k]);res.json({ok:true})});
 app.get("/api/admin/jackpots",auth,admin,async(req,res)=>{
  const rows=(await q(`
    SELECT j.id,j.amount,j.reward_name,j.claimed,j.claimed_at,j.created_at,u.username
