@@ -9,13 +9,46 @@
 <section class="page" id="a-logs"><section class="card"><h2>📜 Admin műveletek</h2><div id="logs"></div></section></section>
 </main>
 <div class="modal" id="playerModal"><div class="modal-box" style="width:min(650px,100%)"><button class="modal-x" id="playerClose">×</button><h2 id="pmName">Játékos</h2><div id="pmStats" class="stats-panel"></div><hr><h3>🎁 Jutalom hozzáadása</h3><div style="display:grid;grid-template-columns:1fr 1fr auto;gap:7px"><select id="grantType"><option value="gold">Arany</option><option value="gems">Kristály</option><option value="ore">Érc</option><option value="soul">Lélekkő</option><option value="tickets">Dungeon jegy</option></select><input id="grantAmount" type="number" min="0" value="1000"><button id="grantBtn">Hozzáadás</button></div><hr><div style="display:flex;gap:7px;flex-wrap:wrap"><button id="banBtn" class="danger">Tiltás</button><button id="resetBtn" class="danger">Mentés teljes reset</button></div></div></div>
-<div id="toast"></div><script src="admin.js"></script>
+<div id="toast"></div>
 <section class="card admin-studio">
 <h2>🛠️ ADMIN GAME STUDIO</h2>
 <p>Minden játékosérték és új játéktartalom kezelése egy helyen.</p>
 <div class="studio-tabs">
-<button data-studio="players">👥 Játékosok</button><button data-studio="bosses">👹 Bossok</button><button data-studio="items">⚔️ Tárgyak</button><button data-studio="pets">🐾 Petek</button><button data-studio="auras">✨ Aurák</button><button data-studio="zones">🗺️ Területek</button><button data-studio="raw">🧬 Haladó</button>
+<button data-studio="players">👥 Játékosok</button><button data-studio="gameplay">🎮 Játékmenet</button><button data-studio="bosses">👹 Bossok</button><button data-studio="items">⚔️ Tárgyak</button><button data-studio="pets">🐾 Petek</button><button data-studio="auras">✨ Aurák</button><button data-studio="zones">🗺️ Területek</button><button data-studio="raw">🧬 Haladó</button>
 </div>
+
+<div class="studio-page" id="studio-gameplay">
+ <h3>🎮 Harcrendszer / Játékmenet</h3>
+ <p class="muted">Innen állítható a játékos HP-ja, a szörnyek sebzése, a boss HP-regenerációja, a respawn és a wave nehézsége.</p>
+ <div class="admin-stat-grid">
+   <label>❤️ Alap játékos HP<input id="cfgBasePlayerHp" type="number" min="1"></label>
+   <label>❤️ HP / karakter szint<input id="cfgHpPerLevel" type="number" min="0" step="0.1"></label>
+   <label>🛡️ Védelem hatása % / pont<input id="cfgDefenseEffectPct" type="number" min="0" step="0.1"></label>
+   <label>⚔️ Mob sebzés szorzó<input id="cfgMonsterDamageMult" type="number" min="0" step="0.05"></label>
+
+   <label>👹 Boss sebzés szorzó<input id="cfgBossDamageMult" type="number" min="0" step="0.05"></label>
+   <label>💚 Boss HP regen % / mp<input id="cfgBossRegenPct" type="number" min="0" step="0.05"></label>
+   <label>💚 Mob HP regen % / mp<input id="cfgMobRegenPct" type="number" min="0" step="0.05"></label>
+   <label>🩹 Játékos HP regen % / mp<input id="cfgPlayerRegenPct" type="number" min="0" step="0.05"></label>
+
+   <label>⏱️ Játékos támadás mp<input id="cfgPlayerAttackSec" type="number" min="0.2" step="0.1"></label>
+   <label>⏱️ Szörny támadás mp<input id="cfgEnemyAttackSec" type="number" min="0.2" step="0.1"></label>
+   <label>💀 Respawn idő mp<input id="cfgRespawnSec" type="number" min="1"></label>
+   <label>❤️ Respawn HP %<input id="cfgRespawnHpPct" type="number" min="1" max="100"></label>
+
+   <label>🌊 Kill / wave<input id="cfgWaveKills" type="number" min="1"></label>
+   <label>📈 Boss HP növekedés % / wave<input id="cfgBossHpGrowthPct" type="number" min="0" step="0.1"></label>
+   <label>🏆 Boss jutalom szorzó<input id="cfgBossRewardMult" type="number" min="0" step="0.1"></label>
+   <label>🧟 Mob sebzés alap % HP alapján<input id="cfgMobDamageHpPct" type="number" min="0" step="0.01"></label>
+ </div>
+ <button id="saveGameplayConfig">💾 JÁTÉKMENET MENTÉSE</button>
+ <div class="gameplay-explain">
+  <b>Hogyan működik:</b> a karakter és az ellenfél automatikusan támadja egymást.
+  Ha a karakter meghal, a farm megáll a respawn végéig. Minden wave végén automatikus boss érkezik.
+  A boss HP-t regenerál, ezért addig nem juthat tovább a játékos, amíg ténylegesen le nem tudja győzni.
+ </div>
+</div>
+
 <div class="studio-page active" id="studio-players">
 <select id="studioPlayer"></select>
 <div class="admin-stat-grid">
@@ -35,4 +68,4 @@
 <div class="studio-page" id="studio-raw"><h3>🧬 Teljes konfiguráció</h3><textarea id="contentJson" class="json-editor"></textarea><button id="saveContentJson">💾 Konfiguráció mentése</button></div>
 </section>
 
-</body></html>
+<script src="admin.js"></script></body></html>

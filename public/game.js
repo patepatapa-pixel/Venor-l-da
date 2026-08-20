@@ -84,6 +84,9 @@ function normalizeV6Save(s){
  s.paragonStats={damage:0,gold:0,drop:0,crit:0,...(s.paragonStats||{})};
  s.ownedAuras=Array.isArray(s.ownedAuras)?s.ownedAuras:["none"];if(!s.ownedAuras.includes("none"))s.ownedAuras.unshift("none");
  s.activeAura=s.activeAura||"none";
+ s.playerHp=Number.isFinite(Number(s.playerHp))?Number(s.playerHp):0;
+ s.deaths=Math.max(0,Number(s.deaths||0));
+ s.respawnUntil=Math.max(0,Number(s.respawnUntil||0));
  return s;
 }
 save=normalizeV6Save(save);
@@ -182,24 +185,8 @@ function kill(){
  }
  persist()
 }
-function combatTick(){
- let hit=damage(),crit=Math.random()<critChance();
- if(crit){hit*=2;save.stats.critHits++}
- enemyHp-=hit;
- if(enemyHp<=0){
-   if(save.waveBoss){
-     let z=ZONES[save.zone],reward=Math.floor(z.gold*(20+save.wave)*goldBonus());
-     save.gold+=reward;save.stats.goldEarned+=reward;save.gems+=1;save.soul+=1;save.stats.bosses++;
-     if(Math.random()<.80)addItem(createItem());
-     save.waveBoss=false;save.wave++;save.waveKills=0;save.waveGoal=Math.min(50,10+Math.floor(save.wave/5)*2);
-     enemyHp=z.hp;
-     $("#combatLog").textContent=`🏆 Wave Boss legyőzve! +${fmt(reward)} arany. Továbbjutottál a ${save.wave}. wave-re.`;
-     toast(`🏆 Wave ${save.wave-1} teljesítve!`);
-     persist();
-   }else kill();
- }
- renderCore()
-}
+function combatTick(){ /* V10 uses dedicated player/enemy timers */ }
+
 
 function highestEquippedRarity(){
  const order={normal:1,rare:2,epic:3,mythic:4,legendary:5};
@@ -519,13 +506,13 @@ async function loadMe(){
    cloudReady=true;
    $("#onlineUser").innerHTML=`<span class="online-badge">●</span> ${currentUser.username}`;
    $("#authBtn").textContent="Kilépés";
-   if($("#adminPanelBtn"))$("#adminPanelBtn").style.display=currentUser.role==="admin"?"inline-block":"none";
+   
    renderAll();
  }catch{
    currentUser=null;cloudReady=false;
    $("#onlineUser").textContent="👤 Vendég";
    $("#authBtn").textContent="Belépés";
-   if($("#adminPanelBtn"))$("#adminPanelBtn").style.display="none";
+   
    openAuth("login");
  }
 }
@@ -563,7 +550,7 @@ $("#authSubmit").onclick=async()=>{
    const username=$("#authUsername").value.trim(),password=$("#authPassword").value;
    const d=await api(authMode==="login"?"/api/login":"/api/register",{method:"POST",body:JSON.stringify({username,password})});
    currentUser=d.user;save=normalizeV6Save(d.save||save);cloudReady=true;closeAuth();enemyHp=ZONES[save.zone]?.hp||ZONES[0].hp;renderAll();
-   $("#onlineUser").innerHTML=`<span class="online-badge">●</span> ${currentUser.username}`;$("#authBtn").textContent="Kilépés";if($("#adminPanelBtn"))$("#adminPanelBtn").style.display=currentUser.role==="admin"?"inline-block":"none";toast("✅ Sikeres "+(authMode==="login"?"belépés":"regisztráció"));
+   $("#onlineUser").innerHTML=`<span class="online-badge">●</span> ${currentUser.username}`;$("#authBtn").textContent="Kilépés";toast("✅ Sikeres "+(authMode==="login"?"belépés":"regisztráció"));
  }catch(e){$("#authMsg").textContent="❌ "+e.message}
 };
 $("#leaderboardBtn").onclick=()=>{$$(".tab").forEach(x=>x.classList.remove("active"));$$(".page").forEach(x=>x.classList.remove("active"));$("#page-leaderboard").classList.add("active");loadLeaderboard()};
@@ -601,7 +588,173 @@ if(away>15){
 }
 while(save.xp>=needXp()){save.xp-=needXp();save.level++;save.skillPoints++}
 renderAll();persist();loadMe();
-setInterval(combatTick,1000);
+// V10 combat timers are started after gameplay config loads;
 setInterval(()=>{save.stats.playSeconds++;if(save.stats.playSeconds%5===0)persist()},1000);
 
 window.OMI_CONTENT={bosses:[],items:[],pets:[],auras:[],zones:[]};fetch("/api/content-config").then(r=>r.json()).then(d=>window.OMI_CONTENT={...window.OMI_CONTENT,...(d.config||{})}).catch(()=>{});
+
+
+// ================= V10 FULL COMBAT =================
+const V10_DEFAULTS={
+ basePlayerHp:180,hpPerLevel:12,defenseEffectPct:1.15,
+ monsterDamageMult:1,bossDamageMult:1.65,bossRegenPct:.40,mobRegenPct:0,
+ playerRegenPct:1.2,playerAttackSec:1,enemyAttackSec:1.35,
+ respawnSec:6,respawnHpPct:100,waveKills:10,bossHpGrowthPct:18,
+ bossRewardMult:1,mobDamageHpPct:2.1
+};
+let V10CFG={...V10_DEFAULTS};
+let v10PlayerTimer=null,v10EnemyTimer=null,v10RegenTimer=null;
+
+function v10Defense(){
+ const b=bonuses();
+ return Math.max(0,Math.floor((b.def||0)+(save.base?.armorTraining||1)*3+(save.level||1)*.8+save.prestigeLevel*5));
+}
+function v10MaxHp(){
+ return Math.max(1,Math.floor(
+   V10CFG.basePlayerHp+(save.level-1)*V10CFG.hpPerLevel+v10Defense()*2+save.paragonLevel*20
+ ));
+}
+function v10BossMaxHp(){
+ const z=ZONES[save.zone];
+ return Math.max(z.hp,Math.floor(z.hp*(6+save.wave*(V10CFG.bossHpGrowthPct/100))));
+}
+function v10EnemyMaxHp(){return save.waveBoss?v10BossMaxHp():ZONES[save.zone].hp}
+function v10RawEnemyDamage(){
+ const z=ZONES[save.zone];
+ let raw=v10MaxHp()*(V10CFG.mobDamageHpPct/100);
+ raw += save.zone*5 + save.wave*.45 + z.gold*.0015;
+ raw*=V10CFG.monsterDamageMult;
+ if(save.waveBoss)raw*=V10CFG.bossDamageMult;
+ return Math.max(1,Math.floor(raw));
+}
+function v10EnemyHit(){
+ const reduction=Math.min(.82,v10Defense()*(V10CFG.defenseEffectPct/100));
+ return Math.max(1,Math.floor(v10RawEnemyDamage()*(1-reduction)));
+}
+function v10IsAlive(){return !save.respawnUntil || Date.now()>=save.respawnUntil}
+function v10EnsurePlayerHp(){
+ const mx=v10MaxHp();
+ if(!Number.isFinite(save.playerHp)||save.playerHp<=0&&!save.respawnUntil)save.playerHp=mx;
+ if(save.playerHp>mx)save.playerHp=mx;
+}
+function v10AwardNormalKill(){
+ const z=ZONES[save.zone],g=Math.floor(z.gold*goldBonus());
+ save.gold+=g;save.stats.goldEarned+=g;save.xp+=z.xp;save.kills++;
+ if(Math.random()<.07+save.base.mining*.005)save.ore++;
+ if(Math.random()<.007+dropBonus()*.05)save.soul++;
+ if(Math.random()<.006)save.tickets++;
+ if(Math.random()<z.drop+dropBonus())addItem(createItem());
+ while(save.xp>=needXp()){save.xp-=needXp();save.level++;save.skillPoints++;toast(`⭐ Szintlépés! Lv.${save.level}`)}
+ save.waveKills++;
+ if(save.waveKills>=save.waveGoal){
+   save.waveBoss=true;
+   save.bossHp=v10BossMaxHp();
+   enemyHp=save.bossHp;
+   $("#combatLog").textContent=`👹 Wave ${save.wave} BOSS érkezett! Addig nem haladsz tovább, amíg le nem győzöd.`;
+ }else{
+   enemyHp=z.hp;
+   $("#combatLog").textContent=`${z.enemy} legyőzve · +${fmt(g)} arany · ${save.waveKills}/${save.waveGoal} kill`;
+ }
+}
+function v10AwardBossKill(){
+ const z=ZONES[save.zone];
+ const reward=Math.floor(z.gold*(20+save.wave)*goldBonus()*V10CFG.bossRewardMult);
+ save.gold+=reward;save.stats.goldEarned+=reward;save.gems++;save.soul++;save.stats.bosses++;
+ if(Math.random()<.80)addItem(createItem());
+ const oldWave=save.wave;
+ save.waveBoss=false;save.wave++;save.waveKills=0;
+ save.waveGoal=Math.max(1,Math.floor(V10CFG.waveKills+Math.floor(save.wave/5)*2));
+ save.bossHp=0;enemyHp=z.hp;
+ $("#combatLog").textContent=`🏆 Wave ${oldWave} Boss legyőzve! +${fmt(reward)} arany. Wave ${save.wave} indul.`;
+ toast(`🏆 Wave ${oldWave} teljesítve!`);
+}
+function v10PlayerAttack(){
+ if(!v10IsAlive())return;
+ v10EnsurePlayerHp();
+ let hit=damage(),crit=Math.random()<critChance();
+ if(crit){hit*=2;save.stats.critHits++}
+ enemyHp-=hit;
+ if(save.waveBoss)save.bossHp=Math.max(0,enemyHp);
+ if(enemyHp<=0){
+   if(save.waveBoss)v10AwardBossKill();else v10AwardNormalKill();
+   persist();
+ }
+ v10Render();
+}
+function v10EnemyAttack(){
+ if(!v10IsAlive())return;
+ v10EnsurePlayerHp();
+ save.playerHp=Math.max(0,save.playerHp-v10EnemyHit());
+ if(save.playerHp<=0){
+   save.deaths++;
+   save.respawnUntil=Date.now()+Math.max(1,V10CFG.respawnSec)*1000;
+   $("#combatLog").textContent=`💀 Meghaltál! Újraéledés ${V10CFG.respawnSec} másodperc múlva. A wave megáll.`;
+   persist();
+ }
+ v10Render();
+}
+function v10Regen(){
+ const enemyMax=v10EnemyMaxHp();
+ const regenPct=save.waveBoss?V10CFG.bossRegenPct:V10CFG.mobRegenPct;
+ if(enemyHp>0&&regenPct>0){
+   enemyHp=Math.min(enemyMax,enemyHp+enemyMax*(regenPct/100));
+   if(save.waveBoss)save.bossHp=enemyHp;
+ }
+ if(!v10IsAlive()){
+   const left=save.respawnUntil-Date.now();
+   if(left<=0){
+     save.respawnUntil=0;
+     save.playerHp=Math.max(1,Math.floor(v10MaxHp()*(V10CFG.respawnHpPct/100)));
+     $("#combatLog").textContent="❤️ Újraéledtél. Az automata harc folytatódik.";
+     persist();
+   }
+ }else if(save.playerHp<v10MaxHp()&&V10CFG.playerRegenPct>0){
+   save.playerHp=Math.min(v10MaxHp(),save.playerHp+v10MaxHp()*(V10CFG.playerRegenPct/100));
+ }
+ v10Render();
+}
+function v10Render(){
+ v10EnsurePlayerHp();
+ const mx=v10MaxHp(),hp=Math.max(0,save.playerHp),em=v10EnemyMaxHp();
+ const pb=$("#playerHpBar");if(pb)pb.style.width=Math.min(100,hp/mx*100)+"%";
+ if($("#playerHpText"))$("#playerHpText").textContent=`${fmt(Math.ceil(hp))} / ${fmt(mx)} HP`;
+ if($("#combatDefense"))$("#combatDefense").textContent=fmt(v10Defense());
+ if($("#enemyDamageText"))$("#enemyDamageText").textContent=fmt(v10EnemyHit());
+ if($("#enemyRegenText"))$("#enemyRegenText").textContent=`💚 Regen ${save.waveBoss?V10CFG.bossRegenPct:V10CFG.mobRegenPct}%/mp`;
+ if($("#enemyAttackSpeedText"))$("#enemyAttackSpeedText").textContent=`⏱️ ${V10CFG.enemyAttackSec} mp`;
+ if($("#playerCombatState")){
+   const left=Math.max(0,Math.ceil((save.respawnUntil-Date.now())/1000));
+   $("#playerCombatState").textContent=v10IsAlive()?"⚔️ Automatikusan harcol":`💀 Respawn: ${left} mp`;
+ }
+ if($("#charStatHP"))$("#charStatHP").textContent=`${fmt(Math.ceil(hp))} / ${fmt(mx)}`;
+ if($("#charStatDefense"))$("#charStatDefense").textContent=fmt(v10Defense());
+ if($("#charStatDeaths"))$("#charStatDeaths").textContent=fmt(save.deaths);
+ if($("#enemyHp"))$("#enemyHp").textContent=fmt(Math.max(0,Math.ceil(enemyHp)));
+ if($("#enemyMaxHp"))$("#enemyMaxHp").textContent=fmt(em);
+ if($("#hpbar"))$("#hpbar").style.width=Math.min(100,Math.max(0,enemyHp/em*100))+"%";
+}
+function v10RestartTimers(){
+ if(v10PlayerTimer)clearInterval(v10PlayerTimer);
+ if(v10EnemyTimer)clearInterval(v10EnemyTimer);
+ if(v10RegenTimer)clearInterval(v10RegenTimer);
+ v10PlayerTimer=setInterval(v10PlayerAttack,Math.max(200,V10CFG.playerAttackSec*1000));
+ v10EnemyTimer=setInterval(v10EnemyAttack,Math.max(200,V10CFG.enemyAttackSec*1000));
+ v10RegenTimer=setInterval(v10Regen,1000);
+}
+async function v10LoadGameplay(){
+ try{
+   const d=await fetch("/api/content-config").then(r=>r.json());
+   window.OMI_CONTENT={...(window.OMI_CONTENT||{}),...(d.config||{})};
+   V10CFG={...V10_DEFAULTS,...(d.config?.gameplay||{})};
+ }catch(e){V10CFG={...V10_DEFAULTS}}
+ save.waveGoal=Math.max(1,Number(save.waveGoal||V10CFG.waveKills));
+ v10EnsurePlayerHp();
+ if(save.waveBoss){
+   const max=v10BossMaxHp();
+   enemyHp=Math.min(max,Math.max(1,Number(save.bossHp||max)));
+ }else{
+   enemyHp=Math.min(ZONES[save.zone].hp,Math.max(1,enemyHp||ZONES[save.zone].hp));
+ }
+ v10RestartTimers();v10Render();
+}
+setTimeout(v10LoadGameplay,700);

@@ -12,7 +12,7 @@
   <div class="top-actions">
     <span id="onlineUser">👤 Vendég</span>
     <button class="ghost" id="leaderboardBtn">🏆 Ranglista</button>
-    <button class="ghost admin-only-btn" id="adminPanelBtn" style="display:none">⚙️ Adminpanel</button><button class="ghost" id="authBtn">Belépés</button>
+    <button class="ghost admin-only-btn" id="adminPanelBtn">⚙️ Adminpanel</button><button class="ghost" id="authBtn">Belépés</button>
     <span id="saveState">💾 Mentve</span>
     <button class="ghost" id="exportBtn">Export</button>
     <button class="ghost" id="importBtn">Import</button>
@@ -181,6 +181,9 @@
   <div class="character-attributes">
     <div class="char-attr"><span>💪 Erő</span><b id="charStatPower">0</b></div>
     <div class="char-attr"><span>⚔️ Sebzés</span><b id="charStatDamage">0</b></div>
+    <div class="char-attr"><span>❤️ Életerő</span><b id="charStatHP">0 / 0</b></div>
+    <div class="char-attr"><span>🛡️ Védelem</span><b id="charStatDefense">0</b></div>
+    <div class="char-attr"><span>💀 Halál</span><b id="charStatDeaths">0</b></div>
     <div class="char-attr"><span>🍀 Szerencse</span><b id="charStatLuck">0</b></div>
     <div class="char-attr"><span>🎯 Krit esély</span><b id="charStatCrit">0%</b></div>
     <div class="char-attr"><span>🎁 Drop bónusz</span><b id="charStatDrop">0%</b></div>
@@ -242,6 +245,17 @@
           <b id="enemyName">Vadkan</b>
           <div class="hp"><i id="hpbar"></i></div>
           <small><span id="enemyHp">0</span> / <span id="enemyMaxHp">0</span> HP</small>
+        </div>
+      </div>
+      <div class="v10-combat-status">
+        <div class="v10-fighter player">
+          <div class="v10-fighter-head"><b>🧙 Saját karakter</b><span id="playerHpText">0 / 0 HP</span></div>
+          <div class="v10-player-hp"><i id="playerHpBar"></i></div>
+          <div class="v10-detail"><span id="playerCombatState">⚔️ Harcol</span><span>🛡️ DEF <b id="combatDefense">0</b></span></div>
+        </div>
+        <div class="v10-fighter monster">
+          <div class="v10-fighter-head"><b>👹 Ellenfél</b><span>DMG <strong id="enemyDamageText">0</strong></span></div>
+          <div class="v10-detail"><span id="enemyRegenText">💚 Regen 0%/mp</span><span id="enemyAttackSpeedText">⏱️ 1.35 mp</span></div>
         </div>
       </div>
       <div class="combat-log" id="combatLog">A farm elindult...</div>

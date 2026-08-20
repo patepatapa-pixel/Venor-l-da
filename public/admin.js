@@ -50,3 +50,60 @@ async function saveConfigV8(){await sa("/api/admin/content-config",{method:"POST
 qsa("[data-add]").forEach(btn=>btn.onclick=async()=>{let type=btn.dataset.add,base=type.slice(0,-1),o={};qs("#"+base+"Builder").querySelectorAll("[data-field]").forEach(i=>o[i.dataset.field]=i.type==="number"?Number(i.value||0):i.value);if(!o.name)return alert("Adj nevet!");studioConfig[type].push(o);await saveConfigV8();alert("✅ Létrehozva")});
 qs("#saveContentJson")?.addEventListener("click",async()=>{try{studioConfig=JSON.parse(qs("#contentJson").value);await saveConfigV8();alert("✅ Mentve")}catch(e){alert("❌ Hibás JSON")}});
 loadStudioV8();
+
+
+// V10 gameplay editor
+const V10_GAMEPLAY_DEFAULTS={
+ basePlayerHp:180,
+ hpPerLevel:12,
+ defenseEffectPct:1.15,
+ monsterDamageMult:1,
+ bossDamageMult:1.65,
+ bossRegenPct:0.40,
+ mobRegenPct:0,
+ playerRegenPct:1.2,
+ playerAttackSec:1,
+ enemyAttackSec:1.35,
+ respawnSec:6,
+ respawnHpPct:100,
+ waveKills:10,
+ bossHpGrowthPct:18,
+ bossRewardMult:1,
+ mobDamageHpPct:2.1
+};
+
+function v10GameplayCfg(){
+ studioConfig.gameplay={...V10_GAMEPLAY_DEFAULTS,...(studioConfig.gameplay||{})};
+ return studioConfig.gameplay;
+}
+function fillV10Gameplay(){
+ const g=v10GameplayCfg();
+ const map={
+  cfgBasePlayerHp:"basePlayerHp",cfgHpPerLevel:"hpPerLevel",cfgDefenseEffectPct:"defenseEffectPct",
+  cfgMonsterDamageMult:"monsterDamageMult",cfgBossDamageMult:"bossDamageMult",
+  cfgBossRegenPct:"bossRegenPct",cfgMobRegenPct:"mobRegenPct",cfgPlayerRegenPct:"playerRegenPct",
+  cfgPlayerAttackSec:"playerAttackSec",cfgEnemyAttackSec:"enemyAttackSec",
+  cfgRespawnSec:"respawnSec",cfgRespawnHpPct:"respawnHpPct",cfgWaveKills:"waveKills",
+  cfgBossHpGrowthPct:"bossHpGrowthPct",cfgBossRewardMult:"bossRewardMult",cfgMobDamageHpPct:"mobDamageHpPct"
+ };
+ Object.entries(map).forEach(([id,key])=>{const e=qs("#"+id);if(e)e.value=g[key]});
+}
+qs("#saveGameplayConfig")?.addEventListener("click",async()=>{
+ try{
+  const g=v10GameplayCfg();
+  const map={
+   cfgBasePlayerHp:"basePlayerHp",cfgHpPerLevel:"hpPerLevel",cfgDefenseEffectPct:"defenseEffectPct",
+   cfgMonsterDamageMult:"monsterDamageMult",cfgBossDamageMult:"bossDamageMult",
+   cfgBossRegenPct:"bossRegenPct",cfgMobRegenPct:"mobRegenPct",cfgPlayerRegenPct:"playerRegenPct",
+   cfgPlayerAttackSec:"playerAttackSec",cfgEnemyAttackSec:"enemyAttackSec",
+   cfgRespawnSec:"respawnSec",cfgRespawnHpPct:"respawnHpPct",cfgWaveKills:"waveKills",
+   cfgBossHpGrowthPct:"bossHpGrowthPct",cfgBossRewardMult:"bossRewardMult",cfgMobDamageHpPct:"mobDamageHpPct"
+  };
+  Object.entries(map).forEach(([id,key])=>g[key]=Number(qs("#"+id)?.value||0));
+  studioConfig.gameplay=g;
+  await saveConfigV8();
+  fillV10Gameplay();
+  alert("✅ Játékmenet elmentve.");
+ }catch(e){alert("❌ "+e.message)}
+});
+setTimeout(fillV10Gameplay,1000);

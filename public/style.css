@@ -258,3 +258,15 @@ a{text-decoration:none}
  color:#f3c956!important;
  background:#171208!important;
 }
+
+/* V10 full combat */
+.v10-combat-status{display:grid;grid-template-columns:1.35fr 1fr;gap:9px;margin-top:10px}
+.v10-fighter{padding:11px;border:1px solid #2d343d;border-radius:11px;background:#090b0e}
+.v10-fighter.player{border-color:#493036}.v10-fighter.monster{border-color:#3f3422}
+.v10-fighter-head,.v10-detail{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.v10-fighter-head span,.v10-detail{font-size:10px;color:#969ea6}
+.v10-player-hp{height:13px;background:#291015;border:1px solid #51262e;border-radius:20px;overflow:hidden;margin:8px 0}
+#playerHpBar{display:block;height:100%;width:100%;background:linear-gradient(90deg,#8f2633,#e64b5c);transition:width .18s}
+.gameplay-explain{margin-top:12px;padding:12px;border:1px solid #4b3d19;border-radius:10px;background:#100d06;color:#c9bea0;line-height:1.55}
+.admin-only-btn{display:inline-block!important}
+@media(max-width:650px){.v10-combat-status{grid-template-columns:1fr}}
