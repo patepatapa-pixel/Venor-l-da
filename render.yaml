@@ -1,29 +1,22 @@
 services:
   - type: web
-    name: venori
+    name: omi-idle-farm
     runtime: node
     plan: free
     buildCommand: npm install
     startCommand: npm start
-    healthCheckPath: /api/health
     envVars:
-      - key: NODE_VERSION
-        value: "20"
       - key: DATABASE_URL
         fromDatabase:
-          name: venori-db
+          name: omi-idle-farm-db
           property: connectionString
       - key: JWT_SECRET
         generateValue: true
       - key: ADMIN_USERNAME
-        value: VenoriAdmin
+        value: OmiAdmin
       - key: ADMIN_PASSWORD
         sync: false
-      - key: COOKIE_SECURE
-        value: "true"
 
 databases:
-  - name: venori-db
+  - name: omi-idle-farm-db
     plan: free
-    databaseName: venori
-    user: venori

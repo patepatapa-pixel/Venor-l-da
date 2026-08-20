@@ -1,976 +1,385 @@
-<!doctype html><html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>O M I G A M B A – GAMB csak saját felelősségre</title><link rel="stylesheet" href="/style.css"></head><body>
-<div id="startupDelayNotice" class="startup-delay-notice">
-  <div class="startup-delay-icon">⏳</div>
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OMI Idle Farm — Complete</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><span>⚔️ OMI</span> IDLE FARM <em>COMPLETE</em></div>
+  <div class="top-actions">
+    <span id="onlineUser">👤 Vendég</span>
+    <button class="ghost" id="leaderboardBtn">🏆 Ranglista</button>
+    <button class="ghost admin-only-btn" id="adminPanelBtn" style="display:none">⚙️ Adminpanel</button><button class="ghost" id="authBtn">Belépés</button>
+    <span id="saveState">💾 Mentve</span>
+    <button class="ghost" id="exportBtn">Export</button>
+    <button class="ghost" id="importBtn">Import</button>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button class="tab active" data-tab="character">🧙 Karakter</button><button class="tab" data-tab="farm">⚔️ Farm</button>
+  <button class="tab" data-tab="inventory">🎒 Inventory</button>
+  <button class="tab" data-tab="upgrade">🔨 Fejlesztés</button>
+  <button class="tab" data-tab="skills">✨ Képességek</button>
+  <button class="tab" data-tab="pets">🐾 Petek</button>
+  <button class="tab" data-tab="dungeon">🏰 Dungeon</button>
+  <button class="tab" data-tab="quests">📜 Küldetések</button>
+  <button class="tab" data-tab="stats">📊 Statisztika</button>
+</nav>
+
+<main>
+<section class="hero card">
   <div>
-    <b>Kérjük, légy türelmes!</b>
-    <p>Az első forgatások és ládanyitások néha lassabbak lehetnek.</p>
-    <span>A rendszer első használatkor felébredhet / betölthet, ezért az első művelet pár másodperccel tovább tarthat. Köszönjük a türelmed!</span>
+    <div class="eyebrow">AUTOMATA FARM RPG</div>
+    <h1>Farmolj automatikusan, építs egyre erősebb karaktert.</h1>
+    <p>A karaktered magától harcol. Te döntöd el, mit fejlesztesz, mit szerelsz fel, melyik petet használod és melyik területet farmolod.</p>
   </div>
+  <div class="hero-power"><small>ÖSSZERŐ</small><strong id="power">0</strong><span id="rankName">Kezdő</span></div>
+</section>
+
+<section class="resource-grid">
+  <div class="resource card"><span>💰 Arany</span><strong id="gold">0</strong><small id="gps">0 / mp</small></div>
+  <div class="resource card"><span>💎 Kristály</span><strong id="gems">0</strong><small>ritka valuta</small></div>
+  <div class="resource card"><span>⛏️ Érc</span><strong id="ore">0</strong><small>fejlesztéshez</small></div>
+  <div class="resource card"><span>🧿 Lélekkő</span><strong id="soul">0</strong><small>ritka fejlesztés</small></div>
+  <div class="resource card"><span>🎫 Dungeon jegy</span><strong id="tickets">0</strong><small>bossokhoz</small></div>
+  <div class="resource card"><span>⭐ Szint</span><strong id="level">1</strong><small id="xpText">0 / 100 XP</small></div>
+</section>
+
+<!-- FARM -->
+
+<section class="page active" id="page-character">
+<div class="character-page-grid">
+<section class="card hero-character-card">
+  <div class="title-row">
+    <div><div class="eyebrow">SAJÁT HŐSÖD</div><h2 style="font-size:22px;margin:5px 0">🧙 Karakter</h2><small>A felszerelt tárgyak, aura és pet vizuálisan is megjelennek.</small></div>
+    <div class="character-power-badge"><small>ÖSSZERŐ</small><b id="v5CharPower">0</b><span id="v5CharRank">Kezdő</span></div>
+  </div>
+  <div class="v5-character-scene">
+    <div class="v5-scene-bg" id="v5SceneBg"></div>
+    <div class="v5-aura" id="v5Aura"></div>
+
+    <div class="v5-slot v5-slot-head"><span>🪖</span><small>SISAK</small><b id="v5Helmet">Üres</b></div>
+    <div class="v5-slot v5-slot-weapon"><span>⚔️</span><small>FEGYVER</small><b id="v5Weapon">Üres</b></div>
+    <div class="v5-slot v5-slot-armor"><span>🛡️</span><small>PÁNCÉL</small><b id="v5Armor">Üres</b></div>
+    <div class="v5-slot v5-slot-gloves"><span>🧤</span><small>KESZTYŰ</small><b id="v5Gloves">Üres</b></div>
+    <div class="v5-slot v5-slot-boots"><span>🥾</span><small>CSIZMA</small><b id="v5Boots">Üres</b></div>
+    <div class="v5-slot v5-slot-ring"><span>💍</span><small>GYŰRŰ</small><b id="v5Ring">Üres</b></div>
+
+    
+<div class="v5-hero">
+  <div class="v5-hero-shadow"></div>
+
+  <svg class="hero-svg" viewBox="0 0 300 470" aria-label="Fantasy character">
+    <defs>
+      <linearGradient id="skinG" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#f1c69a"/>
+        <stop offset="1" stop-color="#b87954"/>
+      </linearGradient>
+      <linearGradient id="metalG" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#65717d"/>
+        <stop offset=".5" stop-color="#252c33"/>
+        <stop offset="1" stop-color="#101418"/>
+      </linearGradient>
+      <linearGradient id="clothG" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#5b2438"/>
+        <stop offset="1" stop-color="#24101b"/>
+      </linearGradient>
+      <filter id="heroShadow"><feDropShadow dx="0" dy="10" stdDeviation="7" flood-opacity=".7"/></filter>
+    </defs>
+
+    <g filter="url(#heroShadow)">
+      <!-- cloak -->
+      <path id="svgCloak" d="M84 151 Q150 116 216 151 L236 330 Q150 382 64 330 Z"
+            fill="#21151d" stroke="#3b2733" stroke-width="5"/>
+
+      <!-- legs -->
+      <path d="M105 315 L145 315 L139 438 L91 438 Z" fill="#171c22" stroke="#303740" stroke-width="4"/>
+      <path d="M155 315 L195 315 L209 438 L161 438 Z" fill="#171c22" stroke="#303740" stroke-width="4"/>
+      <path d="M87 428 L142 428 L145 452 L77 452 Q73 441 87 428Z" fill="#15191e"/>
+      <path d="M158 428 L213 428 Q228 441 222 452 L155 452 Z" fill="#15191e"/>
+
+      <!-- torso armor -->
+      <path id="svgArmor" d="M95 148 Q150 125 205 148 L217 284 Q150 314 83 284 Z"
+            fill="url(#metalG)" stroke="#56616d" stroke-width="5"/>
+      <path d="M108 166 Q150 151 192 166 L188 257 Q150 275 112 257 Z"
+            fill="url(#clothG)" opacity=".85"/>
+      <path d="M85 282 L215 282 L209 310 L91 310 Z" fill="#b08936" stroke="#493816" stroke-width="4"/>
+      <rect x="140" y="280" width="20" height="31" rx="4" fill="#dfba4e" stroke="#604915" stroke-width="3"/>
+
+      <!-- shoulders -->
+      <path id="svgShoulderL" d="M83 148 Q54 151 45 183 L91 194 L111 157 Z"
+            fill="url(#metalG)" stroke="#56616d" stroke-width="5"/>
+      <path id="svgShoulderR" d="M217 148 Q246 151 255 183 L209 194 L189 157 Z"
+            fill="url(#metalG)" stroke="#56616d" stroke-width="5"/>
+
+      <!-- arms -->
+      <path d="M61 184 Q47 232 58 276 L82 270 L92 193 Z" fill="url(#skinG)" stroke="#714c39" stroke-width="4"/>
+      <path d="M239 184 Q253 232 242 276 L218 270 L208 193 Z" fill="url(#skinG)" stroke="#714c39" stroke-width="4"/>
+      <path id="svgGloveL" d="M53 263 Q66 253 84 263 L80 296 Q61 305 48 288 Z" fill="#45304f" stroke="#724e80" stroke-width="4"/>
+      <path id="svgGloveR" d="M216 263 Q234 253 247 263 L252 288 Q239 305 220 296 Z" fill="#45304f" stroke="#724e80" stroke-width="4"/>
+
+      <!-- neck -->
+      <rect x="132" y="112" width="36" height="42" rx="13" fill="url(#skinG)" stroke="#714c39" stroke-width="4"/>
+
+      <!-- head -->
+      <ellipse cx="150" cy="86" rx="52" ry="60" fill="url(#skinG)" stroke="#714c39" stroke-width="5"/>
+      <!-- ears -->
+      <ellipse cx="96" cy="90" rx="9" ry="15" fill="#cc966e"/>
+      <ellipse cx="204" cy="90" rx="9" ry="15" fill="#cc966e"/>
+      <!-- hair -->
+      <path id="svgHair" d="M101 76 Q96 18 150 18 Q207 18 202 79 Q188 50 170 45 Q151 58 128 46 Q111 57 101 76Z"
+            fill="#3b271a"/>
+      <path d="M106 69 Q98 93 108 119 L120 107 L119 75Z" fill="#3b271a"/>
+      <path d="M194 69 Q202 93 192 119 L180 107 L181 75Z" fill="#3b271a"/>
+
+      <!-- face -->
+      <ellipse cx="131" cy="86" rx="5" ry="7" fill="#171719"/>
+      <ellipse cx="169" cy="86" rx="5" ry="7" fill="#171719"/>
+      <path d="M139 109 Q150 117 161 109" fill="none" stroke="#7e493e" stroke-width="4" stroke-linecap="round"/>
+      <path d="M146 92 L141 103 L151 104" fill="none" stroke="#9b674e" stroke-width="3" stroke-linecap="round"/>
+
+      <!-- helmet overlay -->
+      <g id="svgHelmet" opacity="0">
+        <path d="M99 78 Q96 20 150 10 Q205 20 201 78 L186 61 Q150 45 114 61 Z"
+              fill="url(#metalG)" stroke="#687581" stroke-width="5"/>
+        <path d="M145 9 L155 9 L164 36 L136 36 Z" fill="#c79c31"/>
+      </g>
+
+      <!-- boots overlays -->
+      <path id="svgBootL" d="M86 408 L143 408 L145 452 L77 452 Q72 433 86 408Z" fill="#5f4632" stroke="#8a6548" stroke-width="4"/>
+      <path id="svgBootR" d="M157 408 L214 408 Q230 433 223 452 L155 452 Z" fill="#5f4632" stroke="#8a6548" stroke-width="4"/>
+
+      <!-- weapon -->
+      <g id="svgWeapon" transform="translate(220 154) rotate(-18)">
+        <rect x="9" y="40" width="13" height="170" rx="6" fill="#c4cbd1" stroke="#4c545c" stroke-width="4"/>
+        <path d="M15 0 L34 55 L15 45 L-4 55 Z" fill="#e4e9ec" stroke="#59636d" stroke-width="4"/>
+        <rect x="-10" y="190" width="50" height="12" rx="5" fill="#c89b31"/>
+        <rect x="10" y="200" width="11" height="58" rx="5" fill="#573923"/>
+      </g>
+
+      <!-- ring glow -->
+      <circle id="svgRingGlow" cx="244" cy="277" r="12" fill="none" stroke="#b9a9ff" stroke-width="5" opacity=".25"/>
+    </g>
+  </svg>
+
+  <div class="v5-pet" id="v5Pet">🐾</div>
 </div>
 
-<div class="omi-disclaimer">⚠️ GAMB csak saját felelősségre</div>
-<header class="topbar"><a class="logo" href="/">VEN<span>ORI</span></a><nav class="nav"><a href="#ladak">Ládák</a><a href="#nyeremenyek">Nyeremények</a><a href="#jackpot">Jackpot</a><a href="#profil">Profil</a><a id="adminLink" href="/admin" style="display:none">Admin</a></nav><div class="top-actions"><div class="wallet">🪙 <b id="coins">—</b> Coin &nbsp;•&nbsp; 👻 <b id="soulPoints">—</b> Lélek Pont &nbsp;•&nbsp; 💰 <b id="yangBalance">—</b> Yang</div><button class="btn ghost" id="authBtn">Belépés</button><button class="btn primary" id="registerBtn">Regisztráció</button><button class="btn ghost" id="logout" style="display:none">Kilépés</button></div></header>
-<main class="wrap"><section class="hero"><span class="badge">OMI Gamba CHEST SYSTEM</span><h1>Nyisd ki. <span>Nyerj.</span> Ismételd.</h1><p>Online ládanyitó rendszer regisztrációval, napi Coinnal, jackpotokkal, ranglistával és külön adminpanellel.</p></section><div class="notice">📢 <span id="announcement">Betöltés...</span></div><div class="game-switch"><button class="game-mode active" id="modeChest">🎁 Ládázás</button><button class="game-mode" id="modeSlot">🎰 Slot</button><button class="game-mode" id="modeRedeem">🎟️ Kiváltás</button><button class="game-mode" id="modeStats">📊 Statisztika</button><button class="game-mode" id="modeInventory">🎒 Inventory</button><button class="game-mode" id="modeShop">🛒 Yang Shop</button></div>
-<div id="chestMode"><div class="tabs" id="ladak"><button class="tab active" data-q="1">1× Nyitás</button><button class="tab" data-q="10">10× Nyitás</button><button class="tab" data-q="100">100× Nyitás</button><button class="tab" disabled>1000× Nyitás 🔒</button></div>
-<section class="layout"><div class="card case"><div class="casehead"><h2>🧪 OMI Gamba Láda</h2><span class="small">Ár: <b id="price">1 000</b> Lélek Pont</span></div><div class="reward-grid" id="nyeremenyek">
-<div class="reward"><div class="icon">💰</div><div class="rarity">Yang</div><b>10K → 100M Yang</b><small>Több Yang szint</small></div>
-<div class="reward"><div class="icon">👑</div><div class="rarity">Nagy nyeremény</div><b>1B Yang</b><small>Ritka drop</small></div>
-<div class="reward"><div class="icon">🏆</div><div class="rarity">Jackpot</div><b>4B Yang</b><small>Hox adja át játékban</small></div>
-<div class="reward"><div class="icon">🐾</div><div class="rarity">PET</div><b>Ritka PET</b><small>Csilingelő effekt</small></div>
-</div><div class="openbox"><div class="openrow"><span>Nyitási mennyiség</span><b id="qty">1×</b></div><button class="open" id="open">✦ 1× LÁDA NYITÁSA</button></div>
-<div id="openResults" style="margin-top:16px;padding:16px;border:1px solid #3a2d4d;border-radius:14px;background:linear-gradient(180deg,rgba(18,12,26,.98),rgba(10,7,14,.98));box-shadow:inset 0 1px 0 rgba(255,255,255,.025)">
-  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px">
-    <b>🏆 Összes eddigi ládanyereményed</b><span class="small" id="resultCount">Mentett eredmények</span>
-  </div>
-  <div id="resultRows" style="display:flex;flex-direction:column;gap:8px">
-    <div class="small" style="padding:18px;border:1px dashed #3a3048;border-radius:12px;text-align:center">A megnyert dolgok itt jelennek meg egymás alatt.</div>
-  </div>
-  <div id="resultTotals" style="display:none;margin-top:12px;padding-top:10px;border-top:1px solid #30283c"></div>
-</div></div>
-<aside class="card side" id="jackpot"><h2>🏆 Jackpotok</h2><div class="jackpot-pay-note">⚠️ <b>CSAK A FŐNYEREMÉNY FIZET JÁTÉKON BELÜL</b><br><span>A normál Yang dropok statisztikai nyeremények. Játékbeli kifizetés csak a 4B FŐNYEREMÉNY után jár.</span></div><div class="jack">
-<div class="label">🏆 FŐNYEREMÉNY</div>
-<strong>4 000 000 000</strong><small>Yang</small>
-<p style="margin:14px 0 0;line-height:1.55;color:#ddd">
-Ha megnyered a 4 milliárd Yang főnyereményt, a nyereményt játékban kapod meg.
-Az átvételhez írj a <b style="color:#fff">Hox</b> nevű játékosnak.
-</p>
-</div><div class="stat"><span>50M Yang</span><strong>50 000 000</strong></div><div class="stat"><span>MAX Jackpot</span><strong class="gold">4 000 000 000</strong></div><div style="margin-top:14px;padding:14px;border:1px solid rgba(255,215,0,.35);border-radius:12px;background:rgba(255,215,0,.06);line-height:1.55">
-<b>🎮 Főnyeremény átvétele</b><br>
-A 4 milliárd Yang főnyereményt nem automatikusan írjuk jóvá. Ha megnyerted, keress meg játékban és írj a <b>Hox</b> nevű játékosnak, aki átadja neked a nyereményt.
-</div>
-<div class="compact-drops">
-  <div class="compact-drops-head">
-    <div>
-      <b>🎁 Láda dropjai</b>
-      <div class="small">Aktív nyeremények</div>
+    <div class="v5-character-footer">
+      <div><small>AURA</small><b id="v5AuraName">Nincs</b></div>
+      <div><small>PET</small><b id="v5PetName">Nincs</b></div>
+      <div><small>WAVE</small><b id="v5WaveLabel">1</b></div>
+      <div><small>PARAGON</small><b id="v5ParagonLabel">0</b></div>
     </div>
-    <span class="small" id="dropCount">0 db</span>
   </div>
-  <input class="input compact-drop-search" id="publicDropSearch" placeholder="Drop keresése...">
-  <div id="compactDropList" class="compact-drop-list">
-    <div class="small">Dropok betöltése...</div>
+  <button id="equipBestBtn" class="equip-best-btn">✨ EQUIP BEST – Legjobb felszerelés automatikusan</button>
+
+  <div class="character-attributes">
+    <div class="char-attr"><span>💪 Erő</span><b id="charStatPower">0</b></div>
+    <div class="char-attr"><span>⚔️ Sebzés</span><b id="charStatDamage">0</b></div>
+    <div class="char-attr"><span>🍀 Szerencse</span><b id="charStatLuck">0</b></div>
+    <div class="char-attr"><span>🎯 Krit esély</span><b id="charStatCrit">0%</b></div>
+    <div class="char-attr"><span>🎁 Drop bónusz</span><b id="charStatDrop">0%</b></div>
+    <div class="char-attr"><span>⭐ Szint</span><b id="charStatLevel">1</b></div>
+    <div class="char-attr"><span>🌟 Paragon</span><b id="charStatParagon">0</b></div>
+    <div class="char-attr"><span>👑 Prestige</span><b id="charStatPrestige">0</b></div>
+    <div class="char-attr"><span>📌 Paragon pont</span><b id="charStatPoints">0</b></div>
+    <div class="char-attr"><span>✨ Aura token</span><b id="charStatAuraTokens">0</b></div>
+    <div class="char-attr"><span>🌊 Wave</span><b id="charStatWave">1</b></div>
+    <div class="char-attr"><span>☠️ Összes kill</span><b id="charStatKills">0</b></div>
   </div>
+</section>
+
+<aside class="stack">
+<section class="card">
+  <h2>🌟 Paragon / Prestige</h2>
+  <div class="prestige-summary">
+    <div><small>Prestige</small><b id="prestigeLevel">0</b></div>
+    <div><small>Paragon</small><b id="paragonLevel">0</b></div>
+    <div><small>Statpont</small><b id="paragonPoints">0</b></div>
+    <div><small>Aura token</small><b id="auraTokens">0</b></div>
+  </div>
+  <div class="prestige-progress"><div id="prestigeProgress"></div></div>
+  <small id="prestigeText">200-as szinten prestigelhetsz.</small>
+  <button id="prestigeBtn" class="prestige-btn" disabled>🌟 PRESTIGE</button>
+</section>
+
+<section class="card">
+  <h2>📌 Paragon statpontok</h2>
+  <div id="paragonStats" class="paragon-stat-list"></div>
+</section>
+
+<section class="card">
+  <h2>✨ Prestige Aura Shop</h2>
+  <div id="auraShop" class="aura-shop"></div>
+</section>
+</aside>
 </div>
-<button class="btn primary" id="daily" style="width:100%;margin-top:14px">🎁 Napi <span id="dailyAmount">5 000</span> Coin · csak 1×/nap</button><button class="btn" id="dailySoul" style="width:100%;margin-top:8px">👻 Napi <span id="dailySoulAmount">5 000</span> Lélek Pont · csak 1×/nap</button></aside></section>
-</div><section id="slotMode" style="display:none"><div class="layout"><div class="card case"><div class="casehead"><div><h2>🎰 OMI Gamba SLOT</h2><div class="small">Válassz tétet és pörgess!</div></div></div><div class="slot-machine"><div class="slot-window"><div class="slot-symbol" id="slotSymbol">🎰</div><div class="slot-word" id="slotWord">VÁLASSZ TÉTET</div></div></div><div class="slot-bets" id="slotBets"></div><button class="open" id="slotSpin">🎰 PÖRGETÉS</button><div class="slot-result" id="slotResult"><div class="small">A pörgetés eredménye itt jelenik meg.</div></div></div><aside class="card side"><h2>📊 Slot statisztikád</h2><div class="stat"><span>Elpörgetett Coin</span><strong id="slotSpent">0</strong></div><div class="stat"><span>Összes pörgetés</span><strong id="slotSpins">0</strong></div><div class="stat"><span>Slotból nyert Coin</span><strong id="slotWon">0</strong></div><div class="stat"><span>Aktuális egyenleg</span><strong id="slotBalance">0</strong></div></aside></div></section>
-<section id="redeemMode" style="display:none">
-<div class="exchange-panel card">
-  <div class="exchange-head">
-    <div>
-      <h3>🔁 Átváltás</h3>
-<div class="chest-self-reset">
- <button class="btn danger" id="resetMyChestResults" type="button">🗑 Saját ládaeredmények törlése</button>
- <span class="small">Törlés után újra mérheted például, hogy 100 ládából mi esik.</span>
-</div>
+</section>
 
-      <div class="small">Az árfolyamokat az admin állítja.</div>
-    </div>
-  </div>
-
-  <div class="exchange-grid">
-    <div class="exchange-card">
-      <div class="exchange-title">💰 Yang → 👻 Lélekpont</div>
-      <div class="exchange-rate" id="rateYangSoul">Betöltés...</div>
-      <div class="exchange-qty">
-        <label class="small">Mennyiség</label>
-        <div class="exchange-qty-row">
-          <button class="btn exchange-minus" data-exchange-step="yang-to-soul" data-delta="-1" type="button">−</button>
-          <input class="input exchange-amount" data-exchange-amount="yang-to-soul" type="number" min="1" max="1000000" step="1" value="1">
-          <button class="btn exchange-plus" data-exchange-step="yang-to-soul" data-delta="1" type="button">+</button>
-        </div>
-        <div class="small exchange-total" data-exchange-total="yang-to-soul">1× átváltás</div>
-      </div>
-      <button class="btn primary" data-exchange="yang-to-soul">Átváltás</button>
-    </div>
-
-    <div class="exchange-card">
-      <div class="exchange-title">👻 Lélekpont → 🪙 Coin</div>
-      <div class="exchange-rate" id="rateSoulCoin">Betöltés...</div>
-      <div class="exchange-qty">
-        <label class="small">Mennyiség</label>
-        <div class="exchange-qty-row">
-          <button class="btn exchange-minus" data-exchange-step="soul-to-coin" data-delta="-1" type="button">−</button>
-          <input class="input exchange-amount" data-exchange-amount="soul-to-coin" type="number" min="1" max="1000000" step="1" value="1">
-          <button class="btn exchange-plus" data-exchange-step="soul-to-coin" data-delta="1" type="button">+</button>
-        </div>
-        <div class="small exchange-total" data-exchange-total="soul-to-coin">1× átváltás</div>
-      </div>
-      <button class="btn primary" data-exchange="soul-to-coin">Átváltás</button>
-    </div>
-
-    <div class="exchange-card">
-      <div class="exchange-title">🪙 Coin → 👻 Lélekpont</div>
-      <div class="exchange-rate" id="rateCoinSoul">Betöltés...</div>
-      <div class="exchange-qty">
-        <label class="small">Mennyiség</label>
-        <div class="exchange-qty-row">
-          <button class="btn exchange-minus" data-exchange-step="coin-to-soul" data-delta="-1" type="button">−</button>
-          <input class="input exchange-amount" data-exchange-amount="coin-to-soul" type="number" min="1" max="1000000" step="1" value="1">
-          <button class="btn exchange-plus" data-exchange-step="coin-to-soul" data-delta="1" type="button">+</button>
-        </div>
-        <div class="small exchange-total" data-exchange-total="coin-to-soul">1× átváltás</div>
-      </div>
-      <button class="btn primary" data-exchange="coin-to-soul">Átváltás</button>
-    </div>
-  </div>
-
-  <div class="small" id="exchangeMsg" style="margin-top:10px"></div>
-</div>
-
-<div id="redeemCoinResetWarning" class="redeem-reset-warning">
-  <div class="redeem-reset-icon">⚠️</div>
-  <div>
-    <b>FONTOS – KIVÁLTÁS ELŐTT OLVASD EL!</b>
-    <p>⚠️ Fontos: sikeres Coinos kiváltás után a teljes Coin egyenleged 0-ra áll.</p>
-    <span>Ez azt jelenti, hogy a jutalom sikeres kiváltása után a megmaradt Coinod is elveszik, és az egyenleged 0 Coin lesz.</span>
-  </div>
-</div>
-
-
+<section class="page" id="page-farm">
 <div class="layout">
-<div class="card case"><div class="casehead"><div><h2>🎟️ Coin jutalom kiváltás</h2><div class="small">A Slotban használt Coinból válthatsz jutalmakat.</div></div></div>
-<div id="redeemRewards" class="redeem-grid"><div class="small">Jutalmak betöltése...</div></div></div>
-<aside class="card side"><h2>🪙 Kiváltási egyenleg</h2><div class="jack"><div class="label">Jelenlegi Coin</div><strong id="redeemBalance">0</strong><small>Coin</small></div><h3>🧾 Saját kiváltásaid</h3><div class="list" id="myRedemptions"><div class="small">Jelentkezz be.</div></div></aside>
-</div></section>
-<section class="card section" id="adminPlayerActivity" style="display:none">
-  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
-    <div>
-      <h3 style="margin:0">🛡️ Admin · Játékos aktivitás</h3>
-      <div class="small">Ezt csak te látod admin fiókkal a játékos felületen.</div>
-    </div>
-    <button class="btn" id="refreshAdminActivity" type="button">↻ Frissítés</button>
-  </div>
-  <input class="input" id="adminActivitySearch" placeholder="Játékos keresése..." style="margin-top:12px">
-  <div id="adminActivityRows" style="display:grid;gap:8px;margin-top:10px"></div>
-</section>
-
-<section id="statsMode" style="display:none">
-  <div class="stats-shell">
-    <div class="card section">
-      <div class="stats-title-row">
-        <div>
-          <h2 style="margin:0">📊 Játékos statisztika</h2>
-          <div class="small">Minden adat folyamatosan összeadódik és megmarad.</div>
+  <div class="stack">
+    <section class="card battle-card">
+      <div class="title-row"><h2>⚔️ Automata harc</h2><span class="online">● AUTOMATA FARM</span></div>
+<div class="wave-panel">
+ <div><small>WAVE</small><b id="waveNumber">1</b></div>
+ <div><small>KILL</small><b><span id="waveKills">0</span>/<span id="waveGoal">10</span></b></div>
+ <div><small>ÁLLAPOT</small><b id="waveState">Farm</b></div>
+ <div><small>BOSS</small><b id="bossState">Várakozik</b></div>
+</div>
+      <div class="zone-head">
+        <div><small>AKTUÁLIS TERÜLET</small><h3 id="zoneName">Zöld mező</h3></div>
+        <button id="bossBtn" disabled>👹 Automata Boss</button>
+      </div>
+      <div class="enemy">
+        <div class="enemy-icon" id="enemyIcon">🐗</div>
+        <div class="enemy-data">
+          <b id="enemyName">Vadkan</b>
+          <div class="hp"><i id="hpbar"></i></div>
+          <small><span id="enemyHp">0</span> / <span id="enemyMaxHp">0</span> HP</small>
         </div>
-        <button class="btn" id="refreshMyStats" type="button">↻ Frissítés</button>
       </div>
+      <div class="combat-log" id="combatLog">A farm elindult...</div>
+      <div class="battle-stats">
+        <div><small>Sebzés / ütés</small><b id="damageText">0</b></div>
+        <div><small>Krit esély</small><b id="critText">0%</b></div>
+        <div><small>Drop bónusz</small><b id="dropText">0%</b></div>
+        <div><small>Offline max</small><b>12 óra</b></div>
+      </div>
+    </section>
 
-      <div class="stats-section-title">🎰 Slot eredmények</div>
-      <div class="stats-grid">
-        <div class="stat-card"><span>Összes pörgetés</span><b id="stSlotSpins">0</b></div>
-        <div class="stat-card"><span>Összes megforgatott Coin</span><b id="stSlotWagered">0</b></div>
-        <div class="stat-card"><span>Összes nyert Coin</span><b id="stSlotWon">0</b></div>
-        <div class="stat-card"><span>Elbukott Coin</span><b id="stSlotLost">0</b></div>
-        <div class="stat-card"><span>Profit</span><b id="stSlotProfit">0</b></div>
-        <div class="stat-card"><span>Veszteség</span><b id="stSlotLoss">0</b></div>
-        <div class="stat-card"><span>Nettó eredmény</span><b id="stSlotNet">0</b></div>
-        <div class="stat-card"><span>ROI</span><b id="stSlotRoi">0%</b></div>
-      </div>
+    <section class="card">
+      <div class="title-row"><h2>🗺️ Farmterületek</h2><small>Erősebb terület = jobb drop</small></div>
+      <div id="zones" class="zones"></div>
+    </section>
 
-      <div class="stats-section-title">🎁 Ládanyitás eredmények</div>
-      <div class="stats-grid">
-        <div class="stat-card"><span>Összes kinyitott láda</span><b id="stChestOpened">0</b></div>
-        <div class="stat-card"><span>Elköltött Lélek Pont</span><b id="stSoulSpent">0</b></div>
-        <div class="stat-card"><span>Összes nyert Yang</span><b id="stYangWon">0</b></div>
-        <div class="stat-card jackpot-stat"><span>4B FŐNYEREMÉNY nyerések</span><b id="stJackpotCount">0</b></div>
-      </div>
+    <section class="card">
+      <div class="title-row"><h2>🧰 Alap fejlesztések</h2><small>Biztos erősödés</small></div>
+      <div id="baseUpgrades" class="upgrade-list"></div>
+    </section>
+  </div>
 
-      <div class="jackpot-only-warning">
-        <b>⚠️ CSAK A FŐNYEREMÉNY FIZET JÁTÉKON BELÜL</b>
-        <p>A ládából megjelenő normál Yang nyeremények statisztikai eredmények. Játékon belüli tényleges kifizetés kizárólag a <strong>4 milliárd Yang JACKPOT</strong> után jár. Jackpot esetén keresd játékban a <strong>Hox</strong> nevű játékost.</p>
-      </div>
+  <aside class="stack">
+    <section class="card">
+      <h2>🛡️ Felszerelés</h2>
+      <div id="equipped" class="equipment-grid"></div>
+    </section>
+    <section class="card">
+      <h2>🎁 Legutóbbi drop</h2>
+      <div id="lastDrop" class="last-drop">Még nincs felszerelés drop.</div>
+    </section>
+    <section class="card">
+      <h2>🔥 Aktív bónuszok</h2>
+      <div id="activeBonuses" class="bonus-list"></div>
+    </section>
+  </aside>
+</div>
+</section>
 
-      <div class="stats-section-title">💼 Jelenlegi egyenleg</div>
-      <div class="stats-grid">
-        <div class="stat-card"><span>Coin</span><b id="stCoins">0</b></div>
-        <div class="stat-card"><span>Lélek Pont</span><b id="stSoul">0</b></div>
-      </div>
+<!-- INVENTORY -->
+<section class="page" id="page-inventory">
+  <section class="card">
+    <div class="title-row"><div><h2>🎒 Inventory</h2><small>Maximum 120 tárgy</small></div>
+      <div class="inventory-actions"><button id="sellNormal">Normál eladása</button><button id="sortInventory">Rendezés</button></div>
     </div>
+    <div id="inventory" class="inventory-grid"></div>
+  </section>
+</section>
+
+<!-- UPGRADE -->
+<section class="page" id="page-upgrade">
+<div class="layout">
+  <section class="card">
+    <h2>🔨 Felszerelés fejlesztés +0 → +15</h2>
+    <p class="muted">Válassz egy felszerelt tárgyat. A fejlesztés növeli a tárgy statjait. Magasabb szinten csökken a siker esélye.</p>
+    <div id="upgradeSlots" class="upgrade-targets"></div>
+  </section>
+  <aside class="card">
+    <h2>📈 Fejlesztési esély</h2>
+    <div id="upgradeInfo"></div>
+  </aside>
+</div>
+</section>
+
+<!-- SKILLS -->
+<section class="page" id="page-skills">
+<section class="card">
+  <div class="title-row"><div><h2>✨ Képességek</h2><small>Szintlépésenként 1 képességpont</small></div><b><span id="skillPoints">0</span> pont</b></div>
+  <div id="skills" class="skill-grid"></div>
+</section>
+</section>
+
+<!-- PETS -->
+<section class="page" id="page-pets">
+<section class="card">
+  <div class="title-row"><div><h2>🐾 Pet rendszer</h2><small>Petek passzív bónuszt adnak</small></div><button id="petSummon">🎲 Pet idézés · 5 💎</button></div>
+  <div id="pets" class="pet-grid"></div>
+</section>
+</section>
+
+<!-- DUNGEON -->
+<section class="page" id="page-dungeon">
+<div class="layout">
+<section class="card">
+  <h2>🏰 Dungeonök</h2>
+  <div id="dungeons" class="dungeon-grid"></div>
+</section>
+<aside class="card">
+  <h2>👹 Dungeon harc</h2>
+  <div id="dungeonBattle" class="dungeon-battle">Válassz egy dungeont.</div>
+</aside>
+</div>
+</section>
+
+<!-- QUESTS -->
+<section class="page" id="page-quests">
+<div class="layout">
+<section class="card"><h2>📜 Napi küldetések</h2><div id="dailyQuests"></div></section>
+<aside class="card"><h2>🏆 Achievementek</h2><div id="achievements"></div></aside>
+</div>
+</section>
+
+<!-- STATS -->
+<section class="page" id="page-stats">
+<section class="card">
+  <h2>📊 Karakter statisztika</h2>
+  <div id="statsPanel" class="stats-panel"></div>
+  <hr>
+  <div class="danger-zone">
+    <h3>⚠️ Mentés kezelése</h3>
+    <button id="hardReset" class="danger">TELJES JÁTÉK RESET</button>
   </div>
 </section>
-<section class="card section">
-<h3>🏆 Ranglista</h3>
-<div class="small" style="margin-bottom:10px">Coin + Lélek Pont + Yang együttes rangsor.</div>
-<div id="leaderboard"></div>
+</section>
+</main>
+
+
+<section class="page" id="page-leaderboard">
+  <section class="card">
+    <div class="title-row"><div><h2>🏆 Online ranglista</h2><small>A játékosok összereje alapján</small></div><button id="refreshLeaderboard">↻ Frissítés</button></div>
+    <div id="leaderboard" class="leaderboard"></div>
+  </section>
 </section>
 
-
-<section id="inventoryMode" style="display:none">
-  <div class="card section">
-    <div class="stats-title-row">
-      <div>
-        <h2 style="margin:0">🎒 Saját Inventory</h2>
-        <div class="small">Fegyverek húzása Yangért · a felszerelt fegyver csak a Slot Coin nyereményét növeli.</div>
-      </div>
-      <button class="btn danger" id="resetInventoryBtn" type="button">🗑 Inventory reset</button>
-    </div>
-
-    <div class="inventory-bonus-info">
-      ⚔️ A felszerelt fegyver csak a <b>Slot Coin nyeremény összegét</b> szorozza meg. A nyerési esélyt nem módosítja. A fegyvert Yangért újrahúzhatod.
-    </div>
-
-    <h3>⚔️ Yang Shop fegyvereim</h3>
-    <div id="weaponInventory" class="weapon-grid"></div>
-
-    <h3 style="margin-top:22px">🎁 Ládából szerzett tárgyak</h3>
-    <div id="chestInventoryTop" class="inventory-grid"></div>
-    <div class="small" id="inventoryModeMsg" style="margin-top:10px"></div>
-  </div>
-</section>
-<section id="shopMode" style="display:none">
-  <div class="card section">
-    <div class="stats-title-row">
-      <div>
-        <h2 style="margin:0">🛒 Yang Shop</h2>
-        <div class="small">A ládából nyert Yang külön egyenlegként gyűlik, és itt költheted el.</div>
-      </div>
-      <div class="yang-shop-wallet">💰 <b id="shopYangBalance">0</b> Yang</div>
-    </div>
-
-    <div class="shop-grid" id="shopItems"></div>
-    <div class="small" id="shopMsg" style="margin-top:10px"></div>
-  </div>
-</section>
-<section class="card section" id="profil"><h3>👤 Saját profil és nyeremények</h3><div class="profile"><div class="metric"><small>Felhasználó</small><b id="name">Vendég</b></div><div class="metric"><small>Coin egyenleg</small><b id="coins2">—</b></div><div class="metric"><small>Lélek Pont</small><b id="soulPoints2">—</b></div><div class="metric"><small>Eljátszott Coin</small><b id="played">—</b></div><div class="metric"><small>Összes nyitás</small><b id="opened">—</b></div><div class="metric"><small>Összes nyert Yang</small><b id="yangWon">—</b></div><div class="metric"><small>Összes nyert Coin</small><b id="coinWon">—</b></div></div></section>
-<section class="columns"><div class="card section"><h3>🏅 Ranglista</h3><div class="small">A sorrend a Coin + Lélek Pont + Yang együttes értéke alapján frissül.</div><div class="list" id="leader"></div></div><div class="card section"><h3>🎒 Inventory</h3><div class="list" id="inventory"><div class="small">Jelentkezz be.</div></div></div></section><section class="card section"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h3>🕘 Saját játéktörténet</h3><button class="btn danger" id="resetHistoryBtn">🗑 Történet reset</button></div><div class="list" id="history"><div class="small">Jelentkezz be.</div></div></section></main>
-<footer>OMI Gamba © 2026 · Multiplayer Chest System</footer><div class="toast" id="toast"></div>
-<div class="modal" id="modal" style="pointer-events:none"><div class="card modal-card"><h2 id="modalTitle">Belépés</h2><input class="input" id="username" placeholder="Felhasználónév"><input class="input" id="password" type="password" placeholder="Jelszó">
-<label style="display:flex;align-items:center;gap:8px;margin:9px 0 4px;color:#bdb3c8;font-size:13px;cursor:pointer">
-  <input type="checkbox" id="rememberMe" checked>
-  <span>Belépve maradok ezen az eszközön</span>
-</label><div class="form-actions"><button class="btn primary" id="submit">Belépés</button><button class="btn ghost" id="switch">Regisztráció</button></div><button class="btn ghost" id="close" style="width:100%;margin-top:8px">Mégse</button></div></div>
-<script>
-let user=null,q=1,mode="login",cfg={};const $=s=>document.querySelector(s),fmt=n=>Number(n||0).toLocaleString("hu-HU");
-async function api(u,o={}){const r=await fetch(u,{...o,headers:{"Content-Type":"application/json",...(o.headers||{})}});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||"Hiba");return d}
-function toast(x){const t=$("#toast");t.textContent=x;t.style.display="block";clearTimeout(window.tt);window.tt=setTimeout(()=>t.style.display="none",2900)}
-
-let openingInProgress=false;
-
-function setOpeningState(active){
- openingInProgress=active;
- const b=$("#open");
- if(!b)return;
- b.disabled=active;
- b.style.opacity=active?".65":"1";
- b.textContent=active?"⏳ NYITÁS FOLYAMATBAN...":`✦ ${q}× LÁDA NYITÁSA`;
-}
-
-function rewardChime(kind){
- try{
-   const AC=window.AudioContext||window.webkitAudioContext;
-   if(!AC)return;
-   const ctx=new AC();
-   const master=ctx.createGain();
-   master.gain.value=.10;
-   master.connect(ctx.destination);
-   const notes=kind==="jackpot"?[523.25,659.25,783.99,1046.5]:[659.25,783.99,987.77];
-   notes.forEach((f,i)=>{
-     const o=ctx.createOscillator(),g=ctx.createGain(),t=ctx.currentTime+i*.12;
-     o.type="sine";o.frequency.value=f;
-     g.gain.setValueAtTime(.001,t);
-     g.gain.exponentialRampToValueAtTime(1,t+.02);
-     g.gain.exponentialRampToValueAtTime(.001,t+.32);
-     o.connect(g);g.connect(master);o.start(t);o.stop(t+.34);
-   });
-   setTimeout(()=>ctx.close().catch(()=>{}),1500);
- }catch(e){}
-
- if(user?.selected_chime)playPurchasedChime(user.selected_chime);
-}
-
-function showPetEffect(){
- const x=$("#petOverlay");
- if(x){x.style.display="flex";x.style.pointerEvents="auto";rewardChime("pet");}
-}
-function showJackpotEffect(){
- const x=$("#jackpotOverlay");
- if(x){x.style.display="flex";x.style.pointerEvents="auto";rewardChime("jackpot");}
-}
-
-
-function rewardIcon(name,type){
- const icons={
-  "100 Yang":"🪙",
-  "1K Yang":"💰",
-  "10K Yang":"💵",
-  "1M Yang":"💎",
-  "10M Yang":"🔷",
-  "100M Yang":"👑",
-  "1B Yang":"🏦",
-  "4B Főnyeremény":"🏆",
-  "Ritka PET":"🐾",
-  "Semmi":"❌"
- };
- return icons[name] || (type==="nothing"?"❌":type==="yang"?"💰":type==="item"?"🎁":"🪙");
-}
-
-async function loadCumulativeRewards(){
- if(!user){
-   $("#resultCount").textContent="Jelentkezz be";
-   $("#resultRows").innerHTML="<div class='small' style='padding:18px;text-align:center'>Belépés után itt folyamatosan megmarad minden ládából nyert jutalmad.</div>";
-   $("#resultTotals").style.display="none";
-   return;
- }
- try{
-   const d=await api("/api/my-reward-totals");
-   $("#resultCount").textContent=`${fmt(user.total_opened||0)} összes ládanyitás`;
-   $("#resultRows").innerHTML=d.rows.length?d.rows.map(r=>`
-     <div style="display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;gap:12px;padding:13px 14px;border:1px solid #332941;border-radius:12px;background:#0b0911">
-       <div style="font-size:26px;text-align:center">${rewardIcon(r.reward_name,r.reward_type)}</div>
-       <div>
-         <b>${r.reward_name}</b>
-         <div class="small">${r.reward_type==="yang"?"Yang nyeremény":"Tárgy / PET"} · folyamatosan mentve</div>
-       </div>
-       <b>${fmt(r.total_quantity)}×</b>
-     </div>`).join(""):"<div class='small' style='padding:18px;text-align:center'>Még nincs mentett ládanyereményed.</div>";
-   $("#resultTotals").style.display="block";
-   $("#resultTotals").innerHTML=`
-     <div class="stat"><span>💰 Összes ládából nyert Yang</span><b>${fmt(d.totalYang||0)}</b></div>
-     <div class="stat"><span>🎁 Összes nyert tétel / darab</span><b>${fmt(d.totalRewards||0)}</b></div>`;
- }catch(e){
-   $("#resultRows").innerHTML=`<div class="small">Nem sikerült betölteni a mentett nyereményeket: ${e.message}</div>`;
- }
-}
-
-function renderOpenResults(d){
- loadCumulativeRewards();
-}
-function render(){const ok=!!user;$("#coins").textContent=ok?fmt(user.coins):"—";$("#coins2").textContent=ok?fmt(user.coins):"—";$("#soulPoints").textContent=ok?fmt(user.soul_points):"—";if($("#yangBalance"))$("#yangBalance").textContent=ok?fmt(user.yang_balance):"—";$("#soulPoints2").textContent=ok?fmt(user.soul_points):"—";$("#played").textContent=ok?fmt(user.played_coins):"—";$("#opened").textContent=ok?fmt(user.total_opened):"—";$("#yangWon").textContent=ok?fmt(user.total_yang_won):"—";$("#coinWon").textContent=ok?fmt(user.total_coin_won):"—";$("#name").textContent=ok?user.username:"Vendég";$("#authBtn").style.display=ok?"none":"inline-block";$("#registerBtn").style.display=ok?"none":"inline-block";$("#logout").style.display=ok?"inline-block":"none";$("#adminLink").style.display=ok&&user.role==="admin"?"inline":"none"}
-async function loadPublic(){cfg=await api("/api/public");$("#announcement").textContent=cfg.announcement;$("#dailyAmount").textContent=fmt(cfg.dailyBonus);if($("#dailySoulAmount"))$("#dailySoulAmount").textContent=fmt(cfg.dailySoulBonus);document.querySelectorAll(".tab:not([disabled])").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));b.classList.add("active");q=+b.dataset.q;$("#qty").textContent=q+"×";$("#price").textContent=fmt(cfg.soulChestPrice*q);$("#open").textContent="✦ "+q+"× LÁDA NYITÁSA"})}
-let adminActivityCache=[];
-
-async function loadAdminPlayerActivity(){
- if(!user || user.role!=="admin"){
-   $("#adminPlayerActivity").style.display="none";
-   return;
- }
- $("#adminPlayerActivity").style.display="block";
- try{
-   const d=await api("/api/admin/player-activity");
-   adminActivityCache=d.rows||[];
-   renderAdminPlayerActivity();
- }catch(e){
-   $("#adminActivityRows").innerHTML=`<div class="small">Nem sikerült betölteni: ${e.message}</div>`;
- }
-}
-
-function renderAdminPlayerActivity(){
- const q=(($("#adminActivitySearch")?.value)||"").toLowerCase().trim();
- const rows=adminActivityCache.filter(x=>!q || x.username.toLowerCase().includes(q));
- $("#adminActivityRows").innerHTML=rows.length?rows.map(x=>`
-   <div class="admin-player-row">
-     <div class="admin-player-name">
-       <b>${x.username}</b>
-       <small>${x.banned?"🚫 Tiltva":"✅ Aktív"}</small>
-     </div>
-     <div class="admin-player-metric"><span>🎰 Elpörgetett Coin</span><b>${fmt(x.slot_spent)}</b></div>
-     <div class="admin-player-metric"><span>🔄 Slot pörgetés</span><b>${fmt(x.slot_spins)}</b></div>
-     <div class="admin-player-metric"><span>🪙 Slotból nyert</span><b>${fmt(x.slot_coin_won)}</b></div>
-     <div class="admin-player-metric"><span>🎁 Láda nyitás</span><b>${fmt(x.total_opened)}</b></div><div class="admin-player-metric"><span>💰 Ládából nyert Yang</span><b>${fmt(x.total_yang_won)}</b></div>
-     <div class="admin-player-metric"><span>💸 Összes eljátszott Coin</span><b>${fmt(x.played_coins)}</b></div>
-     <div class="admin-player-metric"><span>💰 Jelenlegi Coin</span><b>${fmt(x.coins)}</b></div>
-   </div>`).join(""):"<div class='small'>Nincs találat.</div>";
-}
-
-async function loadRedemptions(){
- try{
-   const d=await api("/api/redemptions");
-   $("#redeemRewards").innerHTML=(d.rewards||[]).map(r=>`
-   <div class="redeem-card">
-     <div class="redeem-icon">${r.type==="pet"?"🐾":r.type==="yang"?"💰":"🎁"}</div>
-     <div><b>${r.name}</b><div class="small">${r.type==="yang"?fmt(r.amount)+" Yang":r.type==="pet"?"PET jutalom":"Egyéb jutalom"}</div></div>
-     <div class="redeem-cost">${fmt(r.coin_cost)} Coin</div>
-     <button class="btn primary" data-redeem="${r.id}">Kiváltás</button>
-   </div>`).join("")||"<div class='small'>Nincs aktív jutalom.</div>";
- }catch(e){$("#redeemRewards").innerHTML="<div class='small'>Nem tölthető be.</div>"}
-}
-async function loadMyRedemptions(){
- if(!user){$("#myRedemptions").innerHTML="<div class='small'>Jelentkezz be.</div>";return}
- try{
-   const d=await api("/api/my-redemptions");
-   $("#myRedemptions").innerHTML=d.rows.map(x=>`<div class="list-item"><b>${x.reward_name}</b><br><span class="small">${fmt(x.coin_cost)} Coin · ${x.delivered?"✅ Átadva":"⏳ Átadásra vár"}</span></div>`).join("")||"<div class='small'>Még nincs kiváltásod.</div>";
- }catch{}
-}
-
-async function loadMyStats(){
- if(!user)return;
- try{
-   const d=await api("/api/my-stats");
-   $("#stSlotSpins").textContent=fmt(d.slot.spins);
-   $("#stSlotWagered").textContent=fmt(d.slot.wagered);
-   $("#stSlotWon").textContent=fmt(d.slot.won);
-   $("#stSlotLost").textContent=fmt(d.slot.lost);
-   $("#stSlotProfit").textContent=fmt(d.slot.profit);
-   $("#stSlotLoss").textContent=fmt(d.slot.loss);
-   $("#stSlotNet").textContent=(d.slot.net>=0?"+":"")+fmt(d.slot.net);
-   $("#stSlotNet").className=d.slot.net>=0?"positive":"negative";
-   $("#stSlotRoi").textContent=(d.slot.roi>=0?"+":"")+d.slot.roi+"%";
-   $("#stChestOpened").textContent=fmt(d.chest.opened);
-   $("#stSoulSpent").textContent=fmt(d.chest.soulSpent);
-   $("#stYangWon").textContent=fmt(d.chest.yangWon);
-   $("#stJackpotCount").textContent=fmt(d.chest.jackpotCount||0);
-   $("#stCoins").textContent=fmt(d.balances.coins);
-   $("#stSoul").textContent=fmt(d.balances.soulPoints);
- }catch(e){
-   toast("Statisztika hiba: "+e.message);
- }
-}
-
-async function loadMe(){try{user=(await api("/api/me")).user;render();await loadCumulativeRewards();if($("#redeemBalance"))$("#redeemBalance").textContent=fmt(user.coins);await Promise.all([hist(),inv(),loadMyRedemptions(),loadCumulativeRewards()]);await loadAdminPlayerActivity()}catch{user=null;render()}}
-async function hist(){if(!user)return;const d=await api("/api/history");$("#history").innerHTML=d.rows.length?d.rows.map(x=>`<div class="list-item"><b>${x.quantity}× nyitás</b> · ${fmt(x.cost)} Coin<br><span class="small">${x.reward_text}</span></div>`).join(""):"<div class='small'>Még nincs játék.</div>"}
-async function inv(){if(!user)return;const d=await api("/api/inventory");$("#inventory").innerHTML=d.rows.length?d.rows.map(x=>`<div class="list-item"><b>${x.item_name}</b> × ${x.quantity}</div>`).join(""):"<div class='small'>Az inventory üres.</div>"}
-async function loadDropsPublic(){
- try{
-   const d=await api("/api/drops");
-   window.publicDrops=(d.drops||[]).filter(r=>r.name!=="500 Coin");
-   $("#dropCount").textContent=`${window.publicDrops.length} db`;
-   renderCompactDrops();
- }catch{
-   $("#compactDropList").innerHTML="<div class='small'>A drop lista nem tölthető be.</div>";
- }
- const ss=$("#slotSpent"),sp=$("#slotSpins"),sw=$("#slotWon"),sb=$("#slotBalance");if(ss)ss.textContent=ok?fmt(user.slot_spent):"0";if(sp)sp.textContent=ok?fmt(user.slot_spins):"0";if(sw)sw.textContent=ok?fmt(user.slot_coin_won):"0";if(sb)sb.textContent=ok?fmt(user.coins):"0";
-}
-
-function renderCompactDrops(){
- const q=(($("#publicDropSearch")?.value)||"").toLowerCase().trim();
- const rows=(window.publicDrops||[]).filter(r=>!q || r.name.toLowerCase().includes(q));
- $("#compactDropList").innerHTML=rows.map(r=>`
-   <div class="compact-drop-row">
-     <span class="compact-drop-icon">${r.icon||"🎁"}</span>
-     <div class="compact-drop-name">
-       <b>${r.name}</b>
-       <span>${r.type==="item"?`${r.min_qty||1}-${r.max_qty||1} db`:r.type==="yang"?`${fmt(r.amount)} Yang`:r.type==="nothing"?"Nincs nyeremény":`${fmt(r.amount)} Coin`} · ${Number(r.chance||0).toFixed(2)}%</span>
-     </div>
-   </div>`).join("") || "<div class='small'>Nincs találat.</div>";
-}
-
-async function lists(){
- const l=await api("/api/leaderboard");
- $("#leader").innerHTML=l.rows.map((x,i)=>`<div class="list-item leader"><span class="rank">#${i+1}</span><b>${x.username}</b><span>💰 ${fmt(x.total_yang_won)} Yang · 🪙 ${fmt(x.total_coin_won)} Coin</span></div>`).join("")||"<div class='small'>Nincs ranglista.</div>";
-
- await loadLeaderboard().catch(()=>{});
-}
-function loadRememberedLogin(){
- try{
-   const remember=localStorage.getItem("OMI Gamba_remember_login")==="1";
-   const saved=localStorage.getItem("OMI Gamba_remembered_username")||"";
-   const cb=$("#rememberMe");
-   const u=$("#username");
-   if(cb) cb.checked=remember;
-   if(u && remember && !u.value) u.value=saved;
- }catch(e){}
-}
-
-function saveRememberedLogin(){
- const remember=$("#rememberMe").checked;
- if(remember){
-   localStorage.setItem("OMI Gamba_remember_login","1");
-   localStorage.setItem("OMI Gamba_remembered_username",$("#username").value.trim());
- }else{
-   localStorage.setItem("OMI Gamba_remember_login","0");
-   localStorage.removeItem("OMI Gamba_remembered_username");
- }
-}
-function openModal(m){mode=m;$("#modal").style.display="flex";$("#modal").style.pointerEvents="auto";$("#modalTitle").textContent=m==="login"?"Belépés":"Regisztráció";$("#submit").textContent=m==="login"?"Belépés":"Regisztráció";$("#switch").textContent=m==="login"?"Regisztráció":"Belépés";loadRememberedLogin()}
-$("#authBtn").onclick=()=>openModal("login");
-$("#registerBtn").onclick=()=>openModal("register");
-$("#close").onclick=()=>{
- const m=$("#modal");
- m.style.display="none";
- m.style.pointerEvents="none";
-};
-$("#switch").onclick=()=>openModal(mode==="login"?"register":"login");
-$("#submit").onclick=async()=>{try{
- const remember=$("#rememberMe").checked;
- const d=await api("/api/"+mode,{method:"POST",body:JSON.stringify({
-   username:$("#username").value,
-   password:$("#password").value,
-   remember
- })});
- saveRememberedLogin();
- user=d.user;
- $("#modal").style.display="none";
- $("#modal").style.pointerEvents="none";
- render();
- toast(mode==="login"?"Sikeres belépés!":"Sikeres regisztráció!");
- await Promise.all([hist(),inv(),lists()]);if(user?.role==="admin")await loadAdminPlayerActivity();
-}catch(e){toast(e.message)}};
-$("#logout").onclick=async()=>{await api("/api/logout",{method:"POST"});user=null;render();toast("Kijelentkeztél.")};
-$("#daily").onclick=async()=>{if(!user){openModal("login");return}try{const d=await api("/api/daily",{method:"POST"});user=d.user;render();toast("🎁 +"+fmt(d.bonus)+" Coin")}catch(e){toast(e.message)}};
-$("#dailySoul").onclick=async()=>{
- if(!user){openModal("login");return}
- try{
-   const d=await api("/api/daily-soul",{method:"POST"});
-   user=d.user;render();toast("👻 +"+fmt(d.bonus)+" Lélek Pont");
- }catch(e){toast(e.message)}
-};
-
-$("#open").onclick=async()=>{
- if(!user){openModal("login");return}
- if(openingInProgress)return;
- setOpeningState(true);
- try{
-   const d=await api("/api/open",{method:"POST",body:JSON.stringify({quantity:q})});
-   user=d.user;
-   render();
-   renderOpenResults(d);loadMyStats().catch(()=>{});
-
-   const grouped={};
-   d.results.forEach(r=>grouped[r.name]=(grouped[r.name]||0)+(r.qty||1));
-   const all=Object.entries(grouped).filter(([n])=>n!=="500 Coin").map(([n,c])=>`${c}× ${n}`).join(" · ");
-   if(all) toast(`🎉 ${all}`);
-
-   const jackpotWon=!!d.jackpot?.won || d.results.some(r=>r.name==="4B Főnyeremény");
-   const petWon=d.results.some(r=>r.name==="Ritka PET");
-   if(jackpotWon) showJackpotEffect();
-   else if(petWon) showPetEffect();
-
-   await hist().catch(()=>{});
-   await inv().catch(()=>{});
-   setTimeout(()=>lists().catch(()=>{}),100);
- }catch(e){
-   toast(e.message);
- }finally{
-   setOpeningState(false);
- }
-};
-document.addEventListener("click",(e)=>{
-  if(e.target && e.target.id==="closePet"){
-    const overlay=document.getElementById("petOverlay");
-    if(overlay){overlay.style.display="none";overlay.style.pointerEvents="none";}
-    return;
-  }
-  if(e.target && e.target.id==="closeJackpot"){
-    const overlay=document.getElementById("jackpotOverlay");
-    if(overlay){overlay.style.display="none";overlay.style.pointerEvents="none";}
-  }
-});
-document.addEventListener("keydown",(e)=>{
-  if(e.key==="Escape"){
-    const overlay=document.getElementById("jackpotOverlay");
-    if(overlay && overlay.style.display!=="none"){overlay.style.display="none";overlay.style.pointerEvents="none";}
-    const pet=document.getElementById("petOverlay");
-    if(pet && pet.style.display!=="none"){pet.style.display="none";pet.style.pointerEvents="none";}
-  }
-});
-
-document.addEventListener("click", async (e)=>{
-  const el=e.target.closest("button,a");
-  if(!el) return;
-
-  if(el.id==="close"){
-    const m=document.getElementById("modal");
-    if(m){m.style.display="none";m.style.pointerEvents="none";}
-  }
-  if(el.id==="authBtn") openModal("login");
-  if(el.id==="registerBtn") openModal("register");
-});
-
-document.addEventListener("input",(e)=>{
-  if(e.target && e.target.id==="publicDropSearch") renderCompactDrops();
-});
-
-let slotConfig=null,selectedSlotBet=null,slotBusy=false;
-async function loadSlotConfig(){try{slotConfig=await api("/api/slot-config");const bets=slotConfig.bets||[];$("#slotBets").innerHTML=bets.map((x,i)=>`<button class="slot-bet ${i===0?"active":""}" data-bet="${x.bet}"><b>${fmt(x.bet)} Coin</b><small>NYERTES: ${fmt(x.payout)} Coin</small></button>`).join("");selectedSlotBet=bets[0]?.bet||null}catch(e){}}
-$("#modeChest").onclick=()=>{$("#inventoryMode").style.display="none";$("#modeInventory")?.classList.remove("active");$("#shopMode").style.display="none";$("#modeShop")?.classList.remove("active");$("#chestMode").style.display="block";$("#slotMode").style.display="none";$("#redeemMode").style.display="none";$("#statsMode").style.display="none";$("#modeChest").classList.add("active");$("#modeSlot").classList.remove("active");$("#modeStats").classList.remove("active");$("#modeRedeem").classList.remove("active");$("#modeStats").classList.remove("active")};
-$("#modeSlot").onclick=()=>{$("#inventoryMode").style.display="none";$("#modeInventory")?.classList.remove("active");$("#shopMode").style.display="none";$("#modeShop")?.classList.remove("active");$("#chestMode").style.display="none";$("#slotMode").style.display="block";$("#redeemMode").style.display="none";$("#statsMode").style.display="none";$("#modeSlot").classList.add("active");$("#modeChest").classList.remove("active");$("#modeStats").classList.remove("active");$("#modeRedeem").classList.remove("active");$("#modeStats").classList.remove("active")};
-$("#modeRedeem").onclick=()=>{$("#inventoryMode").style.display="none";$("#modeInventory")?.classList.remove("active");$("#shopMode").style.display="none";$("#modeShop")?.classList.remove("active");
- $("#chestMode").style.display="none";$("#slotMode").style.display="none";$("#redeemMode").style.display="block";$("#statsMode").style.display="none";
- $("#modeRedeem").classList.add("active");$("#modeChest").classList.remove("active");$("#modeStats").classList.remove("active");$("#modeSlot").classList.remove("active");$("#modeStats").classList.remove("active");
- loadRedemptions();loadMyRedemptions();loadExchangeConfig();
-};
-
-$("#modeStats").onclick=()=>{$("#inventoryMode").style.display="none";$("#modeInventory")?.classList.remove("active");$("#shopMode").style.display="none";$("#modeShop")?.classList.remove("active");
- $("#chestMode").style.display="none";
- $("#slotMode").style.display="none";
- $("#redeemMode").style.display="none";
- $("#statsMode").style.display="block";
- ["modeChest","modeSlot","modeRedeem","modeStats"].forEach(id=>$("#"+id).classList.remove("active"));
- $("#modeStats").classList.add("active");
- loadMyStats();
-};
-
-document.addEventListener("click",e=>{const b=e.target.closest(".slot-bet");if(b){document.querySelectorAll(".slot-bet").forEach(x=>x.classList.remove("active"));b.classList.add("active");selectedSlotBet=Number(b.dataset.bet)}});
-$("#slotSpin").onclick=async()=>{if(slotBusy)return;if(!user){openModal("login");return}slotBusy=true;try{const d=await api("/api/slot-spin",{method:"POST",body:JSON.stringify({bet:selectedSlotBet})});for(let i=0;i<10;i++){await new Promise(r=>setTimeout(r,70));$("#slotSymbol").textContent=i%2?"✅":"☠️";$("#slotWord").textContent=i%2?"NYERTES":"KOPONYA"}$("#slotSymbol").textContent=d.result==="WIN"?"✅":"☠️";$("#slotWord").textContent=d.result==="WIN"?"NYERTES":"KOPONYA";user=d.user;render();loadMyStats().catch(()=>{});$("#slotResult").innerHTML=d.result==="WIN"?`<div class="slot-result-win">✅ NYERTES! +${fmt(d.payout)} Coin</div>`:`<div class="slot-result-lose">☠️ KOPONYA · -${fmt(d.bet)} Coin</div>`;if(d.result==="WIN")rewardChime("pet")}catch(e){toast(e.message)}finally{slotBusy=false}};
-
-document.addEventListener("input",(e)=>{
- if(e.target?.id==="adminActivitySearch") renderAdminPlayerActivity();
-});
-document.addEventListener("click",(e)=>{
- if(e.target?.id==="refreshAdminActivity") loadAdminPlayerActivity();
-});
-
-
-document.addEventListener("click",async e=>{
- const b=e.target.closest("[data-redeem]");
- if(!b)return;
- if(!user){openModal("login");return}
- if(!confirm("Biztosan kiváltod ezt a jutalmat Coinért?"))return;
- try{
-   const d=await api("/api/redeem",{method:"POST",body:JSON.stringify({rewardId:b.dataset.redeem})});
-   user=d.user;render();if($("#redeemBalance"))$("#redeemBalance").textContent=fmt(user.coins);toast(d.message);await loadMyRedemptions();
- }catch(err){toast(err.message)}
-});
-
-
-$("#refreshMyStats").onclick=()=>loadMyStats();
-
-
-async function loadLeaderboard(){
- const containers=[
-   document.getElementById("leaderboard"),
-   document.getElementById("ranking"),
-   document.getElementById("rankList"),
-   document.getElementById("ranglista")
- ].filter(Boolean);
- if(!containers.length)return;
-
- try{
-   const d=await api("/api/leaderboard");
-   const rows=d.rows||[];
-   const html=rows.length?rows.map(r=>`
-     <div class="rank-dual-row">
-       <div class="rank-place">${r.rank<=3?["🥇","🥈","🥉"][r.rank-1]:"#"+r.rank}</div>
-       <div class="rank-user"><b>${r.username}</b><span>Összpont: ${fmt(r.combinedScore)}</span></div>
-       <div class="rank-values">
-         <div><span>🪙 Coin</span><b>${fmt(r.coins)}</b></div>
-         <div><span>👻 Lélek Pont</span><b>${fmt(r.soulPoints)}</b></div><div><span>💰 Yang</span><b>${fmt(r.yang)}</b></div>
-       </div>
-     </div>`).join(""):"<div class='small'>Még nincs ranglista adat.</div>";
-   containers.forEach(c=>c.innerHTML=html);
- }catch(e){
-   containers.forEach(c=>c.innerHTML=`<div class="small">Ranglista hiba: ${e.message}</div>`);
- }
-}
-
-(async()=>{await loadPublic();await loadSlotConfig();await loadMe();await Promise.all([lists(),loadDropsPublic(),loadLeaderboard()]);setInterval(()=>{lists();loadLeaderboard().catch(()=>{})},15000)})();
-
-let currentExchangeConfig={};
-async function loadExchangeConfig(){
- if(!user)return;
- try{
-   const d=await api("/api/exchange-config");
-   currentExchangeConfig=d;
-   const map=[
-     ["rateYangSoul",d.yangToSoul,"Yang","Lélekpont","yang-to-soul"],
-     ["rateSoulCoin",d.soulToCoin,"Lélekpont","Coin","soul-to-coin"],
-     ["rateCoinSoul",d.coinToSoul,"Coin","Lélekpont","coin-to-soul"]
-   ];
-   for(const [id,cfg,a,b,action] of map){
-     const el=$("#"+id),btn=document.querySelector(`[data-exchange="${action}"]`);
-     if(!cfg.enabled){el.textContent="Kikapcsolva";if(btn)btn.disabled=true;continue}
-     el.innerHTML=`<b>${fmt(cfg.cost)} ${a}</b> → <b>${fmt(cfg.reward)} ${b}</b>`;
-     if(btn)btn.disabled=false;
-     updateExchangeTotal(action);
-   }
- }catch(e){if($("#exchangeMsg"))$("#exchangeMsg").textContent="❌ "+e.message}
-}
-function exchangeCfg(action){
- return action==="yang-to-soul"?currentExchangeConfig.yangToSoul:
-        action==="soul-to-coin"?currentExchangeConfig.soulToCoin:
-        currentExchangeConfig.coinToSoul;
-}
-function updateExchangeTotal(action){
- const inp=document.querySelector(`[data-exchange-amount="${action}"]`);
- const el=document.querySelector(`[data-exchange-total="${action}"]`);
- const cfg=exchangeCfg(action);
- if(!inp||!el||!cfg)return;
- const n=Math.max(1,Math.min(1000000,Math.floor(Number(inp.value||1))));
- inp.value=n;
- const names=action==="yang-to-soul"?["Yang","Lélekpont"]:action==="soul-to-coin"?["Lélekpont","Coin"]:["Coin","Lélekpont"];
- el.innerHTML=`${n.toLocaleString("hu-HU")}× · <b>${fmt(cfg.cost*n)} ${names[0]}</b> → <b>${fmt(cfg.reward*n)} ${names[1]}</b>`;
-}
-document.addEventListener("click",e=>{
- const s=e.target.closest("[data-exchange-step]");
- if(!s)return;
- const action=s.dataset.exchangeStep,inp=document.querySelector(`[data-exchange-amount="${action}"]`);
- if(!inp)return;
- inp.value=Math.max(1,Math.min(1000000,Math.floor(Number(inp.value||1))+Number(s.dataset.delta||0)));
- updateExchangeTotal(action);
-});
-document.addEventListener("input",e=>{
- if(!e.target.matches("[data-exchange-amount]"))return;
- updateExchangeTotal(e.target.dataset.exchangeAmount);
-});
-
-document.addEventListener("click",async e=>{
- const b=e.target.closest("[data-exchange]");
- if(!b)return;
- if(!user){openModal("login");return}
- const amount=Math.max(1,Math.min(1000000,Math.floor(Number(document.querySelector(`[data-exchange-amount="${b.dataset.exchange}"]`)?.value||1))));
- if(!confirm(`Biztosan végrehajtod az átváltást ${amount.toLocaleString("hu-HU")}× mennyiséggel?`))return;
- const msg=$("#exchangeMsg");
- try{
-   b.disabled=true;
-   const d=await api(`/api/exchange/${b.dataset.exchange}`,{method:"POST",body:JSON.stringify({amount})});
-   user=d.user;render();msg.textContent="✅ "+d.message;
-   await loadMyStats().catch(()=>{});
-   await loadCumulativeRewards().catch(()=>{});
- }catch(err){msg.textContent="❌ "+err.message}
- finally{b.disabled=false}
-});
-
-
-function applyPurchasedBackground(name){
- document.body.dataset.shopBg=name||"black_gold";
-}
-function applyPurchasedCursor(name){
- document.body.dataset.shopCursor=name||"gold_small";
- window.activeShopCursor=name||"gold_small";
-}
-function previewBackground(name){
- const old=document.body.dataset.shopBg||"black_gold";
- applyPurchasedBackground(name);
- clearTimeout(window._bgPreviewTimer);
- window._bgPreviewTimer=setTimeout(()=>applyPurchasedBackground(user?.selected_background||old),5000);
- toast("🎨 Háttér előnézet – 5 másodperc");
-}
-function previewCursor(name){
- const old=document.body.dataset.shopCursor||"gold_small";
- applyPurchasedCursor(name);
- clearTimeout(window._cursorPreviewTimer);
- window._cursorPreviewTimer=setTimeout(()=>applyPurchasedCursor(user?.selected_cursor||old),5000);
- toast("🖱️ Kurzor előnézet – mozgasd az egeret!");
-}
-function playPurchasedChime(name){
- try{
-   const ctx=new (window.AudioContext||window.webkitAudioContext)();
-   const now=ctx.currentTime;
-   const presets={
-     classic:{notes:[880,1174],type:"sine",gap:.11},
-     crystal:{notes:[1046,1318,1568,2093],type:"sine",gap:.09},
-     royal:{notes:[523,659,784,1046],type:"triangle",gap:.12},
-     arcane:{notes:[392,523,659,988],type:"sine",gap:.14},
-     heaven:{notes:[659,988,1318,1760],type:"sine",gap:.16},
-     dark:{notes:[220,196,164,130],type:"triangle",gap:.15},
-     pixel:{notes:[784,1046,1318,1046,1568],type:"square",gap:.08}
-   };
-   const p=presets[name]||presets.classic;
-   p.notes.forEach((freq,i)=>{
-     const o=ctx.createOscillator(),g=ctx.createGain(),t=now+i*p.gap;
-     o.frequency.value=freq;o.type=p.type;
-     g.gain.setValueAtTime(.0001,t);
-     g.gain.exponentialRampToValueAtTime(.11,t+.015);
-     g.gain.exponentialRampToValueAtTime(.0001,t+.18);
-     o.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+.2);
-   });
-   setTimeout(()=>ctx.close().catch(()=>{}),1800);
- }catch{}
-}
-
-async function loadShop(){
- if(!user)return;
- try{
-   const d=await api("/api/shop");
-   user=d.user;render();
-   $("#shopYangBalance").textContent=fmt(user.yang_balance||0);
-   const owned=new Set(d.owned||[]);
-   $("#shopItems").innerHTML=(d.items||[]).map(x=>{
-     const cosmetic=["chime","background","cursor"].includes(x.type);
-     const has=owned.has(x.id)||Number(x.price||0)===0;
-     const icon=x.type==="chime"?"🔔":x.type==="background"?"🎨":x.type==="cursor"?"🖱️":x.type==="inventory"?"⚔️":x.type==="coin"?"🪙":"👻";
-     const desc=x.type==="soul"?fmt(x.value)+" Lélek Pont":
-                x.type==="coin"?fmt(x.value)+" Coin":
-                x.type==="chime"?"Nyereményhang":
-                x.type==="background"?"Háttér téma":x.type==="inventory"?"Gyűjthető inventory tárgy":"Kurzor / egéreffekt";
-     const preview=x.type==="chime"?`<button class="btn" data-preview-chime="${x.value}" type="button">▶ Meghallgatás</button>`:
-                   x.type==="background"?`<button class="btn" data-preview-bg="${x.value}" type="button">👁 Előnézet</button>`:
-                   x.type==="cursor"?`<button class="btn" data-preview-cursor="${x.value}" type="button">👁 Kipróbálás</button>`:"";
-     const action=(cosmetic||x.type==="inventory")&&has
-       ? (x.type==="inventory"?`<button class="btn" disabled>✓ Inventoryban</button>`:`<button class="btn primary" data-shop-select="${x.id}">✓ Kiválasztás</button>`)
-       : `<button class="btn primary" data-shop-buy="${x.id}">${x.price==0?"Feloldás":"Vásárlás"}</button>`;
-     return `<div class="shop-card">
-       <div class="shop-icon">${icon}</div>
-       <div class="shop-name">${x.name}</div>
-       <div class="small">${desc}</div>
-       <div class="shop-price">💰 ${fmt(x.price)} Yang</div>
-       <div class="shop-actions">${preview}${action}</div>
-     </div>`;
-   }).join("")||"<div class='small'>Nincs aktív shop tétel.</div>";
-   if($("#ownedInventory"))$("#ownedInventory").innerHTML=(d.inventory||[]).length?(d.inventory||[]).map(x=>`<div class="inventory-item"><div class="inventory-icon">⚔️</div><b>${x.name}</b><span>Megvásárolva</span></div>`).join(""):"<div class='small'>Még nincs megvásárolt gyűjthető tárgyad.</div>";
-   applyPurchasedBackground(user.selected_background);
-   applyPurchasedCursor(user.selected_cursor);
- }catch(e){$("#shopMsg").textContent="❌ "+e.message}
-}
-
-
-document.addEventListener("click",(e)=>{
-  const ch=e.target.closest("[data-preview-chime]");
-  if(ch){
-    e.preventDefault();
-    playPurchasedChime(ch.dataset.previewChime);
-    return;
-  }
-
-  const bg=e.target.closest("[data-preview-bg]");
-  if(bg){
-    e.preventDefault();
-    previewBackground(bg.dataset.previewBg);
-    return;
-  }
-
-  const cur=e.target.closest("[data-preview-cursor]");
-  if(cur){
-    e.preventDefault();
-    previewCursor(cur.dataset.previewCursor);
-    return;
-  }
-});
-
-document.addEventListener("click",async e=>{
- const buy=e.target.closest("[data-shop-buy]");
- if(buy){
-   try{
-     const d=await api("/api/shop/buy",{method:"POST",body:JSON.stringify({itemId:buy.dataset.shopBuy})});
-     user=d.user;render();$("#shopMsg").textContent="✅ "+d.message;await loadShop();
-   }catch(err){$("#shopMsg").textContent="❌ "+err.message}
-   return;
- }
- const sel=e.target.closest("[data-shop-select]");
- if(sel){
-   try{
-     const d=await api("/api/shop/select",{method:"POST",body:JSON.stringify({itemId:sel.dataset.shopSelect})});
-     user=d.user;render();applyPurchasedBackground(user.selected_background);applyPurchasedCursor(user.selected_cursor);$("#shopMsg").textContent="✅ Kiválasztva.";await loadShop();
-   }catch(err){$("#shopMsg").textContent="❌ "+err.message}
- }
-});
-
-$("#modeShop").onclick=()=>{$("#inventoryMode").style.display="none";$("#modeInventory")?.classList.remove("active");
- ["chestMode","slotMode","redeemMode","statsMode","shopMode"].forEach(id=>{const el=$("#"+id);if(el)el.style.display="none"});
- ["modeChest","modeSlot","modeRedeem","modeStats","modeShop"].forEach(id=>$("#"+id)?.classList.remove("active"));
- $("#shopMode").style.display="block";$("#modeShop").classList.add("active");loadShop();
-};
-
-
-let lastTrailAt=0;
-document.addEventListener("mousemove",e=>{
- const mode=window.activeShopCursor||document.body.dataset.shopCursor||"gold_small";
- const now=performance.now();
- if(!["sparkle","sparkle_large","rainbow","flame"].includes(mode) || now-lastTrailAt<35)return;
- lastTrailAt=now;
- const dot=document.createElement("div");
- dot.className="cursor-trail "+mode;
- dot.style.left=e.clientX+"px";
- dot.style.top=e.clientY+"px";
- dot.textContent=mode==="flame"?"✦":mode==="rainbow"?"✧":"✦";
- document.body.appendChild(dot);
- setTimeout(()=>dot.remove(),650);
-});
-
-
-function weaponRarityLabel(r){
- const map={
-  normal:{name:"NORMAL",icon:"⚪",min:1.05},
-  rare:{name:"RARE",icon:"🔵",min:1.20},
-  mitic:{name:"MITIC",icon:"🟣",min:1.50},
-  legendary:{name:"LEGENDARY",icon:"🟡",min:2.00}
- };
- return map[r]||map.normal;
-}
-async function loadFullInventory(){
- if(!user)return;
- try{
-   const d=await api("/api/my-full-inventory");
-   user=d.user;render();
-   $("#weaponInventory").innerHTML=(d.weapons||[]).length?(d.weapons||[]).map(w=>{
-     const equipped=String(d.equippedWeapon||"")===String(w.id);
-     return `<div class="weapon-card ${equipped?"equipped":""}">
-       <div class="weapon-top"><span class="weapon-icon">⚔️</span><div><b>${w.name}</b><div class="weapon-rarity rarity-${w.rarity||"normal"}">${weaponRarityLabel(w.rarity).icon} ${weaponRarityLabel(w.rarity).name}</div><div class="small">Alap érték: ${fmt(w.base_value||100)}</div></div></div>
-       <div class="weapon-stats">
-         <div><span>Aktuális érték</span><b>${fmt(w.value_score)}</b></div>
-         <div><span>Slot szorzó</span><b>x${Number(w.slot_multiplier).toFixed(3)}</b></div>
-         
-         <div><span>Húzások</span><b>${fmt(w.roll_count)}</b></div>
-       </div>
-       <div class="small weapon-max">Húzható Coin szorzó: x${weaponRarityLabel(w.rarity).min.toFixed(2)} – x${Number(w.max_multiplier||1.20).toFixed(2)}</div>
-       <div class="weapon-actions">
-         <button class="btn primary" data-weapon-roll="${w.id}">🎲 Húzás · ${fmt(w.roll_cost||5000000)} Yang</button>
-         <button class="btn ${equipped?"active":""}" data-weapon-equip="${w.id}">${equipped?"✓ Felszerelve":"⚔️ Felszerelés"}</button>
-       </div>
-     </div>`;
-   }).join(""):"<div class='small'>Még nincs Yangért vásárolt fegyvered.</div>";
-
-   $("#chestInventoryTop").innerHTML=(d.chestItems||[]).length?(d.chestItems||[]).map(x=>`<div class="inventory-item"><div class="inventory-icon">🎁</div><b>${x.item_name}</b><span>${fmt(x.quantity)} db</span></div>`).join(""):"<div class='small'>Nincs ládából szerzett tárgyad.</div>";
- }catch(e){$("#inventoryModeMsg").textContent="❌ "+e.message}
-}
-
-$("#modeInventory").onclick=()=>{
- ["chestMode","slotMode","redeemMode","statsMode","inventoryMode","shopMode"].forEach(id=>{const el=$("#"+id);if(el)el.style.display="none"});
- ["modeChest","modeSlot","modeRedeem","modeStats","modeInventory","modeShop"].forEach(id=>$("#"+id)?.classList.remove("active"));
- $("#inventoryMode").style.display="block";$("#modeInventory").classList.add("active");loadFullInventory();
-};
-
-document.addEventListener("click",async e=>{
- const roll=e.target.closest("[data-weapon-roll]");
- if(roll){
-   if(!confirm("Biztosan Yangért újrahúzod ezt a fegyvert? Az előző bónuszok lecserélődnek."))return;
-   try{
-     const d=await api("/api/inventory/roll",{method:"POST",body:JSON.stringify({itemId:roll.dataset.weaponRoll})});
-     user=d.user;render();$("#inventoryModeMsg").textContent="✅ "+d.message;await loadFullInventory();
-   }catch(err){$("#inventoryModeMsg").textContent="❌ "+err.message}
-   return;
- }
- const eq=e.target.closest("[data-weapon-equip]");
- if(eq){
-   try{
-     const d=await api("/api/inventory/equip",{method:"POST",body:JSON.stringify({itemId:eq.dataset.weaponEquip})});
-     user=d.user;render();$("#inventoryModeMsg").textContent="✅ "+d.message;await loadFullInventory();
-   }catch(err){$("#inventoryModeMsg").textContent="❌ "+err.message}
- }
-});
-
-$("#resetHistoryBtn").onclick=async()=>{
- if(!confirm("Biztosan törlöd a saját játéktörténeted? A jackpot/admin ellenőrzési adatok nem törlődnek."))return;
- try{const d=await api("/api/me/reset-history",{method:"POST",body:"{}"});toast(d.message);await hist()}catch(e){toast(e.message)}
-};
-
-$("#resetInventoryBtn").onclick=async()=>{
- if(!confirm("Biztosan teljesen reseteled az inventorydat? A fegyverek és húzásaik törlődnek, Yang visszatérítés nincs."))return;
- try{
-   const d=await api("/api/me/reset-inventory",{method:"POST",body:"{}"});
-   user=d.user;render();$("#inventoryModeMsg").textContent="✅ "+d.message;await loadFullInventory();
- }catch(e){$("#inventoryModeMsg").textContent="❌ "+e.message}
-};
-
-
-$("#resetMyChestResults")?.addEventListener("click",async()=>{
- if(!confirm("Biztosan törlöd a SAJÁT összes eddigi ládaeredményedet?\n\nAz egyenlegeid és inventoryd nem törlődnek."))return;
- try{
-   const d=await api("/api/me/reset-chest-results",{method:"POST",body:"{}"});
-   toast("🗑 "+d.message);
-   if(typeof loadRewardTotals==="function")await loadRewardTotals();
-   if(typeof loadMyRewardTotals==="function")await loadMyRewardTotals();
-   if(typeof loadStats==="function")await loadStats();
-   if(typeof loadMyStats==="function")await loadMyStats();
-   setTimeout(()=>location.reload(),350);
- }catch(e){toast(e.message)}
-});
-
-</script>
-
-<div id="petOverlay" style="display:none;pointer-events:none;position:fixed;inset:0;z-index:9998;background:radial-gradient(circle at center,rgba(64,220,157,.30),rgba(0,0,0,.92));align-items:center;justify-content:center;padding:20px">
-  <div style="width:min(620px,100%);text-align:center;padding:38px 28px;border-radius:24px;border:2px solid #66e6ad;background:linear-gradient(180deg,#10251d,#090d0b);box-shadow:0 0 80px rgba(102,230,173,.22),0 30px 100px #000">
-    <div style="font-size:72px">🐾</div>
-    <div style="color:#72efb8;font-weight:1000;letter-spacing:2px">RITKA DROP!</div>
-    <h1 style="font-size:clamp(34px,6vw,56px);margin:8px 0 12px">RITKA PETET NYERTÉL!</h1>
-    <p style="font-size:17px;line-height:1.6;color:#ddd">Gratulálunk! Ritka PET esett a ládából. A nyeremény bekerült az inventorydba.</p>
-    <button class="btn primary" id="closePet" type="button" style="margin-top:12px">ÉRTETTEM 🐾</button>
+<div class="modal" id="authModal">
+  <div class="modal-box">
+    <button class="modal-x" id="authClose">×</button>
+    <h2>👤 OMI IDLE FARM</h2>
+    <p class="muted">Jelentkezz be, hogy a fejlődésed a szerveren legyen elmentve.</p>
+    <div class="auth-tabs"><button class="auth-switch active" data-auth="login">Belépés</button><button class="auth-switch" data-auth="register">Regisztráció</button></div>
+    <input id="authUsername" placeholder="Felhasználónév" maxlength="24">
+    <input id="authPassword" type="password" placeholder="Jelszó">
+    <button id="authSubmit">Belépés</button>
+    <div class="muted" id="authMsg"></div>
   </div>
 </div>
 
-<div id="jackpotOverlay" style="display:none;pointer-events:none;position:fixed;inset:0;z-index:9999;background:radial-gradient(circle at center,rgba(119,55,210,.45),rgba(0,0,0,.92));align-items:center;justify-content:center;padding:20px">
-  <div style="width:min(680px,100%);text-align:center;padding:40px 28px;border-radius:24px;border:2px solid #ffcf62;background:linear-gradient(180deg,#211530,#0d0912);box-shadow:0 0 80px rgba(255,207,98,.28),0 30px 100px #000">
-    <div id="jackpotFx" style="font-size:74px;filter:drop-shadow(0 0 20px rgba(255,207,98,.5))">🏆</div>
-    <div style="color:#ffcf62;font-weight:1000;letter-spacing:2px;font-size:15px;margin-top:8px">JACKPOT!</div>
-    <h1 style="font-size:clamp(36px,7vw,64px);margin:8px 0 12px;line-height:1">NYERTÉL<br>4 MILLIÁRD YANGOT!</h1>
-    <p style="font-size:18px;line-height:1.65;color:#ddd;max-width:540px;margin:0 auto 20px">
-      Gratulálunk! A 4 000 000 000 Yang főnyereményt biztosan megnyerted.
-      A nyeremény átvételéhez játékban keresd a <b style="color:white">Hox</b> nevű játékost.
-    </p>
-    <div style="padding:13px;border:1px solid rgba(255,207,98,.35);border-radius:12px;background:rgba(255,207,98,.06);margin-bottom:18px">
-      ✅ A nyeremény rögzítve lett az admin ellenőrző rendszerében.
-    </div>
-    <button class="btn primary" id="closeJackpot" style="font-size:16px;padding:13px 24px">ÉRTETTEM 🎉</button>
-  </div>
-</div>
+<div id="toast"></div>
+<input id="importFile" type="file" accept=".json" hidden>
+<script src="game.js"></script>
 </body></html>
